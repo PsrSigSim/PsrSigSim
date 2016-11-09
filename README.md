@@ -18,7 +18,8 @@ The modules will each be class objects that model various physical processes act
 They will take the signal class as their primary input along with any other necessary parameters needed to model the physical process.
 Each module will model the various changes to the pulsar signal and will add any information to the metadata of the signal class needed to understand the history of those processes.
 
-Inputs for modules will be function calls whenever possible, however the ability to input .par files will be built in so that known pulsars can be modeled without need for reentering known data.
+Inputs for modules will be function calls whenever possible, however the ability to input ```.par``` files will be built in so that known pulsars can be modeled without need for reentering known data.
+The final output should be a format that can be readily used by existing analysis, such as ```.fits```.
 The minimal working version of the simulator will consist of a Pulsar Module, an ISM Module and a Telescope module.
 The pulses will be formed from modulating a white noise background using a gaussian pulse shape.
 The module will be designed with the goal of generalizing the input pulse shape and allowing for multiple bands and bandwidths.
