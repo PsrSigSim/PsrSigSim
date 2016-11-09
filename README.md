@@ -1,8 +1,7 @@
-# Version 0 point 0
+# Pulsar Signal Simulator Version 0.0
 
-Pulsar Signal Simulator Version 0.0
-This document serves as a summary of the Pulsar Signal Simulator Working Group’s plan for the first version of the simulator.
-In our first two meetings it was decided that the simulator will be written using Python 3 (or Python 2, with included translation commands) and that a private GitHub page will be used for storing and collaborating on the code.
+This document serves as a summary of the __Pulsar Signal Simulator Working Group__’s plan for the first version of the simulator.
+In our first two meetings it was decided that the simulator will be written using ```Python 3.x``` (including imports from the ```__future__``` module for ```Python 2.7``` compatibility) and that a private GitHub page will be used for storing and collaborating on the code.
 If you wish to have access to the GitHub repository please contact Nathaniel Garver-Daniels and include you GitHub username and he will send you an invitation.
 
 ## The Signal
