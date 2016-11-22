@@ -21,7 +21,7 @@ class MetaData(object):
             add in to the metadata
         """
         for ii,jj in Info.items():
-            setattr(MetaData, ii, jj)
+            setattr(self, ii, jj)
 
         """TODO Add error message if someone trys to overlap parameters
         """
