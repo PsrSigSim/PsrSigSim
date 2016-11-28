@@ -17,7 +17,7 @@ class MetaData(object):
 
     def AddInfo(self,Info):
         """Function to Add Information into the metadata from a dictionary
-            Idea since each new module will have a dictionary of terms to
+            Since each new module will have a dictionary of terms to
             add in to the metadata
         """
         for ii,jj in Info.items():
