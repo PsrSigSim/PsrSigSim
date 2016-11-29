@@ -15,7 +15,6 @@ class Pulsar(object):
         self.bw = self.Signal_in.bw
         self.Nf = self.Signal_in.Nf
         self.Nt = self.Signal_in.Nt
-        self.Info_in = self.Signal_in.MetaData
         self.phase = np.linspace(0., 1., self.Nt)
         self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
         self.PulsarDict = dict(Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
