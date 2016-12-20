@@ -8,7 +8,9 @@ import numpy as np
 import scipy as sp
 import math
 
-min_float = np.nextafter(0.,1.)  # smallest nonzero float
+_min_float = np.nextafter(0.,1.)  # smallest nonzero float
+_non_zero = 10.*_min_float        # small non_zero value to replace
+_zero_thresh = 1.e4*_min_float    # things smaller than this can be reset to zero
 
 class Pulsar(object):
     def __init__(self, Signal_in, period = 50): #period in milliseconds
@@ -42,9 +44,9 @@ class Pulsar(object):
         try:
             pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
         except ValueError:
-            pr[pr==0] = 10.*min_float
+            pr[pr==0] = _non_zero
             pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
-            pulse[pulse<101.*min_float]=0.
+            pulse[pulse<_zero_thresh]=0.
 
         #TODO: interpolate single pulse back to full resolution
 
