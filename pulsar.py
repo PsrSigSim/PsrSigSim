@@ -7,6 +7,8 @@ from __future__ import (absolute_import, division,
 import numpy as np
 import scipy as sp
 
+min_float = np.nextafter(0.,1.)  # smallest nonzero float
+
 class Pulsar(object):
     def __init__(self, Signal_in):
         self.Signal_in = Signal_in
@@ -32,7 +34,12 @@ class Pulsar(object):
         #TODO: average template into new phase bins
         #ph = np.linspace(0., 1., self.Nt) # new phase bins
         pr = self.profile
-        pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
+        try:
+            pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
+        except ValueError:
+            pr[pr==0] = 10.*min_float
+            pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
+            pulse[pulse<101.*min_float]=0.
 
         #TODO: interpolate single pulse back to full resolution
 
