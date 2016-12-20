@@ -14,6 +14,7 @@ class MetaData(object):
         self.bw = None # bandwidth (MHz)
         self.Nf = None # number of frequency bins
         self.Nt = None # number of time/phase bins
+        self.TotTime = None #Total time in milliseconds
 
     def AddInfo(self,Info):
         """Function to Add Information into the metadata from a dictionary
@@ -30,7 +31,7 @@ class MetaData(object):
 class Signal(object):
     """the signal class
     """
-    def __init__(self, f0=400, bw=100, Nf=20, Nt=200):
+    def __init__(self, f0=400, bw=100, Nf=20, Nt=400, TotTime=200):
         """initialize Signal(), executed at assignment of new instance
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
@@ -41,7 +42,10 @@ class Signal(object):
         self.f0 = f0 # (MHz)
         self.bw = bw # (MHz)
         self.Nf = Nf # freq bins
-        self.Nt = Nt # phase bins
+        if Nt%2 == 0: # Make signal even in length (for FFTs)
+            self.Nt = Nt # phase bins
+        else: self.Nt = Nt + 1
+        self.TotTime = TotTime #Total time in milliseconds
         self.signal = np.zeros((self.Nf, self.Nt))
 
 
@@ -86,3 +90,13 @@ class Signal(object):
     def Nt(self, value):
         self._Nt = value
         self.MetaData.Nt = self._Nt
+
+    @property
+
+    def TotTime(self):
+        return self._TotTime
+
+    @TotTime.setter
+    def TotTime(self, value):
+        self._TotTime = value
+        self.MetaData.TotTime = self._TotTime
