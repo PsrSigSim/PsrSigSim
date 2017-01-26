@@ -3,9 +3,9 @@ module to cause dispersion
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-
 import numpy as np
 import scipy as sp
+import PSS_utils as utils
 
 class ISM(object):
     def __init__(self, Signal_in):
@@ -17,6 +17,11 @@ class ISM(object):
         self.Nt = self.Signal_in.Nt
         self.freqBinSize = self.bw/self.Nf
         self.first_freq = self.f0 - self.freqBinSize * self.Nf/2
+        if self.first_freq == 0.0 :
+            self.first_freq = self.first_freq + self.freqBinSize * 1e-10
+            print("First Frequency adjusted",self.freqBinSize * 1e-10,"MHz away from zero to avoid division errors.")
+        elif self.first_freq < 0.0 :
+            raise ValueError("First Frequency Less Than Zero")
         self.last_freq = self.f0 + self.freqBinSize * self.Nf/2
         self.phase = np.linspace(0., 1., self.Nt)
         #self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
