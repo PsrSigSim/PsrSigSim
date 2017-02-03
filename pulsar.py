@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
 
 import numpy as np
 import scipy as sp
+import h5py
 import math
 import PSS_utils as utils
 
@@ -21,7 +22,7 @@ class Pulsar(object):
         self.T = period
         self.TimeBinSize = self.TotTime/self.Nt
         self.nBinsPeriod = int(self.T/self.TimeBinSize)
-        self.time = np.linspace(0., self.TotTime, self.Nt)
+        #self.time = np.linspace(0., self.TotTime, self.Nt)
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
         self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
         self.PulsarDict = dict(Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
@@ -30,12 +31,13 @@ class Pulsar(object):
         #TODO Check to see that you have the correct kind of array and info you need
 
 
-    def draw_intensity_pulse(self):
+    def draw_intensity_pulse(self, reps):
         """draw_intensity_pulse(pulse)
         draw a single pulse as bin by bin random process (gamma distr) from input template
         """
-        pr = self.profile
+        pr = np.tile(self.profile, reps)
         pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
+
 
         return pulse
 
@@ -118,19 +120,32 @@ class Pulsar(object):
         self.NPeriods = math.floor(self.TotTime/self.T) #Number of periods that can fit in the time given
         self.PeriodFracRemain = self.TotTime/self.T - self.NPeriods #Home much of the last period remaining
         self.NLastPeriodBins = self.Nt - self.NPeriods * self.profile.size #index when last period starts
-        self.pulse = []
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[SignalType])
 
-        for ii in range(self.NPeriods):
-            self.pulse = np.append(self.pulse, pulseTypeMethod())
+        if self.Nt*self.Nf > 500000: #Limits the array size to 2.048 GB
+            """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
+            of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
+            is currently optimized for an 8GB RAM machine. Currently, most of the time is spent writing to disk.
+            """
+            self.ChunkSize = 5000
+            self.NPeriodChunks = self.NPeriods//self.ChunkSize
+            self.NPeriodRemainder = self.NPeriods % self.ChunkSize
+            for ii in range(self.NPeriodChunks): #limits size of the array in memory
+                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : ii * self.ChunkSize * self.nBinsPeriod + self.ChunkSize * self.nBinsPeriod] = np.tile(pulseTypeMethod(self.ChunkSize),(self.Nf,1))
 
-        self.LastPeriod = pulseTypeMethod()[0:self.NLastPeriodBins]
-        self.pulse = np.append(self.pulse, self.LastPeriod)
+            if self.NPeriodRemainder != 0 :
+                self.signal[:,self.NPeriodChunks * self.ChunkSize * self.nBinsPeriod:] = np.tile(pulseTypeMethod(self.NPeriodRemainder),(self.Nf,1))
 
+        else:
+            self.signal[0:self.NPeriods * self.profile.size] = np.tile(pulseTypeMethod(self.NPeriods),(self.Nf,1)) #Can be put into main flow for large RAM computers.
 
-        for jj in range(self.Nf):
-            self.signal[jj,:] = self.pulse
+        self.LastPeriod = pulseTypeMethod(1)[0:self.NLastPeriodBins]
+        #self.pulse[self.NPeriods * self.profile.size:] = self.LastPeriod
+        self.signal[:,self.NPeriods * self.profile.size:] = np.tile(self.LastPeriod,(self.Nf,1))
+        #for jj in range(self.Nf):
+        #    self.signal[jj,:] = self.pulse
+        #self.signal = np.tile(self.pulse,(self.Nf,1))
 
         self.PulsarDict["SignalType"] = SignalType
 
