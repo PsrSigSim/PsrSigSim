@@ -50,7 +50,7 @@ class Signal(object):
         if self.Nt*self.Nf > 500000: #Limits the array size to 2.048 GB
             SignalPath = "signal.hdf5"
             SignalFile = h5py.File(SignalPath)
-            self.signal = SignalFile.create_dataset(None, (self.Nf, self.Nt), dtype='float32')
+            self.signal = SignalFile.create_dataset(None, (self.Nf, self.Nt), dtype='int16')
             #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
         else:
             self.signal = np.zeros((self.Nf, self.Nt))

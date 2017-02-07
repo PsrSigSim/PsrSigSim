@@ -35,7 +35,7 @@ class Pulsar(object):
         """draw_intensity_pulse(pulse)
         draw a single pulse as bin by bin random process (gamma distr) from input template
         """
-        pr = np.tile(self.profile, reps)
+        pr = 100*np.tile(self.profile, reps)
         pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
 
 
