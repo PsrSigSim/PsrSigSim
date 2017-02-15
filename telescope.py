@@ -19,7 +19,7 @@ class Telescope(object):
         self.TimeBinSize = self.TotTime/self.Nt #in milliseconds
         #self.SignalSampFreq = 1/self.TimeBinSize
 
-    def observe(self, telescope='GBT', Band=1400, mode='search'):
+    def observe(self, telescope='GBT', Band=1400, mode='search', noise=False):
         # Method to Downsample the simulated signal into the telescopes sampling frequency
         # Telescope sampling frequency given in GHz
         #TODO Adds error messages if not the correct type of file.
@@ -53,11 +53,23 @@ class Telescope(object):
             self.signal=np.zeros((self.Nf,self.NewLength))
             for ii in range(self.Nf):
                 self.signal[ii,:] = utils.rebin(self.signal_in[ii,:], self.NewLength)
-            #print("User supplied template has been downsampled.")
             print("Input signal sampling frequency= ", self.TimeBinSize," ms. Telescope sampling frequency = ",self.TelescopeTimeBinSize," ms")
 
         else:
+            # Throw error if the input signal has a lower sampling frequency than the telescope sampling frequency.
             raise ValueError("Signal Sampling Frequency Lower than Telescope Sampling Frequency")
 
+        self.NFreqBins, self.NTimeBins = self.signal.shape
 
-            # Throw error if the input signal has a lower sampling frequency than the telescope sampling frequency.
+        if noise :
+            self.signal = self.signal + 1000*np.random.randn(self.NFreqBins, self.NTimeBins)
+
+
+
+    def fold(self, period, N_Folds = 100):
+        self.period = period
+        self.NBinsPeriod = int(self.period // self.TelescopeTimeBinSize)
+        if self.NBinsPeriod*N_Folds > self.NTimeBins:
+            raise ValueError("Not enough time for that many foldings!")
+        self.folded = np.sum(self.signal[:,0:self.NBinsPeriod*N_Folds].reshape(self.NFreqBins, N_Folds, self.NBinsPeriod),axis=1)
+        #downsampled = x.reshape(-1, R).mean(axis=1)
