@@ -23,8 +23,6 @@ class ISM(object):
         elif self.first_freq < 0.0 :
             raise ValueError("First Frequency Less Than Zero")
         self.last_freq = self.f0 + self.freqBinSize * self.Nf/2
-        self.phase = np.linspace(0., 1., self.Nt)
-        #self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
         self.ISM_Dict = dict(dispersion=True, scattering=False, DM = 30, scintillation=False)
 
     def shiftit(self, y, shift):

@@ -62,7 +62,7 @@ class Telescope(object):
         self.NFreqBins, self.NTimeBins = self.signal.shape
 
         if noise :
-            self.signal = self.signal + 1000*np.random.randn(self.NFreqBins, self.NTimeBins)
+            self.signal = self.signal + 2000*np.random.randn(self.NFreqBins, self.NTimeBins)**2
 
 
 
@@ -72,4 +72,4 @@ class Telescope(object):
         if self.NBinsPeriod*N_Folds > self.NTimeBins:
             raise ValueError("Not enough time for that many foldings!")
         self.folded = np.sum(self.signal[:,0:self.NBinsPeriod*N_Folds].reshape(self.NFreqBins, N_Folds, self.NBinsPeriod),axis=1)
-        #downsampled = x.reshape(-1, R).mean(axis=1)
+        #TODO Tweak since losing precision with many folds. Set by overall time. 
