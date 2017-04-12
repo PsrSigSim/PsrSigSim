@@ -32,8 +32,9 @@ class MetaData(object):
 class Signal(object):
     """the signal class
     """
-    def __init__(self, f0=400, bw=100, Nf=20, Nt=400, TotTime=200):
+    def __init__(self, f0=1400, bw=12.5, Nf=20, Nt=400, TotTime=200, data_type='int8', SignalType = "intensity"):
         """initialize Signal(), executed at assignment of new instance
+        data_type = 'int8' or 'int16' supported. Changed to 'uint8' or 'uint16' if intensity signal.
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
         @param Nf -- number of freq. bins
@@ -43,14 +44,40 @@ class Signal(object):
         self.f0 = f0 # (MHz)
         self.bw = bw # (MHz)
         self.Nf = Nf # freq bins
+        self.data_type = data_type
+        self.SignalType = SignalType
         if Nt%2 == 0: # Make signal even in length (for FFTs)
             self.Nt = Nt # phase bins
         else: self.Nt = Nt + 1
         self.TotTime = TotTime #Total time in milliseconds
+
+        self.freqBinSize = self.bw/self.Nf
+        self.first_freq = self.f0 - self.freqBinSize * self.Nf/2
+        if self.first_freq == 0.0 :
+            self.first_freq = self.first_freq + self.freqBinSize * 1e-10
+            print("First Frequency adjusted",self.freqBinSize * 1e-10,"MHz away from zero to avoid division errors.")
+        elif self.first_freq < 0.0 :
+            raise ValueError("First Frequency Less Than Zero")
+        self.last_freq = self.f0 + self.freqBinSize * self.Nf/2
+        self.freq_Array = np.linspace(self.first_freq + self.freqBinSize/2, self.last_freq + self.freqBinSize/2, self.Nf, endpoint=False)
+
+        if SignalType == 'voltage' and data_type == 'int8':
+            self.data_type = 'int8'
+            rows = 4 #Easy way to make 2 complex channels of voltage
+        elif SignalType == 'voltage' and data_type == 'int16':
+            self.data_type = 'int16'
+            rows = 4 #Easy way to make 2 complex channels of voltage
+        elif SignalType == 'intensity' and data_type == 'int8':
+            self.data_type = 'uint8'
+            rows = self.Nf
+        elif SignalType == 'intensity' and data_type == 'int16':
+            self.data_type = 'uint16'
+            rows = self.Nf
+
         if self.Nt*self.Nf > 500000: #Limits the array size to 2.048 GB
             SignalPath = "signal.hdf5"
-            SignalFile = h5py.File(SignalPath)
-            self.signal = SignalFile.create_dataset(None, (self.Nf, self.Nt), dtype='int16')
+            SignalFile = h5py.File(SignalPath,'a')
+            self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
             #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
         else:
             self.signal = np.zeros((self.Nf, self.Nt))
@@ -107,3 +134,23 @@ class Signal(object):
     def TotTime(self, value):
         self._TotTime = value
         self.MetaData.TotTime = self._TotTime
+
+    @property
+
+    def data_type(self):
+        return self._data_type
+
+    @data_type.setter
+    def data_type(self, value):
+        self._data_type = value
+        self.MetaData.data_type = self._data_type
+
+    @property
+
+    def SignalType(self):
+        return self._SignalType
+
+    @SignalType.setter
+    def SignalType(self, value):
+        self._SignalType = value
+        self.MetaData.SignalType = self._SignalType

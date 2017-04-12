@@ -15,14 +15,10 @@ class ISM(object):
         self.bw = self.Signal_in.bw
         self.Nf = self.Signal_in.Nf
         self.Nt = self.Signal_in.Nt
-        self.freqBinSize = self.bw/self.Nf
-        self.first_freq = self.f0 - self.freqBinSize * self.Nf/2
-        if self.first_freq == 0.0 :
-            self.first_freq = self.first_freq + self.freqBinSize * 1e-10
-            print("First Frequency adjusted",self.freqBinSize * 1e-10,"MHz away from zero to avoid division errors.")
-        elif self.first_freq < 0.0 :
-            raise ValueError("First Frequency Less Than Zero")
-        self.last_freq = self.f0 + self.freqBinSize * self.Nf/2
+        self.freqBinSize = self.Signal_in.freqBinSize
+        self.first_freq = self.Signal_in.first_freq
+        self.last_freq = self.Signal_in.last_freq
+        self.freq_Array = self.Signal_in.freq_Array
         self.ISM_Dict = dict(dispersion=True, scattering=False, DM = 30, scintillation=False)
 
     def shiftit(self, y, shift):
@@ -51,13 +47,11 @@ class ISM(object):
         workifft = np.fft.ifft(work)
         return workifft.real
 
-
     def disperse(self, DM =30):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
         self.DM = DM
         self.ISM_Dict["DM"] = self.DM
         self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
-        self.freq_Array = np.linspace(self.first_freq, self.last_freq, self.Nf,endpoint=False)
         self.time_delays = -1e3*self.K*self.DM*(np.power(self.freq_Array,-2)) #freq in MHz, delays in milliseconds
             #Dispersion as compared to infinite frequency
         for ii in range(0,self.Nf):

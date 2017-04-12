@@ -69,3 +69,17 @@ def rebin(a, newLength):
     a_rebinned = sp.nanmean(a_rebin,axis=1)
     #NaN mean does not count NaNs in total
     return a_rebinned#*np.amax(a)/np.amax(a_rebinned)
+
+
+def top_hat_width(sub_band_width, sub_bandwidth_center, DM):
+    """
+    Top Hat pulse to convolve with pulses for dipsersion broadening
+    Given the bandwidth of the subbands and the center of the sub band calculates top_hat width.
+    (Lorimer and Kramer, 2005)"""
+    th_width = 8.297616 * DM * sub_band_width / sub_bandwidth_center**3 #width in microseconds #e-6
+    return th_width
+
+def DM_broaden_template(pulse, width):
+    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
+    top_hat = sp.signal.boxcar(width)
+    return np.convolve(pulse,width,'same')

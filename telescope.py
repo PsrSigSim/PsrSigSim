@@ -46,7 +46,7 @@ class Telescope(object):
             self.signal=np.zeros((self.Nf,int(self.Nt//SampFactor)))
             for ii in range(self.Nf):
                 self.signal[ii,:] = utils.down_sample(self.signal_in[ii,:], SampFactor)
-            print("Input signal sampling frequency= ", self.TimeBinSize," ms. Telescope sampling frequency = ",self.TelescopeTimeBinSize," ms")
+            print("Input signal sampling frequency= ", 1/self.TimeBinSize," kHz.\nTelescope sampling frequency = ",1/self.TelescopeTimeBinSize," kHz")
 
         elif self.TelescopeTimeBinSize > self.TimeBinSize:
             self.NewLength = int(self.TotTime//self.TelescopeTimeBinSize)
@@ -71,5 +71,5 @@ class Telescope(object):
         self.NBinsPeriod = int(self.period // self.TelescopeTimeBinSize)
         if self.NBinsPeriod*N_Folds > self.NTimeBins:
             raise ValueError("Not enough time for that many foldings!")
-        self.folded = np.sum(self.signal[:,0:self.NBinsPeriod*N_Folds].reshape(self.NFreqBins, N_Folds, self.NBinsPeriod),axis=1)
-        #TODO Tweak since losing precision with many folds. Set by overall time. 
+        self.folded = np.sum(self.signal[:,self.NBinsPeriod:self.NBinsPeriod*(N_Folds+1)].reshape(self.NFreqBins, N_Folds, self.NBinsPeriod),axis=1)
+        #TODO Tweak since losing precision with many folds. Set by overall time.
