@@ -12,6 +12,9 @@ import PSS_utils as utils
 
 class Pulsar(object):
     def __init__(self, Signal_in, period = 50): #period in milliseconds
+        """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
+        """
+
         self.Signal_in = Signal_in
         self.signal = self.Signal_in.signal
         self.f0 = self.Signal_in.f0
@@ -20,14 +23,14 @@ class Pulsar(object):
         self.Nt = self.Signal_in.Nt
         self.SignalType = self.Signal_in.SignalType
         self.TotTime = self.Signal_in.TotTime
+        self.TimeBinSize = self.Signal_in.TimeBinSize
         self.T = period
-        self.TimeBinSize = self.TotTime/self.Nt
         self.nBinsPeriod = int(self.T/self.TimeBinSize)
         self.NPeriods = math.floor(self.TotTime/self.T) #Number of periods that can fit in the time given
         #self.time = np.linspace(0., self.TotTime, self.Nt)
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
         self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
-        self.PulsarDict = dict(Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
+        self.PulsarDict = dict(period=period,Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
         #phase = np.linspace(0., 1., self.Nt)
         #TODO Add ability to deal with multiple bands
         #TODO Check to see that you have the correct kind of array and info you need
@@ -56,7 +59,13 @@ class Pulsar(object):
 
     #First profiles
     def gauss_template(self, peak=0.25, width=0.05, amp=1.):
-
+        """Sets the template as a gaussian or sum of gaussians.
+        Assumed to be the intensity profile.
+        In put can either be an array of values or single values.
+        peak = center of gaussian
+        width = stdev of pulse
+        amp = amplitude of pulse relative to other pulses.
+        """
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
 
@@ -82,7 +91,11 @@ class Pulsar(object):
         self.PulsarDict["width"] = width
 
     def user_template(self,template):
-        # Function to make any given 1-dimensional numpy array into the profile
+        """ Function to make any given 1-dimensional numpy array into the profile.
+        Assumed to be the intensity profile.
+        template is a numpy array. If larger than number of bins per period then downsampled.
+        If smaller than number of bins per period then interpolated.
+        """
         #TODO Allow other input files
         #TODO Adds error messages if not the correct type of file.
         self.PulsarDict["Profile"] = "user_defined"
@@ -115,7 +128,10 @@ class Pulsar(object):
 
 
     def pulses(self):
-        #Function that makes pulses using the defined profile template
+        """Function that makes pulses using the defined profile template.
+        Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
+            'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
+        """
         #TODO Error message if the signal has already been pulsed
 
         self.PeriodFracRemain = self.TotTime/self.T - self.NPeriods #Home much of the last period remaining
@@ -124,9 +140,9 @@ class Pulsar(object):
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])
 
         NRows = self.Nf
-        
+
         if self.SignalType == 'voltage':
-            self.profile = np.sqrt(self.profile)
+            self.profile = np.sqrt(self.profile) # Corrects intensity pulse to voltage profile.
             NRows = 4
 
         if self.Nt*NRows > 500000: #Limits the array size to 2.048 GB
