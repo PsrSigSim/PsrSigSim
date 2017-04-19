@@ -40,7 +40,7 @@ class Pulsar(object):
         """draw_intensity_pulse(pulse)
         draw a single pulse as bin by bin random process (gamma distr) from input template
         """
-        pr = 10*np.tile(self.profile, reps)
+        pr = 8*np.tile(self.profile, reps)
         pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
 
 
@@ -75,9 +75,9 @@ class Pulsar(object):
             amp = np.array(amp)
             self.PulsarDict["amplitude"] = amp
             self.PulsarDict["Profile"] = "multiple gaussians"
-            amp = amp/amp.sum()  # normalize sum
+            amp = amp/amp.max()  # normalize sum
             profile = np.zeros(self.nBinsPeriod)
-            #JEFF Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
+            # Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
             for ii in range(amp.size):
                 norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii]
                 self.profile += norm * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
