@@ -6,8 +6,8 @@ from __future__ import (absolute_import, division,
 import numpy as np
 import scipy as sp
 from scipy import signal
-import PSS_utils as utils
-import scintillating as scint
+from . import PSS_utils as utils
+from . import scintillation as scint
 
 class ISM(object):
     def __init__(self, Signal_in, debug=False):
