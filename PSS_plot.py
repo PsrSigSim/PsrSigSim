@@ -7,6 +7,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 plt.rcParams['figure.figsize'] = (8.0,6.0)
+plt.rcParams.update({'font.size': 18})
+
+def profile_plot(pulsar_object, freq_bin=0, phase=False, **kwargs):
+    Title = 'Pulsar Profile Template'
+
+    if phase:
+        plt.plot(pulsar_object.phase, pulsar_object.profile, lw=0.7, **kwargs)
+        plt.xlabel('Phase')
+        #plt.ylabel(Y_label)
+        plt.yticks([])
+        plt.title(Title)
+        plt.show()
+
+    else:
+        stop_time = pulsar_object.T
+        Nx = pulsar_object.profile.size
+        time = np.linspace(0, stop_time, Nx)
+        plt.plot(time, pulsar_object.profile, lw=0.7, **kwargs)
+        plt.xlabel('Time (ms)')
+        #plt.ylabel(Y_label)
+        plt.ylim(0,pulsar_object.profile.max()*1.05)
+        plt.yticks([])
+        plt.title(Title)
+        plt.show()
+
 
 def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, phase=False, **kwargs):
     nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
@@ -25,7 +50,7 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         #print(pulsar_object.signal[:N_pulses*pulsar_object.nBinsPeriod].shape)
         plt.plot(Phase, signal_object.signal[row,:N_pulses*nBins_per_period], lw=0.4, **kwargs)
         plt.xlabel('Phase')
-        plt.ylabel(Y_label)
+        #plt.ylabel(Y_label)
         plt.yticks([])
         plt.title(Title)
         plt.show()
@@ -36,12 +61,12 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         time = np.linspace(start_time, stop_time, Nx)
         plt.plot(time,signal_object.signal[row,:Nx], lw=0.4, **kwargs)
         plt.xlabel('Time (ms)')
-        plt.ylabel(Y_label)
+        #plt.ylabel(Y_label)
         plt.yticks([])
         plt.title(Title)
         plt.show()
 
-def filter_bank(signal_object, pulsar_object, N_pulses=1, start_time=0, phase=False, **kwargs):
+def filter_bank(signal_object, pulsar_object,grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
     nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
     if signal_object.SignalType == 'intensity':
         #Y_label = 'Relative Intensity'
@@ -56,9 +81,17 @@ def filter_bank(signal_object, pulsar_object, N_pulses=1, start_time=0, phase=Fa
     if phase:
         Extent = [0, N_pulses, signal_object.first_freq, signal_object.last_freq]
         plt.imshow(signal_object.signal[:,:stop_bin],origin='left',cmap='plasma',aspect='auto',extent=Extent,**kwargs)
+        #ax = plt.gca();
         plt.xlabel('Phase')
         plt.ylabel(Y_label)
         #plt.yticks([])
+        if grid:
+            ax = plt.gca();
+            ax.set_xticks([])#np.linspace(Extent[0], Extent[1], N_pulses*2));
+            ax.set_yticks([])#np.linspace(Extent[2], Extent[3], 5));
+            ax.set_xticks(np.linspace(Extent[0], Extent[1], N_pulses*10), minor=True);
+            ax.set_yticks(np.linspace(Extent[2], Extent[3], signal_object.Nf), minor=True);
+            ax.grid(which='both', color='black', linestyle='-', linewidth=0.5)
         plt.title(Title)
         plt.show()
 
@@ -67,8 +100,14 @@ def filter_bank(signal_object, pulsar_object, N_pulses=1, start_time=0, phase=Fa
         stop_time = start_time + N_pulses * nBins_per_period * signal_object.TimeBinSize
         Extent = [start_time, stop_time, signal_object.first_freq, signal_object.last_freq]
         plt.imshow(signal_object.signal[:,:stop_bin],origin='left',cmap='plasma',aspect='auto',extent=Extent,**kwargs)
+
         plt.xlabel('Observation Time (ms)')
         plt.ylabel(Y_label)
         #plt.yticks([])
+        if grid:
+            ax = plt.gca();
+            ax.set_xticks(np.linspace(Extent[0], Extent[1], 20), minor=True);
+            ax.set_yticks(np.linspace(Extent[2], Extent[3], signal_object.Nf), minor=True);
+            ax.grid(which='both', color='black', linestyle='-', linewidth=0.5)
         plt.title(Title)
         plt.show()
