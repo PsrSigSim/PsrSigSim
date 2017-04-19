@@ -9,22 +9,23 @@ import scipy as sp
 import PSS_utils as utils
 
 class Burst(object):
-    def __init__(self, Signal_in, burst_width = 2048, amplitude=1, DM_broadening=False): #period in milliseconds
+    def __init__(self, Signal_in, burst_width = 200, amplitude=100, DM_broadening=True): #period in milliseconds
         """burst_width given in microseconds"""
-          self.Signal_in = Signal_in
-          self.signal = self.Signal_in.signal
-          self.f0 = self.Signal_in.f0
-          self.bw = self.Signal_in.bw
-          self.Nf = self.Signal_in.Nf
-          self.Nt = self.Signal_in.Nt
-          self.TotTime = self.Signal_in.TotTime
-          self.TimeBinSize = self.TotTime/self.Nt
-          self.Time_location = self.Nt//2
-          self.burst_width_time = burst_width
-          self.burst_width_bins = self.burst_width_time // self.TimeBinSize
-          self.phase = np.linspace(0., 1., self.burst_width_bins)
-          self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
-          self.BurstDict = dict(Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
+        self.Signal_in = Signal_in
+        self.signal = self.Signal_in.signal
+        self.f0 = self.Signal_in.f0
+        self.bw = self.Signal_in.bw
+        self.Nf = self.Signal_in.Nf
+        self.Nt = self.Signal_in.Nt
+        self.TotTime = self.Signal_in.TotTime
+        self.TimeBinSize = self.TotTime/self.Nt
+        self.Time_location = int(Signal_in.Nt//2)
+        self.burst_width_time = burst_width # In microseconds
+        self.burst_width_bins = int(self.burst_width_time // self.TimeBinSize)
+        self.phase = np.linspace(0., 10*self.burst_width_bins, 10*self.burst_width_bins)
+        self.BurstDict = {}
+        self.gauss_template(peak=5*self.burst_width_bins, width=self.burst_width_bins, amp=amplitude)
+        #1./np.sqrt(2.*np.pi)/self.burst_width_bins * np.exp(-0.5 * ((self.phase-0.25)/self.burst_width_bins)**2)
 
 
     def draw_intensity_pulse(self, reps):
@@ -58,31 +59,31 @@ class Burst(object):
             peak = np.array(peak)
             width = np.array(width)
             amp = np.array(amp)
-            self.PulsarDict["amplitude"] = amp
-            self.PulsarDict["Profile"] = "multiple gaussians"
-            amp = amp/amp.sum()  # normalize sum
+            self.BurstDict["amplitude"] = amp
+            self.BurstDict["Profile"] = "multiple gaussians"
+            #amp = amp/amp.sum()  # normalize sum
             profile = np.zeros(self.burst_width_bins)
             for ii in range(amp.size):
                 norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii]
                 self.profile += norm * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
         except: # one gaussian
-            norm = 1./np.sqrt(2.*np.pi)/width
-            self.profile = norm * np.exp(-0.5 * ((self.phase-peak)/width)**2)
-            self.PulsarDict["amplitude"] = amp
-            self.PulsarDict["Profile"] = "gaussian"
+            #norm = 1./np.sqrt(2.*np.pi)/width norm *
+            self.profile =  np.exp(-0.5 * ((self.phase-peak)/width)**2)
+            self.BurstDict["amplitude"] = amp
+            self.BurstDict["Profile"] = "gaussian"
 
-        self.PulsarDict["peak"] = peak
-        self.PulsarDict["width"] = width
+        self.BurstDict["peak"] = peak
+        self.BurstDict["width"] = width
 
     def user_template(self,template):
         # Function to make any given 1-dimensional numpy array into the profile
         #TODO Allow other input files
         #TODO Adds error messages if not the correct type of file.
-        self.PulsarDict["Profile"] = "user_defined"
+        self.BurstDict["Profile"] = "user_defined"
         #TODO Add I/O for adding attributes for user defined templates.
-        self.PulsarDict["peak"] = "None"
-        self.PulsarDict["width"] = "None"
-        self.PulsarDict["amplitude"] = "None"
+        self.BurstDict["peak"] = "None"
+        self.BurstDict["width"] = "None"
+        self.BurstDict["amplitude"] = "None"
         #self.nBinsPeriod = len(template)
         #self.profile = template
         self.nBinsTemplate = len(template)
@@ -106,19 +107,17 @@ class Burst(object):
         if self.MinCheck < 0 :
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
 
-
     def burst(self, SignalType = "intensity"):
         #Function that makes a pulse using the defined profile template
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[SignalType])
 
-        if self.DM_broadening==True:
-            profile_table = np.zeros((self.Nf, self.burst_width_bins))
-            #for ii in range(self.NF):
-                #t_h_w = utils.top_hat_width(sub_band_width, sub_bandwidth_center, DM)#Need to figure out when to include DM
-            self.signal[ii,self.Time_location:self.Time_location+len(self.profile)] = np.tile(pulseTypeMethod(1),(self.Nf,1))
-        else:
-            self.signal[:,self.Time_location:self.Time_location+len(self.profile)] = np.tile(pulseTypeMethod(1),(self.Nf,1))
+        self.signal[:,self.Time_location:self.Time_location+len(self.profile)] += np.tile(pulseTypeMethod(1),(self.Nf,1)).astype(self.Signal_in.data_type)
+        #if self.DM_broadening==True:
+        #    profile_table = np.zeros((self.Nf, self.burst_width_bins))
+        #    self.signal[ii,self.Time_location:self.Time_location+len(self.profile)] = np.tile(pulseTypeMethod(1),(self.Nf,1))
+        #else:
+        #    self.signal[:,self.Time_location:self.Time_location+len(self.profile)] = np.tile(pulseTypeMethod(1),(self.Nf,1))
 
         self.BurstDict["SignalType"] = SignalType
 
