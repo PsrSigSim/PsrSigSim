@@ -113,7 +113,7 @@ class Signal(object):
         return PSS_plot.filter_bank(self, **kwargs)
 
     def profile_plot(self, **kwargs):
-        return profile_plot(self, **kwargs)
+        return PSS_plot.profile_plot(self, **kwargs)
 
     """Set the signal parameters as properties and assign them to the MetaData
     """

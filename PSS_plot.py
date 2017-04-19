@@ -9,27 +9,30 @@ import numpy as np
 __all__= ['profile_plot','pulse_plot','filter_bank']
 
 plt.rcParams['figure.figsize'] = (8.0,6.0)
-plt.rcParams.update({'font.size': 16})
+plt.rcParams.update({'font.size': 14})
 
 def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
     Title = 'Pulsar Profile Template'
+    profile = signal_object.MetaData.profile
+    Nx = profile.size
 
     if phase:
-        plt.plot(signal_object.phase, signal_object.profile, lw=0.7, **kwargs)
+        Phase = np.linspace(0., 1, Nx)
+        plt.plot(Phase, profile, lw=0.7, **kwargs)
         plt.xlabel('Phase')
         #plt.ylabel(Y_label)
         plt.yticks([])
+        plt.ylim(0,profile.max()*1.05)
         plt.title(Title)
         plt.show()
 
     else:
-        stop_time = signal_object.T
-        Nx = signal_object.profile.size
+        stop_time = signal_object.MetaData.period
         time = np.linspace(0, stop_time, Nx)
-        plt.plot(time, signal_object.profile, lw=0.7, **kwargs)
+        plt.plot(time, profile, lw=0.7, **kwargs)
         plt.xlabel('Time (ms)')
         #plt.ylabel(Y_label)
-        plt.ylim(0,signal_object.profile.max()*1.05)
+        plt.ylim(0,profile.max()*1.05)
         plt.yticks([])
         plt.title(Title)
         plt.show()

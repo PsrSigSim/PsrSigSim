@@ -186,5 +186,5 @@ class Pulsar(object):
         #for jj in range(self.Nf):
         #    self.signal[jj,:] = self.pulse
         #self.signal = np.tile(self.pulse,(self.Nf,1))
-
+        self.PulsarDict['profile'] = self.profile
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
