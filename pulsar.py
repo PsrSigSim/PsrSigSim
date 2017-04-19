@@ -74,6 +74,8 @@ class Pulsar(object):
         peak = center of gaussian
         width = stdev of pulse
         amp = amplitude of pulse relative to other pulses.
+        Pulses are normalized so that maximum is 1, for sampling reasons.
+        See draw_voltage_pulse, draw_intensity_pulse and pulses() methods for more details.
         """
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
@@ -88,11 +90,11 @@ class Pulsar(object):
             profile = np.zeros(self.nBinsPeriod)
             # Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
             for ii in range(amp.size):
-                norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii]
-                self.profile += norm * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
+            #    norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii] #norm *
+                self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
         except: # one gaussian
-            norm = 1./np.sqrt(2.*np.pi)/width
-            self.profile = norm * np.exp(-0.5 * ((self.phase-peak)/width)**2)
+            #norm = 1./np.sqrt(2.*np.pi)/width #norm
+            self.profile = np.exp(-0.5 * ((self.phase-peak)/width)**2)
             self.PulsarDict["amplitude"] = amp
             self.PulsarDict["Profile"] = "gaussian"
 
@@ -151,14 +153,14 @@ class Pulsar(object):
         NRows = self.Nf
 
         if self.SignalType == 'voltage':
-            self.profile = np.sqrt(self.profile) # Corrects intensity pulse to voltage profile.
+            self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
             NRows = 4
-            gauss_limit = stats.norm.ppf(0.9999999999999,scale=self.gauss_draw_sigma)
-            # Sets the limit so there is <0.001% clipping because of dtype.
+            gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
+            # Sets the limit so there is ~0.005% clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
         else:
-            gamma_limit=stats.gamma.ppf(0.999999999999999,self.gamma_shape,scale=self.gamma_scale)
-            # Sets the limit so there is <0.001% clipping because of dtype.
+            gamma_limit=stats.gamma.ppf(0.999999,self.gamma_shape,scale=self.gamma_scale)
+            # Sets the limit so there is ~0.005% clipping because of dtype.
             self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
 
         if self.Nt*NRows > 500000: #Limits the array size to 2.048 GB

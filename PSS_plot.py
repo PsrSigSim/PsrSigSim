@@ -33,7 +33,7 @@ def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
         plt.xlabel('Time (ms)')
         #plt.ylabel(Y_label)
         plt.ylim(0,profile.max()*1.05)
-        plt.yticks([])
+        #plt.yticks([])
         plt.title(Title)
         plt.show()
 
