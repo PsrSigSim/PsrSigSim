@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import h5py
+from . import PSS_plot
 
 class MetaData(object):
     """the MetaData class to contain information about the signal
@@ -90,11 +91,17 @@ class Signal(object):
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
             #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
         else:
-            self.signal = np.zeros((rows, self.Nt))#,dtype=self.data_type)
+            self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 
-    ### Plotting Methods
-    #def pulse_plot(self,PSS_plot.pulse_plot(self)):
+        ### Plotting Methods
+    def pulse_plot(self, **kwargs):
+        return PSS_plot.pulse_plot(self, **kwargs)
 
+    def filter_bank(self, **kwargs):
+        return PSS_plot.filter_bank(self, **kwargs)
+
+    def profile_plot(self, **kwargs):
+        return profile_plot(self, **kwargs)
 
     """Set the signal parameters as properties and assign them to the MetaData
     """
