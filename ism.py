@@ -5,8 +5,9 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import PSS_utils as utils
-import scintillating as scint
+from scipy import signal
+from . import PSS_utils as utils
+from . import scintillation as scint
 
 class ISM(object):
     def __init__(self, Signal_in, debug=False):
@@ -65,6 +66,9 @@ class ISM(object):
                 sub_band_width = self.bw/self.Nf
                 width = int(utils.top_hat_width(sub_band_width, freq, DM)//self.TimeBinSize)
                 if width > 0 and to_DM_Broaden:
+                    if width > self.Nt:
+                        raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array/')
+
                     self.signal[ii,:] = np.convolve(sp.signal.boxcar(width)/width, self.signal[ii,:] ,'same').astype(self.Signal_in.data_type)
                     # The division by width of the boxcar filter normalizes the convolution
 

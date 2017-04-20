@@ -6,13 +6,18 @@ from __future__ import (absolute_import, division,
 
 import numpy as np
 import scipy as sp
+from scipy import stats
 import h5py
 import math
-import PSS_utils as utils
+from . import PSS_utils as utils
 
 class Pulsar(object):
     def __init__(self, Signal_in, period = 50): #period in milliseconds
         """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
+        period = pulsar period in milliseconds.
+
+        Many other attributes can be set, including the statistical parameters of the pulse draws.
+        See documentation for more details
         """
 
         self.Signal_in = Signal_in
@@ -28,10 +33,12 @@ class Pulsar(object):
         self.nBinsPeriod = int(self.T/self.TimeBinSize)
         self.NPeriods = math.floor(self.TotTime/self.T) #Number of periods that can fit in the time given
         #self.time = np.linspace(0., self.TotTime, self.Nt)
+        self.gamma_shape = 1
+        self.gamma_scale = 2
+        self.gauss_draw_sigma = 1
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
-        self.profile = 1./np.sqrt(2.*np.pi)/0.05 * np.exp(-0.5 * ((self.phase-0.25)/0.05)**2)
-        self.PulsarDict = dict(period=period,Profile="gaussian", peak=0.25, width=0.05, amplitude=1.)
-        #phase = np.linspace(0., 1., self.Nt)
+        self.PulsarDict = dict(period=period)
+        self.gauss_template()
         #TODO Add ability to deal with multiple bands
         #TODO Check to see that you have the correct kind of array and info you need
 
@@ -39,10 +46,12 @@ class Pulsar(object):
     def draw_intensity_pulse(self, reps):
         """draw_intensity_pulse(pulse)
         draw a single pulse as bin by bin random process (gamma distr) from input template
+        shape and scale parameters can be set when Pulsar class intialized
         """
-        pr = 8*np.tile(self.profile, reps)
-        pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
-
+        pr = np.tile(self.profile, reps)
+        L = len(pr)
+        pulse = pr * self.gamma_draw_norm * np.random.gamma(self.gamma_shape, scale=self.gamma_scale, size=L)
+        #pull from gamma distribution
 
         return pulse
 
@@ -50,9 +59,9 @@ class Pulsar(object):
         """draw_voltage_pulse(pulse)
         draw a single pulse as bin by bin random process (normal distr) from input template
         """
-        pr = 8*np.tile(self.profile, reps)
+        pr = np.tile(self.profile, reps)
         L = len(pr)
-        pulse = pr * np.random.normal(0, 1 , L) #pull from gaussian distribution
+        pulse = pr * self.gauss_draw_norm * np.random.normal(0, self.gauss_draw_sigma, L) #pull from gaussian distribution
 
         return pulse
 
@@ -65,6 +74,8 @@ class Pulsar(object):
         peak = center of gaussian
         width = stdev of pulse
         amp = amplitude of pulse relative to other pulses.
+        Pulses are normalized so that maximum is 1, for sampling reasons.
+        See draw_voltage_pulse, draw_intensity_pulse and pulses() methods for more details.
         """
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
@@ -79,11 +90,11 @@ class Pulsar(object):
             profile = np.zeros(self.nBinsPeriod)
             # Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
             for ii in range(amp.size):
-                norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii]
-                self.profile += norm * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
+            #    norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii] #norm *
+                self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
         except: # one gaussian
-            norm = 1./np.sqrt(2.*np.pi)/width
-            self.profile = norm * np.exp(-0.5 * ((self.phase-peak)/width)**2)
+            #norm = 1./np.sqrt(2.*np.pi)/width #norm
+            self.profile = np.exp(-0.5 * ((self.phase-peak)/width)**2)
             self.PulsarDict["amplitude"] = amp
             self.PulsarDict["Profile"] = "gaussian"
 
@@ -142,8 +153,15 @@ class Pulsar(object):
         NRows = self.Nf
 
         if self.SignalType == 'voltage':
-            self.profile = np.sqrt(self.profile) # Corrects intensity pulse to voltage profile.
+            self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
             NRows = 4
+            gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
+            # Sets the limit so there is ~0.005% clipping because of dtype.
+            self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
+        else:
+            gamma_limit=stats.gamma.ppf(0.999999,self.gamma_shape,scale=self.gamma_scale)
+            # Sets the limit so there is ~0.005% clipping because of dtype.
+            self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
 
         if self.Nt*NRows > 500000: #Limits the array size to 2.048 GB
             """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
@@ -170,5 +188,5 @@ class Pulsar(object):
         #for jj in range(self.Nf):
         #    self.signal[jj,:] = self.pulse
         #self.signal = np.tile(self.pulse,(self.Nf,1))
-
+        self.PulsarDict['profile'] = self.profile
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)

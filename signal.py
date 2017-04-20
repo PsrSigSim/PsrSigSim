@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import h5py
+from . import PSS_plot
 
 class MetaData(object):
     """the MetaData class to contain information about the signal
@@ -49,6 +50,7 @@ class Signal(object):
          # freq bins
         self.data_type = data_type
         self.SignalType = SignalType
+        self.SignalDict = {}
         if Nt%2 == 0: # Make signal even in length (for FFTs)
             self.Nt = Nt # phase bins
         else: self.Nt = Nt + 1
@@ -58,19 +60,29 @@ class Signal(object):
             rows = 4 #Easy way to make 2 complex channels of voltage
             self.Npols = 4
             self.Nf = Nf
+            self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
+            # Set the correct standard deviation for the
+            # pulse draws depending on data type.
+
         elif SignalType == 'voltage' and data_type == 'int16':
             self.data_type = 'int16'
             rows = 4 #Easy way to make 2 complex channels of voltage
             self.Npols = 4
             self.Nf = Nf
+            self.SignalDict['gauss_draw_max'] = np.iinfo(np.int16).max
+
         elif SignalType == 'intensity' and data_type == 'int8':
             self.data_type = 'uint8'
             self.Nf = Nf
             rows = self.Nf
+            self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
+
         elif SignalType == 'intensity' and data_type == 'int16':
             self.data_type = 'uint16'
             self.Nf = Nf
             rows = self.Nf
+            self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
+
 
         self.TotTime = TotTime #Total time in milliseconds
         self.TimeBinSize = self.TotTime/self.Nt
@@ -90,11 +102,18 @@ class Signal(object):
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
             #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
         else:
-            self.signal = np.zeros((rows, self.Nt))#,dtype=self.data_type)
+            self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 
-    ### Plotting Methods
-    #def pulse_plot(self,PSS_plot.pulse_plot(self)):
+        self.MetaData.AddInfo(self.SignalDict)
+        ### Plotting Methods
+    def pulse_plot(self, **kwargs):
+        return PSS_plot.pulse_plot(self, **kwargs)
 
+    def filter_bank(self, **kwargs):
+        return PSS_plot.filter_bank(self, **kwargs)
+
+    def profile_plot(self, **kwargs):
+        return PSS_plot.profile_plot(self, **kwargs)
 
     """Set the signal parameters as properties and assign them to the MetaData
     """

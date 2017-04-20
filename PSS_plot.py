@@ -6,35 +6,43 @@ from __future__ import (absolute_import, division,
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['figure.figsize'] = (8.0,6.0)
-plt.rcParams.update({'font.size': 18})
+__all__= ['profile_plot','pulse_plot','filter_bank']
 
-def profile_plot(pulsar_object, freq_bin=0, phase=False, **kwargs):
+plt.rcParams['figure.figsize'] = (8.0,6.0)
+plt.rcParams.update({'font.size': 14})
+
+def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
     Title = 'Pulsar Profile Template'
+    profile = signal_object.MetaData.profile
+    Nx = profile.size
 
     if phase:
-        plt.plot(pulsar_object.phase, pulsar_object.profile, lw=0.7, **kwargs)
+        Phase = np.linspace(0., 1, Nx)
+        plt.plot(Phase, profile, lw=0.7, **kwargs)
         plt.xlabel('Phase')
         #plt.ylabel(Y_label)
         plt.yticks([])
+        plt.ylim(0,profile.max()*1.05)
         plt.title(Title)
         plt.show()
 
     else:
-        stop_time = pulsar_object.T
-        Nx = pulsar_object.profile.size
+        stop_time = signal_object.MetaData.period
         time = np.linspace(0, stop_time, Nx)
-        plt.plot(time, pulsar_object.profile, lw=0.7, **kwargs)
+        plt.plot(time, profile, lw=0.7, **kwargs)
         plt.xlabel('Time (ms)')
         #plt.ylabel(Y_label)
-        plt.ylim(0,pulsar_object.profile.max()*1.05)
-        plt.yticks([])
+        plt.ylim(0,profile.max()*1.05)
+        #plt.yticks([])
         plt.title(Title)
         plt.show()
 
 
 def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, phase=False, **kwargs):
-    nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+    try:
+        nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+    except:
+        ValueError('Need to sample pulses')
     if signal_object.SignalType == 'intensity':
         Y_label = 'Relative Intensity'
         Title = 'Pulse Intensity'
@@ -46,12 +54,10 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
 
     if phase:
         Phase = np.linspace(0., N_pulses, N_pulses*nBins_per_period)
-        #print(Phase.shape)
-        #print(pulsar_object.signal[:N_pulses*pulsar_object.nBinsPeriod].shape)
         plt.plot(Phase, signal_object.signal[row,:N_pulses*nBins_per_period], lw=0.4, **kwargs)
         plt.xlabel('Phase')
         #plt.ylabel(Y_label)
-        plt.yticks([])
+        #plt.yticks([])
         plt.title(Title)
         plt.show()
 
@@ -62,11 +68,11 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         plt.plot(time,signal_object.signal[row,:Nx], lw=0.4, **kwargs)
         plt.xlabel('Time (ms)')
         #plt.ylabel(Y_label)
-        plt.yticks([])
+        #plt.yticks([])
         plt.title(Title)
         plt.show()
 
-def filter_bank(signal_object, pulsar_object,grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
+def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
     nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
     if signal_object.SignalType == 'intensity':
         #Y_label = 'Relative Intensity'
