@@ -89,6 +89,7 @@ class Pulsar(object):
             amp = amp/amp.max()  # normalize sum
             profile = np.zeros(self.nBinsPeriod)
             # Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
+            self.profile = np.zeros(self.phase.size)
             for ii in range(amp.size):
             #    norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii] #norm *
                 self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
@@ -135,6 +136,8 @@ class Pulsar(object):
 
         self.MinCheck = np.amin(self.profile)
         if self.MinCheck < 0 :
+            #Zeros out minimum intensity of profile, otherwise runs into problems
+            #with positive-definite distributions for draws of pulses. 
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
 
 
@@ -156,12 +159,14 @@ class Pulsar(object):
             self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
             NRows = 4
             gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
-            # Sets the limit so there is ~0.005% clipping because of dtype.
+            # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
         else:
-            gamma_limit=stats.gamma.ppf(0.999999,self.gamma_shape,scale=self.gamma_scale)
-            # Sets the limit so there is ~0.005% clipping because of dtype.
+            gamma_limit=stats.gamma.ppf(0.999,self.gamma_shape,scale=self.gamma_scale)
+            # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
 
         if self.Nt*NRows > 500000: #Limits the array size to 2.048 GB
             """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
