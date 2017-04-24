@@ -67,7 +67,7 @@ class ISM(object):
                 width = int(utils.top_hat_width(sub_band_width, freq, DM)//self.TimeBinSize)
                 if width > 0 and to_DM_Broaden:
                     if width > self.Nt:
-                        raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array/')
+                        raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
 
                     self.signal[ii,:] = np.convolve(sp.signal.boxcar(width)/width, self.signal[ii,:] ,'same').astype(self.Signal_in.data_type)
                     # The division by width of the boxcar filter normalizes the convolution
