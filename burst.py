@@ -6,7 +6,11 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import PSS_utils as utils
+from scipy import stats
+import h5py
+import math
+from . import PSS_utils as utils
+
 
 class Burst(object):
     def __init__(self, Signal_in, burst_width = 200, amplitude=100, DM_broadening=True): #period in milliseconds
@@ -18,11 +22,15 @@ class Burst(object):
         self.Nf = self.Signal_in.Nf
         self.Nt = self.Signal_in.Nt
         self.TotTime = self.Signal_in.TotTime
+        self.SignalType = self.Signal_in.SignalType
         self.TimeBinSize = self.TotTime/self.Nt
         self.Time_location = int(Signal_in.Nt//2)
         self.burst_width_time = burst_width # In microseconds
         self.burst_width_bins = int(self.burst_width_time // self.TimeBinSize)
         self.phase = np.linspace(0., 10*self.burst_width_bins, 10*self.burst_width_bins)
+        self.gamma_shape = 1
+        self.gamma_scale = 2
+        self.gauss_draw_sigma = 1
         self.BurstDict = {}
         self.gauss_template(peak=5*self.burst_width_bins, width=self.burst_width_bins, amp=amplitude)
         #1./np.sqrt(2.*np.pi)/self.burst_width_bins * np.exp(-0.5 * ((self.phase-0.25)/self.burst_width_bins)**2)
@@ -31,20 +39,22 @@ class Burst(object):
     def draw_intensity_pulse(self, reps):
         """draw_intensity_pulse(pulse)
         draw a single pulse as bin by bin random process (gamma distr) from input template
+        shape and scale parameters can be set when Pulsar class intialized
         """
-        pr = 100*np.tile(self.profile, reps)
-        pulse = np.random.gamma(4., pr/4.) #pull from gamma distribution
-
+        pr = np.tile(self.profile, reps)
+        L = len(pr)
+        pulse = pr * self.gamma_draw_norm * np.random.gamma(self.gamma_shape, scale=self.gamma_scale, size=L)
+        #pull from gamma distribution
 
         return pulse
 
-    def draw_voltage_pulse(self):
+    def draw_voltage_pulse(self, reps):
         """draw_voltage_pulse(pulse)
         draw a single pulse as bin by bin random process (normal distr) from input template
         """
-        pr = self.profile
+        pr = np.tile(self.profile, reps)
         L = len(pr)
-        pulse = pr * np.random.normal(0, 1 , L) #pull from gaussian distribution
+        pulse = pr * self.gauss_draw_norm * np.random.normal(0, self.gauss_draw_sigma, L) #pull from gaussian distribution
 
         return pulse
 
@@ -112,6 +122,19 @@ class Burst(object):
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[SignalType])
 
+        if self.SignalType == 'voltage':
+            self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
+            NRows = 4
+            gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
+            # Sets the limit so there is only a small amount of clipping because of dtype.
+            self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
+        else:
+            gamma_limit=stats.gamma.ppf(0.999,self.gamma_shape,scale=self.gamma_scale)
+            # Sets the limit so there is only a small amount of clipping because of dtype.
+            self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
+
         self.signal[:,self.Time_location:self.Time_location+len(self.profile)] += np.tile(pulseTypeMethod(1),(self.Nf,1)).astype(self.Signal_in.data_type)
         #if self.DM_broadening==True:
         #    profile_table = np.zeros((self.Nf, self.burst_width_bins))
@@ -120,5 +143,5 @@ class Burst(object):
         #    self.signal[:,self.Time_location:self.Time_location+len(self.profile)] = np.tile(pulseTypeMethod(1),(self.Nf,1))
 
         self.BurstDict["SignalType"] = SignalType
-
+        self.BurstDict['profile'] = self.profile
         self.Signal_in.MetaData.AddInfo(self.BurstDict)
