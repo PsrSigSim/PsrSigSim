@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from . import PSS_utils as utils
 
-__all__= ['profile_plot','pulse_plot','filter_bank']
+__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum']
 
 plt.rcParams['figure.figsize'] = (8.0,6.0)
 plt.rcParams.update({'font.size': 14})
@@ -74,7 +74,11 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         plt.show()
 
 def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
-    nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+    try:
+        nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+    except:
+        raise ValueError('Need to sample pulses')
+
     if signal_object.SignalType == 'intensity':
         #Y_label = 'Relative Intensity'
         Title = 'Filter Bank'
@@ -119,86 +123,102 @@ def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False
         plt.title(Title)
         plt.show()
 
-if __name__ == '__main__':
+def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'optimal', **kwargs):
+    """
+    window_size = optimal or full
+    """
+    S = signal_object
+    image = image_screen
+    nfreqs, Nx, Ny = image.intensity.shape
+    Normalized_Intensity = image.intensity[:,:,Ny//2]
+    Normalized_Intensity -= Normalized_Intensity.mean()
+    #Mean of gain should be 1, but will vary in different realizations.
 
-    def dynamic_spectrum(image_screen, save=False, window_size = optimal, norm_cutoff=6, **kwargs):
-        """
-        window_size = optimal or full
-        """
-        nfreqs, Nx, Ny = image_screen.intensity.shape
-        Normalization=np.where(image_screen.intensity[:,:,Ny//2] < norm_cutoff, \
-                                image_screen.intensity[:,:,Ny//2], np.nan)
-        off_Scintle_mean = np.nanmean(Normalization)
-        Normalized_Intensity= image_screen.intensity[:,:,Ny//2] - off_Scintle_mean
+    ACF = utils.acf2d(Normalized_Intensity, mode='same')
+    ACF /= np.amax(ACF)
+    middle_freq, middle_time = np.unravel_index(np.argmax(ACF), ACF.shape)
 
-        ACF = utils.acf2d(Normalized_Intensity, mode='same')
-        ACF /= np.amax(ACF)
-        middle_freq, middle_time = np.unravel_index(np.argmax(ACF),ACF.shape)
+    f, ax = plt.subplots(2, 2)
+    f.set_figheight(15)
+    f.set_figwidth(15)
 
-        f, ax = plt.subplots(2, 2)
-        f.set_figheight(15)
-        f.set_figwidth(15)
+    ##Dynamic Spectrum
 
-        ##Dynamic Spectrum
+    ExtentDS = [0,Nx,S.freq_Array[0],S.freq_Array[-1]]
 
-        ExtentDS = [0,image_screen.Nx,image_screen.freq_Array[0],image_screen.freq_Array[-1]]
+    ax[0, 0].imshow(image.intensity[:,:,Ny//2],origin='left', \
+                    aspect='auto', extent=ExtentDS, interpolation='none', \
+                    cmap='binary')
+    ax[0,0].set_ylabel('Frequency (MHz)')
+    ax[0,0].get_yaxis().get_major_formatter().set_useOffset(False)
+    #ax[0, 0].colorbar()
 
-        ax[0, 0].imshow(image_screen.intensity[:,:,Ny//2],origin='left', \
-                        aspect='auto', extent=ExtentDS, interpolation='none', \
-                        cmap='binary')
-        ax[0,0].set_ylabel('Frequency (MHz)')
-        ax[0,0].get_yaxis().get_major_formatter().set_useOffset(False)
-        #ax[0, 0].colorbar()
+    #Autocorrelation Function Plot
 
-        #Autocorrelation Function Plot
+    scint_bandwidth = utils.find_nearest(ACF[middle_freq:,middle_time],0.5)*S.freqBinSize
+    scint_timescale = utils.find_nearest(ACF[middle_freq,middle_time:],1/np.exp(1))#*S1.freqBinSize*1e3,1)
 
-        scint_bandwidth = utils.find_nearest(ACF[middle_freq:,middle_time],0.5)*S1.freqBinSize
-        scint_timescale = utils.find_nearest(ACF[middle_freq,middle_time:],1/np.exp(1))#*S1.freqBinSize*1e3,1)
+    if window_size=='optimal':
+        freq_factor = 100
+        time_factor = 50
+        freq_frame_size = int(scint_bandwidth//S.freqBinSize)*freq_factor
+        time_frame_size = scint_timescale*time_factor
+        while 2*freq_frame_size > S.Nf:
+            freq_factor -= 2
+            freq_frame_size = int(scint_bandwidth//S.freqBinSize)*freq_factor
+        while 2*time_frame_size > S.MetaData.PhScreen_Nx:
+            time_factor -= 2
+            time_frame_size = scint_timescale*time_factor
 
-        if window_size==optimal:
-            freq_frame_size = utils.find_nearest(ACF[middle_freq:,middle_time],0.5)*100
-            time_frame_size = scint_timescale*50
-        elif window_size==full:
-            freq_frame_size = image_screen.Nf//2
-            time_frame_size = image_screen.Nx//2
+    elif window_size=='full':
+        freq_frame_size = S.Nf//2
+        time_frame_size = S.MetaData.PhScreen_Nx//2
 
-        ExtentACF = [-time_frame_size,time_frame_size,\
-                    -freq_frame_size*S1.freqBinSize,freq_frame_size*S1.freqBinSize]
-        ax[1, 1].imshow(ACF[middle_freq-freq_frame_size:middle_freq+freq_frame_size, \
-                    middle_time-time_frame_size:middle_time+time_frame_size]\
-                    ,aspect='auto',interpolation='none',origin='left',extent=ExtentACF,cmap='copper_r')
-        ax[1, 1].set_title('Autocorrelation Function')
-        ax[1, 1].set_xlabel(r'Time Lag')
-        ax[1, 1].set_ylabel('Freq Lag (MHZ)')
+    ExtentACF = [-time_frame_size,time_frame_size,\
+                -freq_frame_size*S.freqBinSize,freq_frame_size*S.freqBinSize]
+    ax[1, 1].imshow(ACF[middle_freq-freq_frame_size:middle_freq+freq_frame_size, \
+                middle_time-time_frame_size:middle_time+time_frame_size]\
+                ,aspect='auto',interpolation='none',origin='left',extent=ExtentACF,cmap='copper_r')
+    ax[1, 1].set_title('Autocorrelation Function')
+    ax[1, 1].set_xlabel(r'Time Lag')
+    ax[1, 1].set_ylabel('Freq Lag (MHZ)')
 
-        time_lag = np.linspace(-time_frame_size, time_frame_size, 2*time_frame_size)
-        freq_lag = np.linspace(-freq_frame_size*S1.freqBinSize, freq_frame_size*S1.freqBinSize, \
-                                2*freq_frame_size)
-
-        ax[1, 0].plot(freq_lag,ACF[middle_freq-freq_frame_size\
-                                    :middle_freq+freq_frame_size,middle_time])
-        ax[1, 0].plot(freq_lag, np.ones(2*freq_frame_size)*0.5,'--') #Half Maximum Cutoff
-        ax[1, 0].set_title('Frequency ACF')
-        ax[1, 0].set_xlim(-freq_frame_size*S1.freqBinSize,freq_frame_size*S1.freqBinSize)
-        ax[1, 0].set_ylim(0,1.05)
-        #xlim([middle_freq-frame_size//2,middle_freq+frame_size//2])
-
+    time_lag = np.linspace(-time_frame_size, time_frame_size, 2*time_frame_size)
+    freq_lag = np.linspace(-freq_frame_size*S.freqBinSize, freq_frame_size*S.freqBinSize, \
+                            2*freq_frame_size)
+    
+    ax[1, 0].plot(freq_lag, ACF[middle_freq-freq_frame_size\
+                                :middle_freq+freq_frame_size, middle_time])
+    ax[1, 0].plot(freq_lag, np.ones(2*freq_frame_size)*0.5,'--') #Half Maximum Cutoff
+    ax[1, 0].set_title('Frequency ACF')
+    ax[1, 0].set_xlim(-freq_frame_size*S.freqBinSize, freq_frame_size*S.freqBinSize)
+    ax[1, 0].set_ylim(-0.05,1.05)
+    #xlim([middle_freq-frame_size//2,middle_freq+frame_size//2])
 
 
 
-        f.suptitle('Dynamic Spectra, DM= '+ str(DM)+'\n Input Scintillation BW=' + \
-                    str(round(Phase_Screen.Freq_diss,3)) +' MHz' \
-                    +'\n Measured Scintillation BW=' + str(scint_bandwidth) +' MHz')
+    DM = S.MetaData.DM
+    if round(S.MetaData.DISS_decorr_bw_f0) ==0:
+        freq_units = ' kHZ'
+        unit_factor =1e3
+    else:
+        freq_units = ' MHZ'
+        unit_factor =1e3
 
-        ax[0, 1].plot(time_lag, ACF[middle_freq, middle_time-time_frame_size\
-                                    :middle_time+time_frame_size])
-        ax[0, 1].plot(time_lag, np.ones(2*time_frame_size)*(1/np.exp(1)), '--') #1/e Cutoff
-        ax[0, 1].set_xlim(-time_frame_size,time_frame_size)
-        ax[0, 1].set_ylim(0,1.05)
-        ax[0, 1].set_title('Time ACF')
+    f.suptitle('Dynamic Spectra, DM= '+ str(DM)+'\n Input Scintillation BW=' + \
+                str(round(S.MetaData.DISS_decorr_bw_f0,3)) + freq_units \
+                +'\n Measured Scintillation BW=' + str(scint_bandwidth) + freq_units)
 
-        f.subplots_adjust(hspace=0.3)
-        if save==True:
-            f.savefig('DynamicSpectrum_f0_' + str(S1.f0)+'MHz_DM_'+str(DM))
-        plt.draw()
-        plt.show()
+    ax[0, 1].plot(time_lag, ACF[middle_freq, middle_time-time_frame_size\
+                                :middle_time+time_frame_size])
+    ax[0, 1].plot(time_lag, np.ones(2*time_frame_size)*(1/np.exp(1)), '--') #1/e Cutoff
+    ax[0, 1].set_xlim(-time_frame_size,time_frame_size)
+    ax[0, 1].set_ylim(-0.05,1.05)
+    ax[0, 1].set_title('Time ACF')
+
+    f.subplots_adjust(hspace=0.3)
+
+    if save==True:
+        f.savefig('DynamicSpectrum_f0_' + str(S1.f0)+'MHz_DM_'+str(DM))
+    plt.draw()
+    plt.show()

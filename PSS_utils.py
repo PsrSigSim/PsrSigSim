@@ -76,10 +76,13 @@ def rebin(a, newLength):
 def top_hat_width(sub_band_width, sub_bandwidth_center, DM):
     """
     Top Hat pulse to convolve with pulses for dipsersion broadening
-    Given the bandwidth of the subbands and the center of the sub band calculates top_hat width in micro sec.
+    Given the bandwidth of the subbands and the center of the sub band
+    calculates top_hat width in milliseconds.
+    sub_band_width in MHz
+    sub_bandwidth_center in GHz following
     (Lorimer and Kramer, 2005)"""
-    th_width = 8.297616 * DM * sub_band_width/1e3 / (sub_bandwidth_center/1e3)**3 #width in microseconds
-    #freq onverted to GHz for calculation above.
+    th_width = 8.297616e-3 * DM * (sub_band_width) / (sub_bandwidth_center/1e3)**3 #width in milliseconds
+    #freq converted to GHz for calculation above.
     return th_width
 
 def DM_broaden_signal(pulse, width):
@@ -177,13 +180,13 @@ def find_nearest(array,value):
     """
     diff=np.abs(array-value)
     idx = diff.argmin()
-    if idx ==0 or array[1]<value:
+    if idx == 0 or array[1] < value:
         idx = 1
     return idx
 
 def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
     """Courteousy of Michael Lam's PyPulse
-    Calculate the autocorrelation of a 2 dimensional array. 
+    Calculate the autocorrelation of a 2 dimensional array.
     """
     if speed == 'fast' or speed == 'slow':
         ones = np.ones(np.shape(array))

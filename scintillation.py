@@ -20,7 +20,7 @@ RAD_TO_MAS = 2.063e8
 r_e = 2.8179403227e-15 #m
 
 class phase_screen:
-    def __init__(self, signal_object, DM, Nx=30, Ny=30, spectral_ind=11./3., D_pulsar=1, D_screen=0.5, inner=None, outer=None, rmsfres=None, scint_bandwidth=180e6, apply_inner=False,  apply_outer=False, normfres=False, normDM=False):
+    def __init__(self, signal_object, DM='use_ism', Nx=30, Ny=30,Number_r_F = 1./64, spectral_ind=11./3., D_pulsar=1, D_screen=0.5, inner=None, outer=None, rmsfres=None, scint_bandwidth=180e6, apply_inner=False,  apply_outer=False, normfres=False, normDM=False):
         """
         Generates npoints of a realization of power-law noise with unit
         variance with spectral index, spectral_ind and inner and outer scales as
@@ -59,31 +59,39 @@ class phase_screen:
                     LK12 is Lorimer and Kramer, 2012
         """
 
+        if DM == 'use_ism':
+            DM = signal_object.MetaData.DM
         #D_screen *= KPC_TO_M
         max_freq = signal_object.freq_Array.max()
         min_freq = signal_object.freq_Array.min() #signal_object.f0
         self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
+        self.PhaseScreen_Dict={}
+        self.PhaseScreen_Dict['min_Fresnel_radius'] = self.r_Fresnel
 
         #Below we use ray optics to find the Field Coherence Scale, though other approaches are possible
         #Use the uncertainty relation from CR98 (C_1=1.16) to calculate the length of the hypotenuse for scattering
 
-        #delta_x = 1.16 * c / (2 * np.pi * scint_bandwidth)
-        #or
         scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
         self.Freq_diss = 1.16/(2*np.pi*scat_timescale*1e-3)/1e6
         #TODO Could Use the scat_timescale calculated at each frequency...
-
+        self.PhaseScreen_Dict['scat_timescale_f0'] = scat_timescale
+        self.PhaseScreen_Dict['DISS_decorr_bw_f0'] = self.Freq_diss
 
         #delta_x = c * scat_timescale * 1e-3 #1/e^3 gives > 95% of rays
         #s_0 = np.sqrt(2 * delta_x * D_screen + delta_x**2) #Field Coherence Scale in meters
         #factor = s_0 / self.r_Fresnel # multiplicative factor since the uncertainty is based on 1/e time.
-        Number_r_F = 1./64
+
         xwidth = Number_r_F * self.r_Fresnel * Nx
         ywidth = Number_r_F * self.r_Fresnel * Ny
+        self.PhaseScreen_Dict['PhScreen_Nx'] = Nx
+        self.PhaseScreen_Dict['PhScreen_Ny'] = Ny
+        self.PhaseScreen_Dict['PhScreen_xwidth'] = xwidth
+        self.PhaseScreen_Dict['PhScreen_ywidth'] = ywidth
+
         #xwidth = Nx * self.dx
         #ywidth = Ny * self.dy
         #print('scat_timescale', scat_timescale)
-        print('Freq_diss ', self.Freq_diss)
+        #print('Freq_diss ', self.Freq_diss)
         #print('delta_x', delta_x)
         #print('D_screen', D_screen)
         #print('Field Coherence Scale', s_0)
@@ -125,10 +133,10 @@ class phase_screen:
         #    print("Forcing Nqy = Ny = ", Ny)
             Nqy = Ny
 
-        self.qxvec_centered = (np.arange(0.,Nqx)-Nqx//2+1)*dqx # Make arrays that are centered on zero, over the given widths
-        self.qxvec = np.roll(self.qxvec_centered,Nqx//2+1) #Shift array by enough to make 0 first
-        self.qyvec_centered = (np.arange(0.,Nqy)-Nqy//2+1)*dqy
-        self.qyvec = np.roll(self.qyvec_centered, Nqy//2+1)
+        qxvec_centered = (np.arange(0.,Nqx)-Nqx//2+1)*dqx # Make arrays that are centered on zero, over the given widths
+        self.qxvec = np.roll(qxvec_centered,Nqx//2+1) #Shift array by enough to make 0 first
+        qyvec_centered = (np.arange(0.,Nqy)-Nqy//2+1)*dqy
+        self.qyvec = np.roll(qyvec_centered, Nqy//2+1)
 
         #Set inner and outer scale factors if not otherwise set.
         if inner == None:
@@ -153,7 +161,7 @@ class phase_screen:
         self.qshape = (qout**2 + qsq)**(-spectral_ind/4.) * np.exp(-qsq/(2.*qmax**2))
         self.qshape_rolloff = np.exp(-qsq / (2.*qin**2))
 
-        qxy_centered = np.meshgrid(self.qxvec_centered, self.qyvec_centered, indexing='ij')
+        qxy_centered = np.meshgrid(qxvec_centered, qyvec_centered, indexing='ij')
         self.qsq_centered =  qxy_centered[0]**2 + qxy_centered[1]**2
 
         if apply_outer:
@@ -198,7 +206,7 @@ class phase_screen:
 
                 #Using LK12 Version
                 scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
-                Freq_diss = 1.16 / (2*np.pi*scat_timescale*1e-3) / 1e6 #1.16
+                Freq_diss = 0.957 / (2*np.pi*scat_timescale*1e-3) / 1e6 # C1=1.16 for a uniform medium
                 xformr = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_r * self.qshape
                 xformi = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_i * self.qshape
                 self.Cn_squared = np.append(self.Cn_squared, CnSq_calc(freq,Freq_diss))
@@ -209,20 +217,13 @@ class phase_screen:
 
 
                 xform = xformr + 1j*xformi
-                #self.phi_fft[ii,:,:] = xform
-                self.spectrum = abs(xform)**2 #Is xform*xform.conj() faster here?
-                #Is the spectrum what we should be multiplying by C^2?
+                #self.spectrum = abs(xform)**2 #Is xform*xform.conj() faster here?
+
                 wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
-                self.phi[ii,:,:] = np.real(np.fft.ifft2(xform)) * wave_num_to_phi #
-            #self.phi *= (Nx*Ny)/(self.dx*self.dy)#2/np.std(self.phi)#1#Nx*Ny/(self.dx*self.dy) #1.34439663e-13 *2/np.std(self.phi)
-            #self.phi_fft *= 1.34439663e-13 #What are we converting to here? From wavenumber to phase.
-            #self.phi /= Number_r_F**2  # Nx*Ny
-            #self.phi /= np.std(self.phi)
-            #self.phi /= self.qshape.size
+                self.phi[ii,:,:] = np.real(np.fft.ifft2(xform)) * wave_num_to_phi
+
             self.phi /= (self.dx*self.dy)*(Nx*Ny)
 
-        print('1/(self.dx*self.dy)',1/(self.dx*self.dy))
-        print('(Nx*Ny)',(Nx*Ny))
         self.Nx = Nx
         self.Ny = Ny
         self.xmax = xmax
@@ -331,9 +332,11 @@ class images(object):
                 field0fft = kernel0fft * screen0fft
                 #self.kernel[ii,:,:] = kernel0
 
-            norm = 1#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
+            norm = 1/np.sqrt(2)#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
             field = norm * np.fft.fftshift(np.fft.ifft2(field0fft))
             self.intensity[ii,:,:] = abs(field**2)
+
+            signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
     ### Plots
 
 #    def dynamic_spectrum(self, **kwargs):
