@@ -9,6 +9,7 @@ import numpy as np
 import scipy as sp
 import math
 from scipy import ndimage
+from scipy.signal import fftconvolve,correlate
 
 def shiftit(y, shift):
     """
@@ -169,6 +170,75 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy re
     lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
     y = np.concatenate((firstvals, y, lastvals))
     return np.convolve( m[::-1], y, mode='valid')
+
+def find_nearest(array,value):
+    """Returns the argument of the element in an array nearest to value.
+    For half width at value use array[max:].
+    """
+    diff=np.abs(array-value)
+    idx = diff.argmin()
+    if idx ==0 or array[1]<value:
+        idx = 1
+    return idx
+
+def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
+    """Courteousy of Michael Lam's PyPulse
+    Calculate the autocorrelation of a 2 dimensional array. 
+    """
+    if speed == 'fast' or speed == 'slow':
+        ones = np.ones(np.shape(array))
+        norm = fftconvolve(ones,ones,mode=mode) #very close for either speed
+        if speed=='fast':
+            return fftconvolve(array,np.flipud(np.fliplr(array)),mode=mode)/norm
+        else:
+            return correlate(array,array,mode=mode)/norm
+    elif speed == 'exact':
+        #NOTE: (r,c) convention is flipped from (x,y), also that increasing c is decreasing y
+        LENX = len(array[0])
+        LENY = len(array)
+        if xlags is None:
+            xlags = np.arange(-1*LENX+1,LENX)
+        if ylags is None:
+            ylags = np.arange(-1*LENY+1,LENY)
+        retval = np.zeros((len(ylags),len(xlags)))
+        for i,xlag in enumerate(xlags):
+            print(xlag)
+            for j,ylag in enumerate(ylags):
+                if ylag > 0 and xlag > 0:
+                    A = array[:-1*ylag,xlag:] #the "stationary" array
+                    B = array[ylag:,:-1*xlag]
+                elif ylag < 0 and xlag > 0:
+                    A = array[-1*ylag:,xlag:]
+                    B = array[:ylag,:-1*xlag]
+                elif ylag > 0 and xlag < 0:#optimize later via symmetries
+                    A = array[:-1*ylag,:xlag]
+                    B = array[ylag:,-1*xlag:]
+                elif ylag < 0 and xlag < 0:
+                    A = array[-1*ylag:,:xlag]
+                    B = array[:ylag,-1*xlag:]
+                else: #one of the lags is zero
+                    if ylag == 0 and xlag > 0:
+                        A = array[-1*ylag:,xlag:]
+                        B = array[:,:-1*xlag]
+                    elif ylag == 0 and xlag < 0:
+                        A = array[-1*ylag:,:xlag]
+                        B = array[:,-1*xlag:]
+                    elif ylag > 0 and xlag == 0:
+                        A = array[:-1*ylag,:]
+                        B = array[ylag:,-1*xlag:]
+                    elif ylag < 0 and xlag == 0:
+                        A = array[-1*ylag:,:]
+                        B = array[:ylag,-1*xlag:]
+                    else:
+                        A = array[:,:]
+                        B = array[:,:]
+                        #print xlag,ylag,A,B
+                C = A*B
+                C = C.flatten()
+                goodinds = np.where(np.isfinite(C))[0] #check for good values
+                retval[j,i] = np.mean(C[goodinds])
+        return retval
+
 #def debug_print(check):
 #    if debug:
 #        print(check)

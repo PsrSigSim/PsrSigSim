@@ -105,7 +105,8 @@ class Signal(object):
             self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 
         self.MetaData.AddInfo(self.SignalDict)
-        ### Plotting Methods
+
+    ### Plotting Methods
     def pulse_plot(self, **kwargs):
         return PSS_plot.pulse_plot(self, **kwargs)
 
@@ -115,8 +116,8 @@ class Signal(object):
     def profile_plot(self, **kwargs):
         return PSS_plot.profile_plot(self, **kwargs)
 
-    """Set the signal parameters as properties and assign them to the MetaData
-    """
+    #Set the signal parameters as properties and assign them to the MetaData
+    
     @property
 
     def f0(self):

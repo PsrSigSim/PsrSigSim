@@ -59,10 +59,10 @@ class phase_screen:
                     LK12 is Lorimer and Kramer, 2012
         """
 
-        D_screen *= KPC_TO_M
+        #D_screen *= KPC_TO_M
         max_freq = signal_object.freq_Array.max()
         min_freq = signal_object.freq_Array.min() #signal_object.f0
-        self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * D_screen / (2.0*np.pi))
+        self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
 
         #Below we use ray optics to find the Field Coherence Scale, though other approaches are possible
         #Use the uncertainty relation from CR98 (C_1=1.16) to calculate the length of the hypotenuse for scattering
@@ -70,22 +70,20 @@ class phase_screen:
         #delta_x = 1.16 * c / (2 * np.pi * scint_bandwidth)
         #or
         scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
-        Freq_diss = 1.16/(2*np.pi*scat_timescale*1e-3)/1e6
+        self.Freq_diss = 1.16/(2*np.pi*scat_timescale*1e-3)/1e6
         #TODO Could Use the scat_timescale calculated at each frequency...
 
 
         #delta_x = c * scat_timescale * 1e-3 #1/e^3 gives > 95% of rays
         #s_0 = np.sqrt(2 * delta_x * D_screen + delta_x**2) #Field Coherence Scale in meters
         #factor = s_0 / self.r_Fresnel # multiplicative factor since the uncertainty is based on 1/e time.
-        Number_r_F = 1./32  #*np.sqrt((2.0*np.pi)) #How does this number change the way the calculation looks?
-        #self.dx = self.r_Fresnel / np.sqrt(Nx)
-        #self.dy = self.r_Fresnel / np.sqrt(Ny)
+        Number_r_F = 1./64
         xwidth = Number_r_F * self.r_Fresnel * Nx
         ywidth = Number_r_F * self.r_Fresnel * Ny
         #xwidth = Nx * self.dx
         #ywidth = Ny * self.dy
         #print('scat_timescale', scat_timescale)
-        print('Freq_diss ',Freq_diss)
+        print('Freq_diss ', self.Freq_diss)
         #print('delta_x', delta_x)
         #print('D_screen', D_screen)
         #print('Field Coherence Scale', s_0)
@@ -201,8 +199,8 @@ class phase_screen:
                 #Using LK12 Version
                 scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
                 Freq_diss = 1.16 / (2*np.pi*scat_timescale*1e-3) / 1e6 #1.16
-                xformr = np.sqrt(CnSq_calc(freq, Freq_diss)) * rand_pull_r * self.qshape
-                xformi = np.sqrt(CnSq_calc(freq, Freq_diss)) * rand_pull_i * self.qshape
+                xformr = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_r * self.qshape
+                xformi = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_i * self.qshape
                 self.Cn_squared = np.append(self.Cn_squared, CnSq_calc(freq,Freq_diss))
 
                 #Using the one freq method
@@ -214,7 +212,7 @@ class phase_screen:
                 #self.phi_fft[ii,:,:] = xform
                 self.spectrum = abs(xform)**2 #Is xform*xform.conj() faster here?
                 #Is the spectrum what we should be multiplying by C^2?
-                wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 * 0.0198339 * D_screen)
+                wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
                 self.phi[ii,:,:] = np.real(np.fft.ifft2(xform)) * wave_num_to_phi #
             #self.phi *= (Nx*Ny)/(self.dx*self.dy)#2/np.std(self.phi)#1#Nx*Ny/(self.dx*self.dy) #1.34439663e-13 *2/np.std(self.phi)
             #self.phi_fft *= 1.34439663e-13 #What are we converting to here? From wavenumber to phase.
@@ -229,6 +227,8 @@ class phase_screen:
         self.Ny = Ny
         self.xmax = xmax
         self.ymax = ymax
+        self.Nf = signal_object.Nf
+        self.freq_Array = signal_object.freq_Array
 
         # Normalization factor needs to be calculated on pure power-law spectrum
         # before any rolloff at the refraction scale
@@ -282,7 +282,7 @@ class phase_screen:
 
 
 class images(object):
-    def __init__(self, phase_screen, signal_object,fourier_mode=True, factor=1, freq=None, high_freq=None, normed=False):
+    def __init__(self, phase_screen, signal_object, fourier_mode=True, factor=1, freq=None, high_freq=None, normed=False):
 
         if high_freq==None:
             phase_norm = 1
@@ -301,54 +301,43 @@ class images(object):
             xy = np.meshgrid(Xvec, Yvec, indexing='ij')
             rsqvec = xy[0]**2 + xy[1]**2
 
-        self.intensity = np.zeros((signal_object.Nf,phase_screen.Nx,phase_screen.Ny))
-        #field = np.zeros((signal_object.Nf,phase_screen.Nx,phase_screen.Ny))
+        self.intensity = np.zeros((phase_screen.Nf,phase_screen.Nx,phase_screen.Ny))
+        #field = np.zeros((phase_screen.Nf,phase_screen.Nx,phase_screen.Ny))
         self.kernel = np.zeros(self.intensity.shape, dtype='complex64')
         self.kernelFFT = np.zeros(self.intensity.shape, dtype='complex64')
         self.screenFFT = np.zeros(self.intensity.shape, dtype='complex64')
-        self.kernelFFT_check = np.zeros(signal_object.Nf)
+        self.kernelFFT_check = np.zeros(phase_screen.Nf)
         if normed:
             phase_screen.phi = phase_screen.phi_norm
-        for ii, frequ in enumerate(signal_object.freq_Array):
-
-            #if freq==None:
-            #    r_Fres_squared = phase_screen.r_Fresnel**2
-            #else:
+        for ii, frequ in enumerate(phase_screen.freq_Array):
             r_Fres_squared = r_Fres_SQ(frequ)
             SD = phase_screen.xmax*phase_screen.ymax#np.exp(-rsqvec / SD)*
             if fourier_mode:
                 kmax = phase_screen.qsq_centered.max()
-                FresnelKernel_Norm = 1#np.sqrt(r_Fres_squared*np.pi)/2
-                kernel0fft = FresnelKernel_Norm * (1+1j) * np.exp(-1j*phase_screen.qsq_centered/2*r_Fres_squared)# * np.exp(-phase_screen.qsq_centered/(10*kmax))
-                self.kernelFFT_check[ii] = abs(kernel0fft).max()
-                self.kernelFFT[ii,:,:] = kernel0fft
+                FresnelKernel_Norm = 1 #np.sqrt(r_Fres_squared*np.pi)/2
+                kernel0fft = FresnelKernel_Norm * (1+1j) \
+                                * np.exp(-1j*phase_screen.qsq_centered/2 \
+                                *r_Fres_squared)
+                #self.kernelFFT[ii,:,:] = kernel0fft
                 screen0 = np.exp(phase_norm * 1j * phase_screen.phi[ii,:,:])
                 screen0fft = np.fft.fft2(screen0)
-                self.screenFFT[ii,:,:] = screen0fft
+                #self.screenFFT[ii,:,:] = screen0fft
                 field0fft = kernel0fft * screen0fft
-                norm_power = 2
             else:
-                if factor==1:
-                    kernel0 = np.exp(1j * rsqvec / (2. * r_Fres_squared)) # See Eq (2.1), (Narayan, 1992)
-                    #kernel0 *= np.exp(-qsq/(2.*qmax**2))
-                else:
-                    kernel0_oversampled = np.exp(1j * rsqvec / (2. * r_Fres_squared)) # See Eq (2.1), (Narayan, 1992)
-                    kernel0_r = utils.block_mean(kernel0_oversampled.real,factor)
-                    kernel0_i = utils.block_mean(kernel0_oversampled.imag,factor)
-                    kernel0 = kernel0_r + 1j*kernel0_i
+                kernel0 = np.exp(1j * rsqvec / (2. * r_Fres_squared)) # See Eq (2.1), (Narayan, 1992)
                 screen0 = np.exp(phase_norm * 1j * phase_screen.phi[ii])
                 kernel0fft = np.fft.fft2(kernel0)
-                self.kernelFFT_check[ii] = abs(kernel0fft).max()
                 screen0fft= np.fft.fft2(screen0)
                 field0fft = kernel0fft * screen0fft
-                self.kernel[ii,:,:] = kernel0
-                norm_power = 1
+                #self.kernel[ii,:,:] = kernel0
 
             norm = 1#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
             field = norm * np.fft.fftshift(np.fft.ifft2(field0fft))
             self.intensity[ii,:,:] = abs(field**2)
+    ### Plots
 
-        #self.intensity /= np.median(self.intensity)
+#    def dynamic_spectrum(self, **kwargs):
+#        return PSS_plot.dynamic_spectrum(image_screen, **kwargs)
 
 
 
