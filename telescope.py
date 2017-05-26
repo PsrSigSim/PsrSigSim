@@ -26,7 +26,7 @@ class Telescope(object):
         #TODO Need to write files to disk when they are large.
         Telescope_BW = {('GBT',820): 3.125, ('GBT',1400): 12.5,('AO',327): 1.5625, ('AO',430): 1.5625, ('AO',1400): 12.5, ('AO',2300): 12.5,}
         """
-        The bandwidth for the various telescope backends at given central frequencies.
+        The sampling rate for various telescope backends at given central frequencies.
         820 GBT GUPPI: 3.125 MHz
         1400 GBT GUPPI: 12.5 MHz
 
