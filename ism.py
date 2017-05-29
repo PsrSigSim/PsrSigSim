@@ -56,11 +56,12 @@ class ISM(object):
         self.ISM_Dict["DM"] = self.DM
         self.ISM_Dict['DM_Broaden'] = to_DM_Broaden
         if self.Signal_in.SignalType=='intensity':
-            #For intensity signal calculat dispersion for all sub-bands.
+            #For intensity signal calculate dispersion for all sub-bands.
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
-            self.time_delays = -1e3*self.K*self.DM*(np.power(self.freq_Array,-2)) #freq in MHz, delays in milliseconds
+            self.time_delays = -1e-3*self.K*self.DM*(np.power((self.freq_Array/1e3),-2)) #freq in MHz, delays in milliseconds
                 #Dispersion as compared to infinite frequency
             self.time_delays //= self.TimeBinSize #Convert to number of bins
+            self.widths = np.zeros(self.Nf)
             for ii, freq in enumerate(self.freq_Array):
                 self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
                 sub_band_width = self.bw/self.Nf
@@ -68,7 +69,7 @@ class ISM(object):
                 if width > 0 and to_DM_Broaden:
                     if width > self.Nt:
                         raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
-
+                    self.widths[ii] = width
                     self.signal[ii,:] = np.convolve(sp.signal.boxcar(width)/width, self.signal[ii,:] ,'same').astype(self.Signal_in.data_type)
                     # The division by width of the boxcar filter normalizes the convolution
 

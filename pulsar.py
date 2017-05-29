@@ -137,7 +137,7 @@ class Pulsar(object):
         self.MinCheck = np.amin(self.profile)
         if self.MinCheck < 0 :
             #Zeros out minimum intensity of profile, otherwise runs into problems
-            #with positive-definite distributions for draws of pulses. 
+            #with positive-definite distributions for draws of pulses.
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
 
 
@@ -194,4 +194,5 @@ class Pulsar(object):
         #    self.signal[jj,:] = self.pulse
         #self.signal = np.tile(self.pulse,(self.Nf,1))
         self.PulsarDict['profile'] = self.profile
+
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
