@@ -117,7 +117,7 @@ class Burst(object):
         if self.MinCheck < 0 :
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
 
-    def burst(self, SignalType = "intensity"):
+    def make_burst(self, SignalType = "intensity"):
         #Function that makes a pulse using the defined profile template
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[SignalType])
