@@ -30,6 +30,7 @@ class Pulsar(object):
         self.TotTime = self.Signal_in.TotTime
         self.TimeBinSize = self.Signal_in.TimeBinSize
         self.T = period
+        self.mode = self.Signal_in.MetaData.mode
         self.nBinsPeriod = int(self.T/self.TimeBinSize)
         self.NPeriods = math.floor(self.TotTime/self.T) #Number of periods that can fit in the time given
         #self.time = np.linspace(0., self.TotTime, self.Nt)
@@ -38,6 +39,7 @@ class Pulsar(object):
         self.gauss_draw_sigma = 1
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
         self.PulsarDict = dict(period=period)
+        self.PulsarDict['signal_pulsed'] = False
         self.gauss_template()
         #TODO Add ability to deal with multiple bands
         #TODO Check to see that you have the correct kind of array and info you need
@@ -146,8 +148,9 @@ class Pulsar(object):
         Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
             'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
         """
-        #TODO Error message if the signal has already been pulsed
 
+        if self.PulsarDict['signal_pulsed']:
+            raise ValueError('Signal has already been generated.')
         self.PeriodFracRemain = self.TotTime/self.T - self.NPeriods #Home much of the last period remaining
         self.NLastPeriodBins = self.Nt - self.NPeriods * self.profile.size #index when last period starts
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
@@ -162,8 +165,8 @@ class Pulsar(object):
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
             # Normalizes the 99.9 percentile to the dtype maximum.
-        else:
-            gamma_limit=stats.gamma.ppf(0.999,self.gamma_shape,scale=self.gamma_scale)
+        elif self.SignalType == 'intensity':
+            gamma_limit=stats.gamma.ppf(0.999, self.gamma_shape, scale=self.gamma_scale)
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
             # Normalizes the 99.9 percentile to the dtype maximum.
@@ -179,7 +182,10 @@ class Pulsar(object):
             self.Nchunks = self.NPeriods//self.ChunkSize
             self.NPeriodRemainder = self.NPeriods % self.ChunkSize
             for ii in range(self.Nchunks): #limits size of the array in memory
-                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : ii * self.ChunkSize * self.nBinsPeriod + self.ChunkSize * self.nBinsPeriod] = np.tile(pulseTypeMethod(self.ChunkSize),(NRows,1))
+                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : \
+                            ii * self.ChunkSize * self.nBinsPeriod \
+                            + self.ChunkSize * self.nBinsPeriod] \
+                            = np.tile(pulseTypeMethod(self.ChunkSize),(NRows,1))
 
             if self.NPeriodRemainder != 0 :
                 self.signal[:,self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = np.tile(pulseTypeMethod(self.NPeriodRemainder),(NRows,1))
@@ -194,5 +200,5 @@ class Pulsar(object):
         #    self.signal[jj,:] = self.pulse
         #self.signal = np.tile(self.pulse,(self.Nf,1))
         self.PulsarDict['profile'] = self.profile
-
+        self.PulsarDict['signal_pulsed'] = True
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)

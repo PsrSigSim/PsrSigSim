@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import PSS_utils as utils
+from . import PSS_utils as utils
 
 class Telescope(object):
     def __init__(self, Signal_in):

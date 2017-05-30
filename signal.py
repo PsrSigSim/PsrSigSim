@@ -33,9 +33,10 @@ class MetaData(object):
 class Signal(object):
     """The signal class
     """
-    def __init__(self, f0=1400, bw=400, Nf=20, Nt=400, TotTime=200, data_type='int8', SignalType = "intensity"):
+    def __init__(self, f0=1400, bw=400, Nf=20, Nt=400, TotTime=200, data_type='int8', SignalType = "intensity", mode='explore'):
         """initialize Signal(), executed at assignment of new instance
-        data_type = 'int8' or 'int16' supported. Changed to 'uint8' or 'uint16' if intensity signal.
+        data_type = 'int8' or 'int16' supported.
+                    Automatically changed to 'uint8' or 'uint16' if intensity signal.
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
         @param Nf -- number of freq. bins
@@ -83,6 +84,8 @@ class Signal(object):
             rows = self.Nf
             self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
 
+        else:
+            raise ValueError('Signal Type: '+SignalType+' and data type: '+data_type+' not supported together.')
 
         self.TotTime = TotTime #Total time in milliseconds
         self.TimeBinSize = self.TotTime/self.Nt
@@ -104,6 +107,7 @@ class Signal(object):
         else:
             self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 
+        self.SignalDict['mode'] = mode
         self.MetaData.AddInfo(self.SignalDict)
 
     ### Plotting Methods
@@ -117,7 +121,7 @@ class Signal(object):
         return PSS_plot.profile_plot(self, **kwargs)
 
     #Set the signal parameters as properties and assign them to the MetaData
-    
+
     @property
 
     def f0(self):
