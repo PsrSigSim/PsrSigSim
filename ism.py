@@ -70,7 +70,7 @@ class ISM(object):
                     if width > self.Nt:
                         raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
                     self.widths[ii] = width
-                    self.signal[ii,:] = np.convolve(sp.signal.boxcar(width)/width, self.signal[ii,:] ,'same').astype(self.Signal_in.data_type)
+                    self.signal[ii,:] = sp.signal.convolve(self.signal[ii,:], sp.signal.boxcar(width)/width, mode='same',method='fft').astype(self.Signal_in.data_type)
                     # The division by width of the boxcar filter normalizes the convolution
 
                     #print(self.freq_Array[ii],' MHz ','width=', width) #for debugging
@@ -85,6 +85,11 @@ class ISM(object):
             #    self.signal[ii,:] = np.fft.irfft(disp_signal_fft)
 
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
+
+    def scatter(self, scat_timescale):
+        """
+        Simulatates scatter broadening by convolving the
+        """
 
 #    def scintillate(self, scint_bandwidth=18e6, scint_time):
 #        Nbins_per_scint_time = int(scint_time//self.TimeBinSize)
