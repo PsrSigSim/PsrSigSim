@@ -241,7 +241,53 @@ def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
                 goodinds = np.where(np.isfinite(C))[0] #check for good values
                 retval[j,i] = np.mean(C[goodinds])
         return retval
+def text_search(search_list, header_values, filepath, header_line=0, file_type='txt'):
+    """ Method for pulling value from  a txt file.
+    search_list = list of string-type values that demarcate the line in a txt file
+                from which to pull values
+    header_values = string of column headers or array of column numbers (in Python numbering)
+                the values from which to pull
+    filepath = file path of txt file. (string)
+    header_line = line with headers for values.
+    file_type = 'txt' or 'csv'
 
+    returns: tuple of values matching header values for the search terms given.
+    """
+    #TODO Make work for other file types.
+    #if file_type == 'txt':
+    #    delimiter = ''
+    #elif file_type == 'csv':
+    #    delimiter = ','
+
+    check = 0
+    output_values = list()
+
+    with open(filepath, 'r') as searchfile: # Find Column Numbers from column names
+        if any(isinstance(elem, str) for elem in header_values):
+            column_num = []
+            parsed_header = list(searchfile.readlines()[header_line].split())
+            for ii , header in enumerate(header_values):
+                column_num.append(parsed_header.index(header))
+        else:
+            column_num = np.array(header_values)
+
+
+    with open(filepath, 'r') as searchfile: # Find Values using search keys and column numbers.
+        #TODO Don't know why I need this second with statement, but if I take it out it doesn't work.
+        for line in searchfile:
+            if all(ii in line for ii in search_list):
+
+                info = line.split()
+                for jj, value in enumerate(column_num):
+                    output_values.append(info[value])
+                check += 1
+
+    if check == 0 :
+        raise ValueError('Combination {0} '.format(search_list)+' not found in same line of text file.')
+    if check > 1 :
+        raise ValueError('Combination {0} '.format(search_list)+' returned multiple results in txt file.')
+
+    return tuple([float(i) for i in output_values])
 #def debug_print(check):
 #    if debug:
 #        print(check)

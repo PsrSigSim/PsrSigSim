@@ -39,7 +39,9 @@ class Pulsar(object):
         self.gauss_draw_sigma = 1
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
         self.PulsarDict = dict(period=period)
+        self.PulsarDict['pulsar_period'] = self.T
         self.PulsarDict['signal_pulsed'] = False
+        self.PulsarDict['nBins_per_period'] = self.nBinsPeriod
         self.gauss_template()
         #TODO Add ability to deal with multiple bands
         #TODO Check to see that you have the correct kind of array and info you need
@@ -201,4 +203,5 @@ class Pulsar(object):
         #self.signal = np.tile(self.pulse,(self.Nf,1))
         self.PulsarDict['profile'] = self.profile
         self.PulsarDict['signal_pulsed'] = True
+        self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)

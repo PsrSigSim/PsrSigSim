@@ -22,7 +22,7 @@ class ISM(object):
         self.first_freq = self.Signal_in.first_freq
         self.last_freq = self.Signal_in.last_freq
         self.freq_Array = self.Signal_in.freq_Array
-        self.ISM_Dict = dict(dispersion=True, scattering=False, DM = 30, scintillation=False)
+        self.ISM_Dict = dict(dispersion=False, scattering=False, DM = None, scintillation=False)
 
     def shiftit(self, y, shift):
         """
@@ -55,6 +55,7 @@ class ISM(object):
         self.DM = DM
         self.ISM_Dict["DM"] = self.DM
         self.ISM_Dict['DM_Broaden'] = to_DM_Broaden
+        self.ISM_Dict['dispersion'] = True
         if self.Signal_in.SignalType=='intensity':
             #For intensity signal calculate dispersion for all sub-bands.
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
@@ -86,20 +87,67 @@ class ISM(object):
 
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
-    def scatter(self, scat_timescale):
+    def scatter(self, array, scat_timescale):
         """
-        Simulatates scatter broadening by convolving the
+        Simulate scatter broadening by convolving the signal with an exp(-t/tau).
         """
+        nBins = self.Signal_in.MetaData.nBins_per_period
+        tau = scat_timescale / self.TimeBinSize
+        try:
+            #N_taus = nBins/tau
+            exp_time = np.linspace(0,nBins,nBins)
+            scatter_exp = np.exp(-exp_time/tau)
+            scatter_exp /= np.sum(scatter_exp)
+            return sp.signal.convolve(array, scatter_exp, mode='full',method='fft')[:-nBins]
+            #.astype(self.Signal_in.data_type)
+        except: #Exception if meant for tau too small for given sampling rate.
+            return array
 
-#    def scintillate(self, scint_bandwidth=18e6, scint_time):
-#        Nbins_per_scint_time = int(scint_time//self.TimeBinSize)
-#        N_scint_timescales = int(self.Nt//Nbins_per_scint_time)
-#        dims = 100
-#        self.Phase_Screens = np.zeros((self.Nf,dims,dims))
-#        self.Intensity_Screens = np.zeros(self.Phase_Screens.shape)
-#        for ii, freq in enumerate(self.freq_Array):
-#            Phase_Screens[str(freq)] = scint.phase_screen(freq, Nx = dims, Ny = dims, scint_bandwidth=scint_bandwidth)
-#            Intensity_Screens[ii,:,:] = scint.images(Phase_Screens[str(freq)]).intensity
-#
-#        for jj in range(N_scint_timescales):
-#            self.Intensity_Screens[,,]
+    class scintillate:
+        def __init__(self, V_ISS = None, scint_timescale = None, pulsar=None ):
+            """
+            Uses a phase screen with the given power spectrum to scintillate a pulsar signal
+            across an observation band. The class uses the parameters given to calculate
+            thin phase screens and gain image using Fresnel propagation.
+
+            The screens are calculated for the size appropriate to the given parameters
+            and observation length.
+            """
+
+            self.V_ISS = V_ISS
+            self.scint_time = scint_timescale
+            diff_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=1/64.)
+
+            L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
+
+            refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
+            #Calculate a refraction screen to give a correction.
+
+            self.gain = scint.images(diff_phase_screen, self.Signal_in, mode='simulation').gain
+
+
+        def make_scintles(self, verbose=True):
+            """
+            Scintillate the pulsar signal.
+            """
+            #self.gain
+
+        def NG_scint_param(pulsar, telescope, freq_band):
+            """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
+            from a txt file.
+            pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
+                        See 'PTA_pulsar_nb_data.txt' for details.
+            telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
+            freq_band = [327 ,430, 820, 1400, 2300]
+            """
+            freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'],dtype=str)
+            freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
+
+            search_list = (pulsar, telescope, freq_band)
+            columns = (10,11)
+            try:
+                scint_bw, scint_timescale = text_search(search_list, columns, 'PTA_pulsar_nb_data.txt')
+            except:
+                raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
+
+            return scint_bw, scint_timescale

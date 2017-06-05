@@ -7,14 +7,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from . import PSS_utils as utils
 
-__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum']
+__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum','gain_pdf']
 
-plt.rcParams['figure.figsize'] = (8.0,6.0)
+#plt.rcParams['figure.figsize'] = (8.0,6.0)
 plt.rcParams.update({'font.size': 14})
 
 def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
     Title = 'Pulsar Profile Template'
-    profile = signal_object.MetaData.profile
+    try:
+        profile = signal_object.MetaData.profile
+    except:
+        raise ValueError('Need to sample pulses!')
     Nx = profile.size
 
     if phase:
@@ -43,7 +46,8 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
     try:
         nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
     except:
-        ValueError('Need to sample pulses')
+        raise ValueError('Need to sample pulses!')
+
     if signal_object.SignalType == 'intensity':
         Y_label = 'Relative Intensity'
         Title = 'Pulse Intensity'
@@ -123,16 +127,47 @@ def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False
         plt.title(Title)
         plt.show()
 
+def gain_pdf(image_screen, which_sample='middle'):
+
+    if which_sample == 'middle' and image_screen.gain.ndim == 3:
+        which_sample= image_screen.gain.shape[1]//2
+        gain_mean = image_screen.gain[:,which_sample,:].mean()
+        plt.hist(image_screen.gain[:,which_sample,:].flatten(), \
+                    bins=60, normed=True, label='Sampled Gains')
+    elif which_sample != 'middle' and image_screen.gain.ndim == 3:
+        gain_mean = image_screen.gain[:,which_sample,:].mean()
+        plt.hist(image_screen.gain[:,which_sample,:].flatten(), \
+                    bins=60, normed=True, label='Sampled Gains')
+    elif image_screen.gain.ndim == 2:
+        gain_mean = image_screen.gain.mean()
+        plt.hist(image_screen.gain.flatten(), \
+                    bins=60, normed=True, label='Sampled Gains')
+
+    g = np.linspace(0,10,100)
+    plt.plot(g, np.exp(-g),label=r'Theoretical Gain, $e^{-g}$')
+    plt.title('PDF of Scintillation Gains \n'+ r'$\left< g \right>=$'+str(round(gain_mean,3)))
+    plt.xlabel('Gain')
+    plt.ylabel('Probability Density')
+    plt.yticks([])
+    plt.legend(loc='upper right')
+    plt.show()
+
 def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'optimal', **kwargs):
     """
     window_size = optimal or full
     """
     S = signal_object
     image = image_screen
-    nfreqs, Nx, Ny = image.intensity.shape
-    Normalized_Intensity = image.intensity[:,:,Ny//2]
-    Normalized_Intensity -= Normalized_Intensity.mean()
-    #Mean of gain should be 1, but will vary in different realizations.
+
+    if image.gain.ndim == 3:
+        nfreqs, Nx, Ny = image.gain.shape
+        Normalized_Intensity = image.gain[:,:,Ny//2]
+        Normalized_Intensity -= Normalized_Intensity.mean()
+    elif image.gain.ndim == 2:
+        nfreqs, Nx = image.gain.shape
+        Normalized_Intensity = image.gain
+        Normalized_Intensity -= Normalized_Intensity.mean()
+        #Mean of gain should be 1, but will vary in different realizations.
 
     ACF = utils.acf2d(Normalized_Intensity, mode='same')
     ACF /= np.amax(ACF)
@@ -146,7 +181,7 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
 
     ExtentDS = [0,Nx,S.freq_Array[0],S.freq_Array[-1]]
 
-    ax[0, 0].imshow(image.intensity[:,:,Ny//2],origin='left', \
+    ax[0, 0].imshow(Normalized_Intensity, origin='left', \
                     aspect='auto', extent=ExtentDS, interpolation='none', \
                     cmap='binary')
     ax[0,0].set_ylabel('Frequency (MHz)')
@@ -186,7 +221,7 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
     time_lag = np.linspace(-time_frame_size, time_frame_size, 2*time_frame_size)
     freq_lag = np.linspace(-freq_frame_size*S.freqBinSize, freq_frame_size*S.freqBinSize, \
                             2*freq_frame_size)
-    
+
     ax[1, 0].plot(freq_lag, ACF[middle_freq-freq_frame_size\
                                 :middle_freq+freq_frame_size, middle_time])
     ax[1, 0].plot(freq_lag, np.ones(2*freq_frame_size)*0.5,'--') #Half Maximum Cutoff
@@ -196,8 +231,10 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
     #xlim([middle_freq-frame_size//2,middle_freq+frame_size//2])
 
 
-
-    DM = S.MetaData.DM
+    try:
+        DM = S.MetaData.DM
+    except:
+        DM = 0
     if round(S.MetaData.DISS_decorr_bw_f0) ==0:
         freq_units = ' kHZ'
         unit_factor =1e3
