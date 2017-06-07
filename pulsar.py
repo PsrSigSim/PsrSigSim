@@ -11,13 +11,14 @@ import h5py
 import math
 from . import PSS_utils as utils
 
+np.seterr(all='raise')
+
 class Pulsar(object):
     def __init__(self, Signal_in, period = 50): #period in milliseconds
         """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
         period = pulsar period in milliseconds.
 
         Many other attributes can be set, including the statistical parameters of the pulse draws.
-        See documentation for more details
         """
 
         self.Signal_in = Signal_in
@@ -31,8 +32,8 @@ class Pulsar(object):
         self.TimeBinSize = self.Signal_in.TimeBinSize
         self.T = period
         self.mode = self.Signal_in.MetaData.mode
-        self.nBinsPeriod = int(self.T/self.TimeBinSize)
-        self.NPeriods = math.floor(self.TotTime/self.T) #Number of periods that can fit in the time given
+        self.nBinsPeriod = int(self.T//self.TimeBinSize)
+        self.NPeriods = np.int(self.TotTime//self.T) #Number of periods that can fit in the time given
         #self.time = np.linspace(0., self.TotTime, self.Nt)
         self.gamma_shape = 1
         self.gamma_scale = 2
@@ -143,7 +144,7 @@ class Pulsar(object):
             #Zeros out minimum intensity of profile, otherwise runs into problems
             #with positive-definite distributions for draws of pulses.
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
-
+            #TODO Message that you've shifted the array!
 
     def pulses(self):
         """Function that makes pulses using the defined profile template.
@@ -153,7 +154,6 @@ class Pulsar(object):
 
         if self.PulsarDict['signal_pulsed']:
             raise ValueError('Signal has already been generated.')
-        self.PeriodFracRemain = self.TotTime/self.T - self.NPeriods #Home much of the last period remaining
         self.NLastPeriodBins = self.Nt - self.NPeriods * self.profile.size #index when last period starts
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])
@@ -162,7 +162,7 @@ class Pulsar(object):
 
         if self.SignalType == 'voltage':
             self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
-            NRows = 4
+            NRows = int(4)
             gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
@@ -181,8 +181,8 @@ class Pulsar(object):
             self.ChunkSize = 5000
             if self.NPeriods < self.ChunkSize :
                 self.ChunkSize = self.NPeriods
-            self.Nchunks = self.NPeriods//self.ChunkSize
-            self.NPeriodRemainder = self.NPeriods % self.ChunkSize
+            self.Nchunks = int(self.NPeriods//self.ChunkSize)
+            self.NPeriodRemainder = int(self.NPeriods % self.ChunkSize)
             for ii in range(self.Nchunks): #limits size of the array in memory
                 self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : \
                             ii * self.ChunkSize * self.nBinsPeriod \

@@ -59,28 +59,28 @@ class Signal(object):
         if SignalType == 'voltage' and data_type == 'int8':
             self.data_type = 'int8'
             rows = 4 #Easy way to make 2 complex channels of voltage
-            self.Npols = 4
-            self.Nf = Nf
+            self.Npols = int(4)
+            self.Nf = int(Nf)
             self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
             # Set the correct standard deviation for the
             # pulse draws depending on data type.
 
         elif SignalType == 'voltage' and data_type == 'int16':
             self.data_type = 'int16'
-            rows = 4 #Easy way to make 2 complex channels of voltage
-            self.Npols = 4
-            self.Nf = Nf
+            rows = int(4) #Easy way to make 2 complex channels of voltage
+            self.Npols = int(4)
+            self.Nf = int(Nf)
             self.SignalDict['gauss_draw_max'] = np.iinfo(np.int16).max
 
         elif SignalType == 'intensity' and data_type == 'int8':
             self.data_type = 'uint8'
-            self.Nf = Nf
+            self.Nf = int(Nf)
             rows = self.Nf
             self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
 
         elif SignalType == 'intensity' and data_type == 'int16':
             self.data_type = 'uint16'
-            self.Nf = Nf
+            self.Nf = int(Nf)
             rows = self.Nf
             self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
 
@@ -103,7 +103,7 @@ class Signal(object):
             SignalPath = "signal.hdf5"
             SignalFile = h5py.File(SignalPath,'a')
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
-            #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
+            #self.signal = np.memmap(SignalPath, dtype = self.data_type, mode = 'w+', shape = (self.Nf, self.Nt))
         else:
             self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 

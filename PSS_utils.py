@@ -30,10 +30,13 @@ def shiftit(y, shift):
     work.real = c * yfft.real - s * yfft.imag
     work.imag = c * yfft.imag + s * yfft.real
     # enforce hermiticity
-
-    work.real[size//2:] = work.real[size//2:0:-1]
-    work.imag[size//2:] = -work.imag[size//2:0:-1]
-    work[size//2] = 0.+0.j
+    half_size = int(size//2)
+    work.real[half_size:] = work.real[half_size:0:-1]
+    work.imag[half_size:] = -work.imag[half_size:0:-1]
+    work[half_size] = 0.+0.j
+    #work.real[size//2:] = work.real[size//2:0:-1]
+    #work.imag[size//2:] = -work.imag[size//2:0:-1]
+    #work[size//2] = 0.+0.j
     workifft = np.fft.ifft(work)
     return workifft.real
 
@@ -99,7 +102,7 @@ def block_mean(ar, fact): #Courteousy Mike T. Stack Overflow
     X, Y = np.ogrid[0:sx, 0:sy]
     regions = sy//fact * (X//fact) + Y//fact
     res = ndimage.mean(ar, labels=regions, index=np.arange(regions.max() + 1))
-    res.shape = (sx//fact, sy//fact)
+    res.shape = (int(sx//fact), int(sy//fact))
     return res
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy recipes
@@ -163,7 +166,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy re
     if window_size < order + 2:
         raise TypeError("window_size is too small for the polynomials order")
     order_range = range(order+1)
-    half_window = (window_size -1) // 2
+    half_window = int((window_size -1) // 2)
     # precompute coefficients
     b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
     m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)

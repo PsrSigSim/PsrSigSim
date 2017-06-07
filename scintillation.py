@@ -296,7 +296,7 @@ class images(object):
                 self.field[ii,:,:] = field
                 self.gain[ii,:,:] = abs(field**2)
             elif mode == 'simulation':
-                self.gain[ii,:] = abs(field**2)[:,phase_screen.Ny//2]
+                self.gain[ii,:] = abs(field**2)[:,int(phase_screen.Ny//2)]
             signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
 
     ############ Plots ########################

@@ -43,10 +43,10 @@ class ISM(object):
         work.real = c * yfft.real - s * yfft.imag
         work.imag = c * yfft.imag + s * yfft.real
         # enforce hermiticity
-
-        work.real[size//2:] = work.real[size//2:0:-1]
-        work.imag[size//2:] = -work.imag[size//2:0:-1]
-        work[size//2] = 0.+0.j
+        half_size = int(size//2)
+        work.real[half_size:] = work.real[half_size:0:-1]
+        work.imag[half_size:] = -work.imag[half_size:0:-1]
+        work[half_size] = 0.+0.j
         workifft = np.fft.ifft(work)
         return workifft.real
 
@@ -61,7 +61,7 @@ class ISM(object):
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
             self.time_delays = -1e-3*self.K*self.DM*(np.power((self.freq_Array/1e3),-2)) #freq in MHz, delays in milliseconds
                 #Dispersion as compared to infinite frequency
-            self.time_delays //= self.TimeBinSize #Convert to number of bins
+            self.time_delays = np.rint(self.tim_delays//self.TimeBinSize) #Convert to number of bins
             self.widths = np.zeros(self.Nf)
             for ii, freq in enumerate(self.freq_Array):
                 self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
