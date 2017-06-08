@@ -93,13 +93,10 @@ class Pulsar(object):
             self.PulsarDict["Profile"] = "multiple gaussians"
             amp = amp/amp.max()  # normalize sum
             profile = np.zeros(self.nBinsPeriod)
-            # Can we use the built in numpy distribution here? I imagine that it's faster than this for loop.
             self.profile = np.zeros(self.phase.size)
             for ii in range(amp.size):
-            #    norm = amp[ii]/np.sqrt(2.*np.pi)/width[ii] #norm *
                 self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
         except: # one gaussian
-            #norm = 1./np.sqrt(2.*np.pi)/width #norm
             self.profile = np.exp(-0.5 * ((self.phase-peak)/width)**2)
             self.PulsarDict["amplitude"] = amp
             self.PulsarDict["Profile"] = "gaussian"
