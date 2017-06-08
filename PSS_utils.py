@@ -56,7 +56,7 @@ def rebin(a, newLength):
     """
     #TODO Make this code run faster. Vectorize
     newBins = np.linspace(0, a.size, newLength, endpoint=False)
-    width = math.ceil(a.size/newLength)
+    width = int(math.ceil(a.size/newLength))
     a_rebin=np.zeros((newLength,width))*np.nan
     #Using NaN means that we do not have extra zeros in the array that would get averaged
     row = 0
