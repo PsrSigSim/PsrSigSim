@@ -53,6 +53,7 @@ def rebin(a, newLength):
     """rebin(old array, new number of bins)
     This is a very general downsampling rebinner, but has for loops and if
     statements, hence it is slower than down_sample().
+    'a' must be a 1-d array
     """
     #TODO Make this code run faster. Vectorize
     newBins = np.linspace(0, a.size, newLength, endpoint=False)
@@ -88,13 +89,13 @@ def top_hat_width(sub_band_width, sub_bandwidth_center, DM):
     #freq converted to GHz for calculation above.
     return th_width
 
-def DM_broaden_signal(pulse, width):
-    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
-    in_max = np.amax(pulse)
-    top_hat = sp.signal.boxcar(width)/width
-    #convolved =
-    return np.convolve(width, pulse, 'same')
-    #return convolved*np.sum(convolve)/width
+#def DM_broaden_signal(pulse, width):
+#    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
+#    in_max = np.amax(pulse)
+#    top_hat = sp.signal.boxcar(width)/width
+#    #convolved =
+#    return np.convolve(width, pulse, 'same')
+#    #return convolved*np.sum(convolve)/width
 
 def block_mean(ar, fact): #Courteousy Mike T. Stack Overflow
     assert isinstance(fact, int), type(fact)
