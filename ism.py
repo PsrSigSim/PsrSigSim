@@ -50,7 +50,7 @@ class ISM(object):
         workifft = np.fft.ifft(work)
         return workifft.real
 
-    def disperse(self, DM = 30, to_DM_Broaden = True):
+    def disperse(self, DM = 30, to_DM_Broaden = False):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
         self.DM = DM
         self.ISM_Dict["DM"] = self.DM
@@ -104,7 +104,7 @@ class ISM(object):
             return array
 
     class scintillate:
-        def __init__(self, V_ISS = None, scint_timescale = None, pulsar=None ):
+        def __init__(self, V_ISS = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
             """
             Uses a phase screen with the given power spectrum to scintillate a pulsar signal
             across an observation band. The class uses the parameters given to calculate
@@ -114,8 +114,28 @@ class ISM(object):
             and observation length.
             """
 
-            self.V_ISS = V_ISS
-            self.scint_time = scint_timescale
+            if pulsar == None and V_ISS==None and scint_timescale==None:
+                raise ValueError('Need to set a variable that sets the scintillation timescale.')
+
+            if pulsar != None and to_use_NG_pulsar:
+                if telescope==None or freq_band==None:
+                    raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
+
+                self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope, freq_band)
+
+                if scint_timescale != None:
+                    print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
+                    print('Change to_use_NG_pulsar flag to use entered value.')
+                if V_ISS != None :
+                    print('Overiding V_ISS value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
+                    print('Change to_use_NG_pulsar flag to use entered value.')
+
+            if pulsar == None and V_ISS==None and scint_timescale!=None:
+                self.scint_time = scint_timescale
+            if pulsar == None and V_ISS!=None and scint_timescale==None:
+                raise ValueError('V_ISS calculation not currently supported.')
+
+
             diff_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=1/64.)
 
             L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
