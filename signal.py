@@ -26,8 +26,8 @@ class MetaData(object):
         for ii,jj in Info.items():
             setattr(self, ii, jj)
 
-        """TODO Add error message if someone trys to overlap parameters
-        """
+        #TODO Add error message if someone trys to overlap parameters
+
 
 
 class Signal(object):
@@ -57,7 +57,7 @@ class Signal(object):
         else: self.Nt = Nt + 1
 
         if SignalType == 'voltage' and data_type == 'int8':
-            self.data_type = 'int8'
+            self.data_type = 'int8' 
             rows = 4 #Easy way to make 2 complex channels of voltage
             self.Npols = int(4)
             self.Nf = int(Nf)

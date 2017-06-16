@@ -10,7 +10,7 @@ from . import PSS_utils as utils
 from . import scintillation as scint
 
 class ISM(object):
-    def __init__(self, Signal_in, debug=False):
+    def __init__(self, Signal_in, DM = 30):
         self.Signal_in = Signal_in
         self.signal = self.Signal_in.signal
         self.f0 = self.Signal_in.f0
@@ -22,6 +22,7 @@ class ISM(object):
         self.first_freq = self.Signal_in.first_freq
         self.last_freq = self.Signal_in.last_freq
         self.freq_Array = self.Signal_in.freq_Array
+        self.DM = DM
         self.ISM_Dict = dict(dispersion=False, scattering=False, DM = None, scintillation=False)
 
     def shiftit(self, y, shift):
@@ -50,9 +51,8 @@ class ISM(object):
         workifft = np.fft.ifft(work)
         return workifft.real
 
-    def disperse(self, DM = 30, to_DM_Broaden = False):
+    def disperse(self, to_DM_Broaden = False):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
-        self.DM = DM
         self.ISM_Dict["DM"] = self.DM
         self.ISM_Dict['DM_Broaden'] = to_DM_Broaden
         self.ISM_Dict['dispersion'] = True
