@@ -6,13 +6,10 @@ import scipy as sp
 from scipy import signal
 import h5py
 import math
+import ism.py
+from .ism.ISM import *
 import PSS_utils as utils
-import sys
-sys.path.append('/Users/nearclouding/Desktop/UTGRV_REU/nanograv_group')
-import VersionZeroPointZero as PSS
 
-#Initializing the signal
-S1=PSS.signal(Nt=2000)
 
 class Simulate():
     """Class that simulates the pulsar signal
@@ -20,22 +17,12 @@ class Simulate():
     """
     def __init__(self, signal_class,pulsar_class,ism_class):
         self.signal_class=signal_class
-        self.pulsar_class=pulsar_class
-        self.ism_class=ism_class
-        #NOTE need to give signal_class, pulsar_class, ism_class attributes?
-        #What else goes in here?
+        self.DM=signal_class.MetaData.DM
 
-    #Make the pules from initialized signal
+    #Call function to make pulses
     def make_the_pulses():
-        self.P1=self.PSS.Pulsar(S1)
-        P1.gauss_template_beta()
-        P1.make_pulses_beta()
+        pulsar_class.gauss_template_beta()
 
-    #Disperse the pulses
+    #Call function to disperse the pulses
     def dm_broaden():
-        disperse(P1.make_pulses_beta)
-
-    #TODO convolving
-    """def convolve():
-       want the try except stuff probably
-    """
+        ism_class.disperse()
