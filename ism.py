@@ -66,7 +66,7 @@ class ISM(object):
             for ii, freq in enumerate(self.freq_Array):
                 self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
                 sub_band_width = self.bw/self.Nf
-                width = int(utils.top_hat_width(sub_band_width, freq, DM)//self.TimeBinSize)
+                width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
                 if width > 0 and to_DM_Broaden:
                     if width > self.Nt:
                         raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
