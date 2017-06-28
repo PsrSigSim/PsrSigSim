@@ -331,7 +331,10 @@ class Pulsar(object):
         self.signal[:,self.NPeriods * self.profile.size:] = np.tile(self.LastPeriod,(self.NRows,1))
         self.PulsarDict['profile'] = self.profile
         self.PulsarDict['signal_pulsed'] = True
-        self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
+        if SignalType=='voltage':
+            self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
+        if SignalType=='intensity':
+            self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
 
     def make_pulses_beta(self, start_time = 0, stop_time = None):
