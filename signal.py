@@ -57,7 +57,7 @@ class Signal(object):
         else: self.Nt = Nt + 1
 
         if SignalType == 'voltage' and data_type == 'int8':
-            self.data_type = 'int8' 
+            self.data_type = 'int8'
             rows = 4 #Easy way to make 2 complex channels of voltage
             self.Npols = int(4)
             self.Nf = int(Nf)
@@ -101,6 +101,8 @@ class Signal(object):
 
         if self.Nt*self.Nf > 500000: #Limits the array size to 2.048 GB
             SignalPath = "signal.hdf5"
+            if SignalType=='burst': #Use a different file name for a burst
+                SignalPath = "burst_signal.hdf5"
             SignalFile = h5py.File(SignalPath,'a')
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
             #self.signal = np.memmap(SignalPath, dtype = self.data_type, mode = 'w+', shape = (self.Nf, self.Nt))
