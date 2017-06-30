@@ -63,9 +63,9 @@ class ISM(object):
                 #Dispersion as compared to infinite frequency
             self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
             self.widths = np.zeros(self.Nf)
+            sub_band_width = self.bw/self.Nf
             for ii, freq in enumerate(self.freq_Array):
-                self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
-                sub_band_width = self.bw/self.Nf
+                self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])            
                 width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
                 if width > 0 and to_DM_Broaden:
                     if width > self.Nt:
