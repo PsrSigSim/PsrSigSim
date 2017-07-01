@@ -65,7 +65,7 @@ class ISM(object):
             self.widths = np.zeros(self.Nf)
             sub_band_width = self.bw/self.Nf
             for ii, freq in enumerate(self.freq_Array):
-                self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])            
+                self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
                 width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
                 if width > 0 and to_DM_Broaden:
                     if width > self.Nt:
@@ -103,7 +103,7 @@ class ISM(object):
         except: #Exception if meant for tau too small for given sampling rate.
             return array
 
-    class scintillate:
+    class scintillation:
         def __init__(self, V_ISS = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
             """
             Uses a phase screen with the given power spectrum to scintillate a pulsar signal
@@ -140,7 +140,7 @@ class ISM(object):
 
             L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
 
-            refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
+            #refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
             #Calculate a refraction screen to give a correction.
 
             self.gain = scint.images(diff_phase_screen, self.Signal_in, mode='simulation').gain
