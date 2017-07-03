@@ -31,7 +31,7 @@ def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
         plt.show()
 
     else:
-        stop_time = signal_object.MetaData.period
+        stop_time = signal_object.MetaData.pulsar_period
         time = np.linspace(0, stop_time, Nx)
         plt.plot(time, profile, lw=0.7, **kwargs)
         plt.xlabel('Time (ms)')
@@ -44,7 +44,7 @@ def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
 
 def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, phase=False, **kwargs):
     try:
-        nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+        nBins_per_period = int(signal_object.MetaData.pulsar_period//signal_object.TimeBinSize)
     except:
         raise ValueError('Need to sample pulses!')
 
@@ -79,7 +79,7 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
 
 def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
     try:
-        nBins_per_period = int(signal_object.MetaData.period//signal_object.TimeBinSize)
+        nBins_per_period = int(signal_object.MetaData.pulsar_period//signal_object.TimeBinSize)
     except:
         raise ValueError('Need to sample pulses')
 
