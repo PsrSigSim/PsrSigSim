@@ -70,40 +70,6 @@ class Pulsar(object):
 
         return pulse
 
-
-    #First profiles
-    def gauss_template_old(self, peak=0.25, width=0.05, amp=1.):
-        """Sets the template as a gaussian or sum of gaussians.
-        Assumed to be the intensity profile.
-        In put can either be an array of values or single values.
-        peak = center of gaussian
-        width = stdev of pulse
-        amp = amplitude of pulse relative to other pulses.
-        Pulses are normalized so that maximum is 1, for sampling reasons.
-        See draw_voltage_pulse, draw_intensity_pulse and pulses() methods for more details.
-        """
-        #TODO: error checking for array length consistency?
-        #TODO: if any param is a not array, then broadcast to all entries of other arrays?
-        #peak
-        try: # is this an array
-            peak = np.array(peak)
-            width = np.array(width)
-            amp = np.array(amp)
-            self.PulsarDict["amplitude"] = amp
-            self.PulsarDict["Profile"] = "multiple gaussians"
-            amp = amp/amp.max()  # normalize sum
-            profile = np.zeros(self.nBinsPeriod)
-            self.profile = np.zeros(self.phase.size)
-            for ii in range(amp.size):
-                self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
-        except: # one gaussian
-            self.profile = np.exp(-0.5 * ((self.phase-peak)/width)**2)
-            self.PulsarDict["amplitude"] = amp
-            self.PulsarDict["Profile"] = "gaussian"
-
-        self.PulsarDict["peak"] = peak
-        self.PulsarDict["width"] = width
-
     def gauss_template(self, peak=0.25, width=0.05, amp=1.):
         """Sets the templates as gaussians or sums of gaussians.
         Assumed input describes the intensity profile.
@@ -180,47 +146,6 @@ class Pulsar(object):
         self.PulsarDict["peak"] = peak
         self.PulsarDict["width"] = width
 
-
-    def user_template_old(self,template):
-        """ Function to make any given 1-dimensional numpy array into the profile.
-        Assumed to be the intensity profile.
-        template is a numpy array. If larger than number of bins per period then downsampled.
-        If smaller than number of bins per period then interpolated.
-        """
-        #TODO Allow other input files
-        #TODO Adds error messages if not the correct type of file.
-        self.PulsarDict["Profile"] = "user_defined"
-        #TODO Add I/O for adding attributes for user defined templates.
-        self.PulsarDict["peak"] = "None"
-        self.PulsarDict["width"] = "None"
-        self.PulsarDict["amplitude"] = "None"
-        #self.nBinsPeriod = len(template)
-        #self.profile = template
-        self.nBinsTemplate = len(template)
-
-        if self.nBinsTemplate==self.nBinsPeriod:
-            self.profile = template
-
-        elif self.nBinsTemplate > self.nBinsPeriod:
-            #TODO Add in another elif to use down_sample() if an even divisor
-            self.profile = utils.rebin(template, self.nBinsPeriod)
-            print("User supplied template has been downsampled.")
-            print("Input array length= ", self.nBinsTemplate,". Pulse template length= ",self.profile.shape[1],".")
-
-        else:
-            TempPhase = np.linspace(0,1,len(template))
-            ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
-            self.profile = ProfileFcn(self.phase)
-            print("User supplied template has been interpolated using a cubic spline.")
-            print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")
-
-        self.MinCheck = np.amin(self.profile)
-        if self.MinCheck < 0 :
-            #Zeros out minimum intensity of profile, otherwise runs into problems
-            #with positive-definite distributions for draws of pulses.
-            self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
-            #TODO Message that you've shifted the array!
-
     def user_template(self,template):
         """ Function to make any given 1-dimensional numpy array into the profile.
         Assumed to be the intensity profile.
@@ -278,63 +203,6 @@ class Pulsar(object):
             #with positive-definite distributions for draws of pulses.
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
             #TODO Message that you've shifted the array!
-
-
-    def make_pulses_old(self):
-        """Function that makes pulses using the defined profile template.
-        Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
-            'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
-        """
-
-        if self.PulsarDict['signal_pulsed']:
-            raise ValueError('Signal has already been generated.')
-        self.NLastPeriodBins = self.Nt - self.NPeriods * self.profile.size #index when last period starts
-        pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
-        pulseTypeMethod = getattr(self, pulseType[self.SignalType])
-
-        if self.SignalType == 'voltage':
-            self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
-            gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
-            # Sets the limit so there is only a small amount of clipping because of dtype.
-            self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
-            # Normalizes the 99.9 percentile to the dtype maximum.
-        elif self.SignalType == 'intensity':
-            gamma_limit=stats.gamma.ppf(0.999, self.gamma_shape, scale=self.gamma_scale)
-            # Sets the limit so there is only a small amount of clipping because of dtype.
-            self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
-            # Normalizes the 99.9 percentile to the dtype maximum.
-
-        if self.Nt*self.NRows > 500000: #Limits the array size to 2.048 GB
-            """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
-            of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
-            is currently optimized for an 8GB RAM machine. In this process, most of the time is spent writing to disk.
-            """
-            self.ChunkSize = 5000
-            if self.NPeriods < self.ChunkSize :
-                self.ChunkSize = self.NPeriods
-            self.Nchunks = int(self.NPeriods//self.ChunkSize)
-            self.NPeriodRemainder = int(self.NPeriods % self.ChunkSize)
-            for ii in range(self.Nchunks): #limits size of the array in memory
-                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : \
-                            ii * self.ChunkSize * self.nBinsPeriod \
-                            + self.ChunkSize * self.nBinsPeriod] \
-                            = np.tile(pulseTypeMethod(self.ChunkSize),(self.NRows,1))
-
-            if self.NPeriodRemainder != 0 :
-                self.signal[:,self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = np.tile(pulseTypeMethod(self.NPeriodRemainder),(self.NRows,1))
-
-        else:
-            self.signal[:,0:self.NPeriods * self.profile.size] = np.tile(pulseTypeMethod(self.NPeriods),(self.NRows,1)) #Can be put into main flow for large RAM computers.
-
-        self.LastPeriod = pulseTypeMethod(1)[0:self.NLastPeriodBins]
-        self.signal[:,self.NPeriods * self.profile.size:] = np.tile(self.LastPeriod,(self.NRows,1))
-        self.PulsarDict['profile'] = self.profile
-        self.PulsarDict['signal_pulsed'] = True
-        if self.SignalType=='voltage':
-            self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
-        if self.SignalType=='intensity':
-            self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
-        self.Signal_in.MetaData.AddInfo(self.PulsarDict)
 
     def make_pulses(self, start_time = 0, stop_time = None):
         """Function that makes pulses using the defined profile template.
@@ -408,4 +276,134 @@ class Pulsar(object):
         elif self.SignalType == 'voltage':
             self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
             self.PulsarDict['gauss_draw_sigma'] = self.gauss_draw_sigma
+        self.Signal_in.MetaData.AddInfo(self.PulsarDict)
+
+    #### Below here are old versions of methods. Will be thrown out once we're sure the new ones work. 
+
+    def user_template_old(self,template):
+        """ Function to make any given 1-dimensional numpy array into the profile.
+        Assumed to be the intensity profile.
+        template is a numpy array. If larger than number of bins per period then downsampled.
+        If smaller than number of bins per period then interpolated.
+        """
+        #TODO Allow other input files
+        #TODO Adds error messages if not the correct type of file.
+        self.PulsarDict["Profile"] = "user_defined"
+        #TODO Add I/O for adding attributes for user defined templates.
+        self.PulsarDict["peak"] = "None"
+        self.PulsarDict["width"] = "None"
+        self.PulsarDict["amplitude"] = "None"
+        #self.nBinsPeriod = len(template)
+        #self.profile = template
+        self.nBinsTemplate = len(template)
+
+        if self.nBinsTemplate==self.nBinsPeriod:
+            self.profile = template
+
+        elif self.nBinsTemplate > self.nBinsPeriod:
+            #TODO Add in another elif to use down_sample() if an even divisor
+            self.profile = utils.rebin(template, self.nBinsPeriod)
+            print("User supplied template has been downsampled.")
+            print("Input array length= ", self.nBinsTemplate,". Pulse template length= ",self.profile.shape[1],".")
+
+        else:
+            TempPhase = np.linspace(0,1,len(template))
+            ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
+            self.profile = ProfileFcn(self.phase)
+            print("User supplied template has been interpolated using a cubic spline.")
+            print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")
+
+        self.MinCheck = np.amin(self.profile)
+        if self.MinCheck < 0 :
+            #Zeros out minimum intensity of profile, otherwise runs into problems
+            #with positive-definite distributions for draws of pulses.
+            self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
+            #TODO Message that you've shifted the array!
+
+    def gauss_template_old(self, peak=0.25, width=0.05, amp=1.):
+        """Sets the template as a gaussian or sum of gaussians.
+        Assumed to be the intensity profile.
+        In put can either be an array of values or single values.
+        peak = center of gaussian
+        width = stdev of pulse
+        amp = amplitude of pulse relative to other pulses.
+        Pulses are normalized so that maximum is 1, for sampling reasons.
+        See draw_voltage_pulse, draw_intensity_pulse and pulses() methods for more details.
+        """
+        #TODO: error checking for array length consistency?
+        #TODO: if any param is a not array, then broadcast to all entries of other arrays?
+        #peak
+        try: # is this an array
+            peak = np.array(peak)
+            width = np.array(width)
+            amp = np.array(amp)
+            self.PulsarDict["amplitude"] = amp
+            self.PulsarDict["Profile"] = "multiple gaussians"
+            amp = amp/amp.max()  # normalize sum
+            profile = np.zeros(self.nBinsPeriod)
+            self.profile = np.zeros(self.phase.size)
+            for ii in range(amp.size):
+                self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
+        except: # one gaussian
+            self.profile = np.exp(-0.5 * ((self.phase-peak)/width)**2)
+            self.PulsarDict["amplitude"] = amp
+            self.PulsarDict["Profile"] = "gaussian"
+
+        self.PulsarDict["peak"] = peak
+        self.PulsarDict["width"] = width
+
+    def make_pulses_old(self):
+        """Function that makes pulses using the defined profile template.
+        Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
+            'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
+        """
+
+        if self.PulsarDict['signal_pulsed']:
+            raise ValueError('Signal has already been generated.')
+        self.NLastPeriodBins = self.Nt - self.NPeriods * self.profile.size #index when last period starts
+        pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
+        pulseTypeMethod = getattr(self, pulseType[self.SignalType])
+
+        if self.SignalType == 'voltage':
+            self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
+            gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
+            # Sets the limit so there is only a small amount of clipping because of dtype.
+            self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
+        elif self.SignalType == 'intensity':
+            gamma_limit=stats.gamma.ppf(0.999, self.gamma_shape, scale=self.gamma_scale)
+            # Sets the limit so there is only a small amount of clipping because of dtype.
+            self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
+            # Normalizes the 99.9 percentile to the dtype maximum.
+
+        if self.Nt*self.NRows > 500000: #Limits the array size to 2.048 GB
+            """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
+            of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
+            is currently optimized for an 8GB RAM machine. In this process, most of the time is spent writing to disk.
+            """
+            self.ChunkSize = 5000
+            if self.NPeriods < self.ChunkSize :
+                self.ChunkSize = self.NPeriods
+            self.Nchunks = int(self.NPeriods//self.ChunkSize)
+            self.NPeriodRemainder = int(self.NPeriods % self.ChunkSize)
+            for ii in range(self.Nchunks): #limits size of the array in memory
+                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : \
+                            ii * self.ChunkSize * self.nBinsPeriod \
+                            + self.ChunkSize * self.nBinsPeriod] \
+                            = np.tile(pulseTypeMethod(self.ChunkSize),(self.NRows,1))
+
+            if self.NPeriodRemainder != 0 :
+                self.signal[:,self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = np.tile(pulseTypeMethod(self.NPeriodRemainder),(self.NRows,1))
+
+        else:
+            self.signal[:,0:self.NPeriods * self.profile.size] = np.tile(pulseTypeMethod(self.NPeriods),(self.NRows,1)) #Can be put into main flow for large RAM computers.
+
+        self.LastPeriod = pulseTypeMethod(1)[0:self.NLastPeriodBins]
+        self.signal[:,self.NPeriods * self.profile.size:] = np.tile(self.LastPeriod,(self.NRows,1))
+        self.PulsarDict['profile'] = self.profile
+        self.PulsarDict['signal_pulsed'] = True
+        if self.SignalType=='voltage':
+            self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
+        if self.SignalType=='intensity':
+            self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
