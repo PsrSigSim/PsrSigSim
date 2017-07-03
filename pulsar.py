@@ -37,8 +37,7 @@ class Pulsar(object):
         self.gamma_scale = 2
         self.gauss_draw_sigma = 1
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
-        self.PulsarDict = dict(period=period)
-        self.PulsarDict['pulsar_period'] = self.T
+        self.PulsarDict = dict(pulsar_period=period)
         self.PulsarDict['signal_pulsed'] = False
         self.PulsarDict['nBins_per_period'] = self.nBinsPeriod
         self.NRows = self.Nf
@@ -73,7 +72,7 @@ class Pulsar(object):
 
 
     #First profiles
-    def gauss_template(self, peak=0.25, width=0.05, amp=1.):
+    def gauss_template_old(self, peak=0.25, width=0.05, amp=1.):
         """Sets the template as a gaussian or sum of gaussians.
         Assumed to be the intensity profile.
         In put can either be an array of values or single values.
@@ -105,7 +104,7 @@ class Pulsar(object):
         self.PulsarDict["peak"] = peak
         self.PulsarDict["width"] = width
 
-    def gauss_template_beta(self, peak=0.25, width=0.05, amp=1.):
+    def gauss_template(self, peak=0.25, width=0.05, amp=1.):
         """Sets the templates as gaussians or sums of gaussians.
         Assumed input describes the intensity profile.
         Each parameter input can either be a single float or an array of one of the following shapes:
@@ -182,7 +181,7 @@ class Pulsar(object):
         self.PulsarDict["width"] = width
 
 
-    def user_template(self,template):
+    def user_template_old(self,template):
         """ Function to make any given 1-dimensional numpy array into the profile.
         Assumed to be the intensity profile.
         template is a numpy array. If larger than number of bins per period then downsampled.
@@ -222,7 +221,7 @@ class Pulsar(object):
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
             #TODO Message that you've shifted the array!
 
-    def user_template_beta(self,template):
+    def user_template(self,template):
         """ Function to make any given 1-dimensional numpy array into the profile.
         Assumed to be the intensity profile.
         template is a numpy array. If larger than number of bins per period then downsampled.
@@ -281,7 +280,7 @@ class Pulsar(object):
             #TODO Message that you've shifted the array!
 
 
-    def make_pulses(self):
+    def make_pulses_old(self):
         """Function that makes pulses using the defined profile template.
         Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
             'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
@@ -337,7 +336,7 @@ class Pulsar(object):
             self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
 
-    def make_pulses_beta(self, start_time = 0, stop_time = None):
+    def make_pulses(self, start_time = 0, stop_time = None):
         """Function that makes pulses using the defined profile template.
         Note: 'intensity'-type signals pulled from a gamma distribution using draw_intensity_pulse(),
             'voltage'-type signals pulled from a gaussian distribution using draw_voltage_pulse().
@@ -401,5 +400,12 @@ class Pulsar(object):
 
         self.PulsarDict['profile'] = self.profile
         self.PulsarDict['signal_pulsed'] = True
-        self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
+        if self.SignalType == 'intensity':
+            self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
+            self.PulsarDict['gamma_shape'] = self.gamma_shape
+            self.PulsarDict['gamma_scale'] = self.gamma_scale
+
+        elif self.SignalType == 'voltage':
+            self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
+            self.PulsarDict['gauss_draw_sigma'] = self.gauss_draw_sigma
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
