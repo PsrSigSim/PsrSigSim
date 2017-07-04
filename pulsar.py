@@ -220,10 +220,14 @@ class Pulsar(object):
         if stop_time == self.TotTime and start_time == 0:
             N_periods_to_make = self.NPeriods
             delta_bins = self.Nt
-        else:
+        elif stop_time < self.TotTime:
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
-
+        elif stop_time > self.TotTime:
+            last_bin = self.Nt
+            delta_bins = last_bin - start_bin
+            N_periods_to_make = int(delta_bins // self.nBinsPeriod)
+            print('Stop time larger than total time. Stop time set to last time.')
         self.NLastPeriodBins = delta_bins - N_periods_to_make * self.nBinsPeriod #Length of last period
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])
@@ -251,23 +255,24 @@ class Pulsar(object):
                 self.ChunkSize = N_periods_to_make
             self.Nchunks = int(N_periods_to_make // self.ChunkSize)
             self.NPeriodRemainder = int(N_periods_to_make % self.ChunkSize)
+            #if self.Nchunks == 1:
             for ii in range(self.Nchunks): #limits size of the array in memory
-                self.signal[:, ii * self.ChunkSize * self.nBinsPeriod : \
-                            ii * self.ChunkSize * self.nBinsPeriod \
+                self.signal[:, start_bin + ii * self.ChunkSize * self.nBinsPeriod : \
+                            start_bin + ii * self.ChunkSize * self.nBinsPeriod \
                             + self.ChunkSize * self.nBinsPeriod] \
                             = pulseTypeMethod(self.ChunkSize)
-
             if self.NPeriodRemainder != 0 :
-                self.signal[:,self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
+                self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
 
         else:
-            self.signal[:,0:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.
+            self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.
 
         self.LastPeriod = pulseTypeMethod(1)[:,0:self.NLastPeriodBins]
-        self.signal[:,N_periods_to_make * self.nBinsPeriod:] = self.LastPeriod
+        self.signal[:,start_bin + N_periods_to_make * self.nBinsPeriod:start_bin + N_periods_to_make * self.nBinsPeriod + self.NLastPeriodBins] = self.LastPeriod
 
         self.PulsarDict['profile'] = self.profile
-        self.PulsarDict['signal_pulsed'] = True
+        if self.mode == 'explore':
+            self.PulsarDict['signal_pulsed'] = True
         if self.SignalType == 'intensity':
             self.PulsarDict['gamma_draw_norm'] = self.gamma_draw_norm
             self.PulsarDict['gamma_shape'] = self.gamma_shape
@@ -278,7 +283,7 @@ class Pulsar(object):
             self.PulsarDict['gauss_draw_sigma'] = self.gauss_draw_sigma
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
 
-    #### Below here are old versions of methods. Will be thrown out once we're sure the new ones work. 
+    #### Below here are old versions of methods. Will be thrown out once we're sure the new ones work.
 
     def user_template_old(self,template):
         """ Function to make any given 1-dimensional numpy array into the profile.

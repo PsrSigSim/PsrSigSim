@@ -10,7 +10,7 @@ from . import PSS_utils as utils
 from . import scintillation as scint
 
 class ISM(object):
-    def __init__(self, Signal_in, DM = 30):
+    def __init__(self, Signal_in, DM = 30, mode='explore'):
         self.Signal_in = Signal_in
         self.signal = self.Signal_in.signal
         self.f0 = self.Signal_in.f0
@@ -22,8 +22,24 @@ class ISM(object):
         self.first_freq = self.Signal_in.first_freq
         self.last_freq = self.Signal_in.last_freq
         self.freq_Array = self.Signal_in.freq_Array
+        self.mode = mode
         self.DM = DM
-        self.ISM_Dict = dict(dispersion=False, scattering=False, DM = None, scintillation=False)
+        self.to_DM_Broaden = False
+        self.to_Scatter_Broaden_exp = False
+        self.to_Scatter_Broaden_stoch = False
+        self.time_dependent_scatter = False
+        self.time_dependent_DM = False
+        self.ISM_Dict = dict(DM = self.DM, dispersion=False, scattering=False, scintillation=False)
+        self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
+        self.ISM_Dict['to_Scatter_Broaden_exp'] = self.to_Scatter_Broaden_exp
+        self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
+        self.ISM_Dict['time_dependent_scatter'] = self.time_dependent_scatter
+        self.ISM_Dict['time_dependent_DM'] = self.time_dependent_DM
+
+    def finalize_ism(self):
+        if self.mode=='explore':
+            raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
+        self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
     def shiftit(self, y, shift):
         """
@@ -51,10 +67,8 @@ class ISM(object):
         workifft = np.fft.ifft(work)
         return workifft.real
 
-    def disperse(self, to_DM_Broaden = False):
+    def disperse(self):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
-        self.ISM_Dict["DM"] = self.DM
-        self.ISM_Dict['DM_Broaden'] = to_DM_Broaden
         self.ISM_Dict['dispersion'] = True
         if self.Signal_in.SignalType=='intensity':
             #For intensity signal calculate dispersion for all sub-bands.
@@ -103,71 +117,73 @@ class ISM(object):
         except: #Exception if meant for tau too small for given sampling rate.
             return array
 
-    class scintillation:
-        def __init__(self, V_ISS = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
-            """
-            Uses a phase screen with the given power spectrum to scintillate a pulsar signal
-            across an observation band. The class uses the parameters given to calculate
-            thin phase screens and gain image using Fresnel propagation.
+class scintillate():
+    def __init__(self, Signal_in, V_ISS = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
+        """
+        Uses a phase screen with the given power spectrum to scintillate a pulsar signal
+        across an observation band. The class uses the parameters given to calculate
+        thin phase screens and gain image using Fresnel propagation.
 
-            The screens are calculated for the size appropriate to the given parameters
-            and observation length.
-            """
+        The screens are calculated for the size appropriate to the given parameters
+        and observation length.
+        """
 
-            if pulsar == None and V_ISS==None and scint_timescale==None:
-                raise ValueError('Need to set a variable that sets the scintillation timescale.')
+        if pulsar == None and V_ISS==None and scint_timescale==None:
+            raise ValueError('Need to set a variable that sets the scintillation timescale.')
 
-            if pulsar != None and to_use_NG_pulsar:
-                if telescope==None or freq_band==None:
-                    raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
+        if pulsar != None and to_use_NG_pulsar:
+            if telescope==None or freq_band==None:
+                raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
 
-                self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope, freq_band)
+            self.scint_bw, self.scint_time = self.NG_scint_param(pulsar, telescope, freq_band)
 
-                if scint_timescale != None:
-                    print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
-                    print('Change to_use_NG_pulsar flag to use entered value.')
-                if V_ISS != None :
-                    print('Overiding V_ISS value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
-                    print('Change to_use_NG_pulsar flag to use entered value.')
+            if scint_timescale != None:
+                print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
+                print('Change to_use_NG_pulsar flag to use entered value.')
+            if V_ISS != None :
+                print('Overiding V_ISS value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
+                print('Change to_use_NG_pulsar flag to use entered value.')
 
-            if pulsar == None and V_ISS==None and scint_timescale!=None:
-                self.scint_time = scint_timescale
-            if pulsar == None and V_ISS!=None and scint_timescale==None:
-                raise ValueError('V_ISS calculation not currently supported.')
+        if pulsar == None and V_ISS==None and scint_timescale!=None:
+            self.scint_time = scint_timescale
+        if pulsar == None and V_ISS!=None and scint_timescale==None:
+            raise ValueError('V_ISS calculation not currently supported.')
 
+        #Should calculate Number_r_F for the particular scint_time. 
 
-            diff_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=1/64.)
+        diff_phase_screen = scint.phase_screen(Signal_in, Signal_in.MetaData.DM, Number_r_F=1/64.)
 
-            L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
+        L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
 
-            #refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
-            #Calculate a refraction screen to give a correction.
+        #refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
+        #Calculate a refraction screen to give a correction.
 
-            self.gain = scint.images(diff_phase_screen, self.Signal_in, mode='simulation').gain
+        self.gain = scint.images(diff_phase_screen, Signal_in, mode='simulation').gain
+        self.scint_time_sample_rate = 10 #Samples per scintillation time
+        self.to_Scintillate = True
+        self.Scint_Dict= {}
+        self.Scint_Dict['scint_time_sample_rate'] = self.scint_time_sample_rate
+        self.Scint_Dict['scint_bw'] = self.scint_bw
+        self.Scint_Dict['scint_time'] = self.scint_time
+        self.Scint_Dict['to_Scintillate'] = self.to_Scintillate
+        Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
+    def NG_scint_param(self, pulsar, telescope, freq_band):
+        """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
+        from a txt file.
+        pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
+                    See 'PTA_pulsar_nb_data.txt' for details.
+        telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
+        freq_band = [327 ,430, 820, 1400, 2300]
+        """
+        freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
+        freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
 
-        def make_scintles(self, verbose=True):
-            """
-            Scintillate the pulsar signal.
-            """
-            #self.gain
+        search_list = (pulsar, telescope, freq_band)
+        columns = (10,11)
+        try:
+            scint_bw, scint_timescale = utils.text_search(search_list, columns, 'PTA_pulsar_nb_data.txt')
+        except:
+            raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
-        def NG_scint_param(pulsar, telescope, freq_band):
-            """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
-            from a txt file.
-            pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
-                        See 'PTA_pulsar_nb_data.txt' for details.
-            telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
-            freq_band = [327 ,430, 820, 1400, 2300]
-            """
-            freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'],dtype=str)
-            freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
-
-            search_list = (pulsar, telescope, freq_band)
-            columns = (10,11)
-            try:
-                scint_bw, scint_timescale = text_search(search_list, columns, 'PTA_pulsar_nb_data.txt')
-            except:
-                raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
-
-            return scint_bw, scint_timescale
+        return scint_bw, scint_timescale

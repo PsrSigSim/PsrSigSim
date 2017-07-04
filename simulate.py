@@ -6,23 +6,68 @@ import scipy as sp
 from scipy import signal
 import h5py
 import math
-import ism.py
-from .ism.ISM import *
-import PSS_utils as utils
+from . import PSS_utils as utils
 
 
-class Simulate():
+class Simulation():
     """Class that simulates the pulsar signal
        Insert more information about the class
     """
-    def __init__(self, signal_class,pulsar_class,ism_class):
-        self.signal_class=signal_class
-        self.DM=signal_class.MetaData.DM
+    def __init__(self, signal_class, pulsar_class=None, ism_class=None, scint_class=None):
+        self.S = signal_class
+        self.MD = signal_class.MetaData
+        self.scint_class = scint_class
+        #self.time_dependent_DM = False
+        self.time_dependent_scatter = False
 
-    #Call function to make pulses
-    def make_the_pulses():
-        pulsar_class.gauss_template_beta()
+        if not pulsar_class: #Raise error if pulsar_class is not passed.
+            raise ValueError('No Pulsar Class specified.')
+        else: self.P = pulsar_class
 
-    #Call function to disperse the pulses
-    def dm_broaden():
-        ism_class.disperse()
+        #if self.MD.to_DM_Broaden:
+            #Convolve the profile with a top hat.(@cassidymwagner, this is where your code will go)
+            #If there is no flag for broadening set then this will throw an exception and skip this step.
+
+        #if self.MD.to_Scatter_Broaden_exp:
+            #Convolve the profile with a decay function.
+
+        #if self.MD.to_Scatter_Broaden_stoch and not self.MD.time_dependent_scatter:
+            #Convolve the profile with a decay function.
+
+
+
+    def simulate(self):
+        #If DM is set, then disperse the signal using the ism class
+        try:
+            self.ism = ism_class
+            self.DM = ism.DM
+        except: #If DM is not set then pass
+            pass
+
+        if self.MD.time_dependent_scatter or self.MD.time_dependent_DM or self.MD.to_Scintillate:
+            #If some part of the code is time dependent, then run this loop.
+            if self.MD.time_dependent_scatter:
+                raise ValueError('Time dependent Scattering not supported at this point.')
+            else:
+                Scatter_time = 1
+            if self.MD.time_dependent_DM:
+                raise ValueError('Time dependent Scattering not supported at this point.')
+            else:
+                DM_time = 1
+            if self.MD.time_dependent_DM:
+                raise ValueError('Time dependent Scattering not supported at this point.')
+            else:
+                Scint_factor = 1
+
+            scint_time = self.MD.scint_time/self.MD.scint_time_sample_rate
+            scint_samples_per_obs = int(self.MD.TotTime//scint_time)
+            gain_norm = 1#self.scint_class.gain.max() #Could set to avoid clipping, but not sure it's needed.
+            gain = self.scint_class.gain / gain_norm
+            scint_end_bin = scint_samples_per_obs * scint_time #integer number of bins in scint
+            self.start_times = np.linspace(0, scint_end_bin, scint_samples_per_obs)
+            orig_profile = np.copy(self.P.profile)
+            for ii, bin_time in enumerate(self.start_times) :
+                self.P.profile = gain[:,ii,np.newaxis] * orig_profile
+                self.P.make_pulses(bin_time, bin_time + scint_time)
+        else: #Otherwise just make the pulses using the given profiles.
+            self.P.make_pulses()
