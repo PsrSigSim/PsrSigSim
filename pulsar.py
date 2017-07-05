@@ -253,16 +253,18 @@ class Pulsar(object):
             self.ChunkSize = 5000
             if N_periods_to_make < self.ChunkSize :
                 self.ChunkSize = N_periods_to_make
-            self.Nchunks = int(N_periods_to_make // self.ChunkSize)
-            self.NPeriodRemainder = int(N_periods_to_make % self.ChunkSize)
-            #if self.Nchunks == 1:
-            for ii in range(self.Nchunks): #limits size of the array in memory
-                self.signal[:, start_bin + ii * self.ChunkSize * self.nBinsPeriod : \
-                            start_bin + ii * self.ChunkSize * self.nBinsPeriod \
-                            + self.ChunkSize * self.nBinsPeriod] \
-                            = pulseTypeMethod(self.ChunkSize)
-            if self.NPeriodRemainder != 0 :
-                self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
+            try: #Deals with the ChunkSize=0 case
+                self.Nchunks = int(N_periods_to_make // self.ChunkSize)
+                self.NPeriodRemainder = int(N_periods_to_make % self.ChunkSize)
+                for ii in range(self.Nchunks): #limits size of the array in memory
+                    self.signal[:, start_bin + ii * self.ChunkSize * self.nBinsPeriod : \
+                                start_bin + ii * self.ChunkSize * self.nBinsPeriod \
+                                + self.ChunkSize * self.nBinsPeriod] \
+                                = pulseTypeMethod(self.ChunkSize)
+                if self.NPeriodRemainder != 0 :
+                    self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
+            except:
+                pass
 
         else:
             self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.

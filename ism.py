@@ -81,7 +81,7 @@ class ISM(object):
             for ii, freq in enumerate(self.freq_Array):
                 self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
                 width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
-                if width > 0 and to_DM_Broaden:
+                if width > 0 and self.to_DM_Broaden:
                     if width > self.Nt:
                         raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
                     self.widths[ii] = width
@@ -149,9 +149,9 @@ class scintillate():
         if pulsar == None and V_ISS!=None and scint_timescale==None:
             raise ValueError('V_ISS calculation not currently supported.')
 
-        #Should calculate Number_r_F for the particular scint_time. 
+        #Should calculate Number_r_F for the particular scint_time.
 
-        diff_phase_screen = scint.phase_screen(Signal_in, Signal_in.MetaData.DM, Number_r_F=1/64.)
+        diff_phase_screen = scint.phase_screen(Signal_in,Nx=400, Ny=150,Freq_DISS=self.scint_bw, Number_r_F=1/256.)
 
         L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
 

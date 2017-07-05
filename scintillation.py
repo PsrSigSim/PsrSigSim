@@ -26,7 +26,7 @@ r_e = 2.8179403227e-15 #m
 
 
 class phase_screen:
-    def __init__(self, signal_object, DM='use_ism', Nx=200, Ny=200, \
+    def __init__(self, signal_object, scint_param_model='SC', Freq_DISS=None, DM='use_ism', Nx=200, Ny=200, \
                 Number_r_F = 1./64, spectral_ind=KOLMOGOROV_BETA, \
                 D_pulsar=1, D_screen=0.5, inner=None, outer=None, \
                 rmsfres=None, apply_inner=False,  apply_outer=False):
@@ -49,12 +49,17 @@ class phase_screen:
             D = distance to screen in kPc
             D_p = Distance to Pulsar in kPc
             scint_bandwidth = scintillation bandwidth in MHz
+            scint_param_scaling_model = 'SC' , 'Bhat'
+                (SC) Stinebring and Condon, 1990
+                (Bhat) Bhat, et al.
+
     	logical:
             apply_inner
             apply_outer
             normfres 	= True implies normalization to rmsfres
 
             Definition of Fresnel scale: r_F^2 = \lambda D / 2\pi
+
 
         returns:
            xvec, yvec, xseries, xseries_norm, qxvec, qyvec, qshape
@@ -67,23 +72,27 @@ class phase_screen:
         references: CR98 is Cordes and Rickett, 1998
                     LK05 is Lorimer and Kramer, 2005
         """
+        self.PhaseScreen_Dict={}
 
-        if DM == 'use_ism':
-            DM = signal_object.MetaData.DM
+        if scint_param_model == 'Bhat':
+            if DM == 'use_ism':
+                DM = signal_object.MetaData.DM
+            scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
+            self.Freq_diss = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6
+            self.PhaseScreen_Dict['PhScreen_DM'] = DM
+        elif scint_param_model == 'SC':
+            self.Freq_diss = Freq_DISS
 
         max_freq = signal_object.freq_Array.max()
         min_freq = signal_object.freq_Array.min()
         self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
 
-        self.PhaseScreen_Dict={}
         self.PhaseScreen_Dict['min_Fresnel_radius'] = self.r_Fresnel
 
         #Use the uncertainty relation from CR98 (C_1=1.16) to calculate the length of the hypotenuse for scattering
 
-        scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
-        self.Freq_diss = 1.16/(2*np.pi*scat_timescale*1e-3)/1e6
         #TODO Could Use the scat_timescale calculated at each frequency...
-        self.PhaseScreen_Dict['scat_timescale_f0'] = scat_timescale
+        #self.PhaseScreen_Dict['scat_timescale_f0'] = scat_timescale
         self.PhaseScreen_Dict['DISS_decorr_bw_f0'] = self.Freq_diss
 
         #Below we use ray optics to find the Field Coherence Scale, though other approaches are possible
@@ -102,7 +111,7 @@ class phase_screen:
 
         print("Screen Dimensions = ", round(xwidth,1) ,' x ', round(ywidth,1) , ' meters')
         print('Central Freq decorrelation Bandwidth = ',round(self.Freq_diss,3),' MHz')
-        print('Central Freq scattering timescale = {:.2e}'.format(float(scat_timescale)),' milliseconds')
+        #print('Central Freq scattering timescale = {:.2e}'.format(float(scat_timescale)),' milliseconds')
         #print( scat_timescale)
 
         #print('Field Coherence Scale', s_0)
@@ -169,8 +178,6 @@ class phase_screen:
         qxy_centered = np.meshgrid(qxvec_centered, qyvec_centered, indexing='ij')
         self.qsq_centered =  qxy_centered[0]**2 + qxy_centered[1]**2
 
-
-
         ## new 2016 Jan 1:  create real white noise in x domain and FFT
         ## to get Hermitian noise
         rand_pull_r = np.random.randn(Nqx, Nqy)
@@ -187,8 +194,13 @@ class phase_screen:
         self.phi /= (self.dx*self.dy)*(Nx*Ny)
         self.phi_norm = []
         for ii, freq in enumerate(signal_object.freq_Array):
-            scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
-            Freq_diss = 0.957 / (2*np.pi*scat_timescale*1e-3) / 1e6 # C1=1.16 for a uniform medium
+            #scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
+            #Freq_diss = 0.957 / (2*np.pi*scat_timescale*1e-3) / 1e6 # C1=1.16 for a uniform medium
+            if scint_param_model == 'Bhat':
+                Freq_diss = Bhat_Scint_Param(DM,freq)
+            elif scint_param_model == 'SC':
+                Freq_diss = scale_dnu_d(self.Freq_diss,signal_object.f0,freq)
+
             wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 \
                                         * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
 
@@ -299,7 +311,7 @@ class images(object):
                 self.gain[ii,:] = abs(field**2)[:,int(phase_screen.Ny//2)]
             signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
 
-    ############ Plots ########################
+    ###################### Plots ########################
 
     def dynamic_spectrum(self, signal_object, **kwargs):
         return PSS_plot.dynamic_spectrum(self, signal_object, **kwargs)
@@ -319,6 +331,17 @@ def r_Fres_SQ(freq, wavelength=None, D=0.5, units=['MHz','kPc']):
         wavelength = c/(freq*MHz)
 
     return wavelength * D / (2*np.pi)
+
+def Bhat_Scint_Param(DM,frequency, Output='DeltaF_diss'):
+    """
+    Calculate the dependence of scintillation parameters versus DM and frequency.
+    """
+    scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(frequency/1e3))
+    if Output=='DeltaF_diss':
+        Out = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6 #Calculate Frequency Decorrelation bandwidth
+    elif Output=='Scat_time':
+        Out = scat_timescale
+    return Out
 
 def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.,mode='screen',ds=0.001):
     '''
@@ -381,3 +404,41 @@ def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.
     #print("C_n_squared:",cnsq, np.log10(cnsq))
 
     return cnsq
+
+'''
+Written by Michael Lam, 2017
+Scale dnu_d and dt_d based on:
+dnu_d propto nu^(22/5)
+dt_d propto nu^(6/5) / transverse velocity
+See Stinebring and Condon 1990 for scalings with beta (they call it alpha)
+
+Be careful with float division now. This has been removed to allow for numpy arrays to be passed through.
+'''
+
+def scale_dnu_d(dnu_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = 2.0*beta/(beta-2) #(22.0/5)
+    elif beta > 4:
+        exp = 8.0/(6-beta)
+    return dnu_d*(nu_f/nu_i)**exp
+
+def scale_dt_d(dt_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = 2.0/(beta-2) #(6.0/5)
+    elif beta > 4:
+        exp = float(beta-2)/(6-beta)
+    return dt_d*(nu_f/nu_i)**exp
+
+def scale_tau_d(tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = -2.0*beta/(beta-2) #(-22.0/5)
+    elif beta > 4:
+        exp = -8.0/(6-beta)
+    return tau_d*(nu_f/nu_i)**exp
+
+def scale_dt_r(tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = beta/float(2-beta) #-2.2
+    elif beta > 4:
+        exp = 4.0/(beta-6)
+    return tau_d*(nu_f/nu_i)**exp
