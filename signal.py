@@ -33,7 +33,7 @@ class MetaData(object):
 class Signal(object):
     """The signal class
     """
-    def __init__(self, f0=1400, bw=400, Nf=20, Nt=400, TotTime=200, data_type='int8', SignalType = "intensity", mode='explore'):
+    def __init__(self, f0=1400, bw=400, Nf=20, Nt=1000, TotTime=200, data_type='int8', SignalType = "intensity", mode='explore'):
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity signal.
