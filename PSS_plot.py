@@ -145,7 +145,7 @@ def gain_pdf(image_screen, which_sample='middle'):
 
     g = np.linspace(0,10,100)
     plt.plot(g, np.exp(-g),label=r'Theoretical Gain, $e^{-g}$')
-    plt.title('PDF of Scintillation Gains \n'+ r'$\left< g \right>=$'+str(round(gain_mean,3)))
+    plt.title('PDF of Scintillation Screen Gains \n'+ r'$\left< g \right>=$'+str(round(gain_mean,3)))
     plt.xlabel('Gain')
     plt.ylabel('Probability Density')
     plt.yticks([])
@@ -232,9 +232,9 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
 
 
     try:
-        DM = S.MetaData.DM
+        DM = S.MetaData.PhScreen_DM
     except:
-        DM = 0
+        DM = 'NA'
     if round(S.MetaData.DISS_decorr_bw_f0) ==0:
         freq_units = ' kHZ'
         unit_factor =1e3
@@ -242,7 +242,7 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         freq_units = ' MHZ'
         unit_factor =1e3
 
-    f.suptitle('Dynamic Spectra, DM= '+ str(DM)+'\n Input Scintillation BW=' + \
+    f.suptitle('Spacial Dynamic Spectra Check, DM= '+ str(DM)+'\n Input Scintillation BW=' + \
                 str(round(S.MetaData.DISS_decorr_bw_f0,3)) + freq_units \
                 +'\n Measured Scintillation BW=' + str(scint_bandwidth) + freq_units)
 
