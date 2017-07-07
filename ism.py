@@ -118,7 +118,7 @@ class ISM(object):
             return array
 
 class scintillate():
-    def __init__(self, Signal_in, V_ISS = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
+    def __init__(self, Signal_in, V_ISS = None,scint_bw = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
         """
         Uses a phase screen with the given power spectrum to scintillate a pulsar signal
         across an observation band. The class uses the parameters given to calculate
@@ -146,12 +146,13 @@ class scintillate():
 
         if pulsar == None and V_ISS==None and scint_timescale!=None:
             self.scint_time = scint_timescale
+            self.scint_bw = scint_bw
         if pulsar == None and V_ISS!=None and scint_timescale==None:
             raise ValueError('V_ISS calculation not currently supported.')
 
         #Should calculate Number_r_F for the particular scint_time.
 
-        diff_phase_screen = scint.phase_screen(Signal_in,Nx=400, Ny=150,Freq_DISS=self.scint_bw, Number_r_F=1/256.)
+        diff_phase_screen = scint.phase_screen(Signal_in, Nx=400, Ny=150,Freq_DISS=self.scint_bw, Number_r_F=1/128.)
 
         L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
 

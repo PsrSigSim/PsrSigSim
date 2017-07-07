@@ -161,7 +161,7 @@ class Pulsar(object):
         self.PulsarDict["amplitude"] = "None"
         #self.nBinsPeriod = len(template)
         #self.profile = template
-        self.nBinsTemplate = len(template)
+        self.nBinsTemplate = len(template[0,:])
         try: # Assumes that template is a 1-d array and tiles it across a 2-d array: NRows x nBinsTemplate
             if self.nBinsTemplate==self.nBinsPeriod:
                 self.profile = np.tile(template,(self.NRows,1)) #What
@@ -173,9 +173,12 @@ class Pulsar(object):
                 print("Input array length= ", self.nBinsTemplate,". Pulse template length= ",self.profile.shape[1],".")
 
             else:
-                TempPhase = np.linspace(0,1,len(template))
-                ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
-                self.profile = np.tile(ProfileFcn(self.phase),(self.NRows,1))
+                Len = len(template[0,:])
+                TempPhase = np.linspace(0, 1, Len)
+                self.profile = np.zeros((self.NRows, self.nBinsPeriod))
+                for ii in range(self.NRows):
+                    ProfileFcn = sp.interpolate.interp1d(TempPhase, template[ii,:], kind='cubic', bounds_error=True)
+                    self.profile[ii,:] = ProfileFcn(self.phase)
                 print("User supplied template has been interpolated using a cubic spline.")
                 print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")
 
@@ -227,7 +230,7 @@ class Pulsar(object):
             last_bin = self.Nt
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
-            print('Stop time larger than total time. Stop time set to last time.')
+            #print('Stop time larger than total time. Stop time set to last time.')
         self.NLastPeriodBins = delta_bins - N_periods_to_make * self.nBinsPeriod #Length of last period
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])

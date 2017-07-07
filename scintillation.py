@@ -109,8 +109,8 @@ class phase_screen:
         self.PhaseScreen_Dict['PhScreen_xwidth'] = xwidth
         self.PhaseScreen_Dict['PhScreen_ywidth'] = ywidth
 
-        print("Screen Dimensions = ", round(xwidth,1) ,' x ', round(ywidth,1) , ' meters')
-        print('Central Freq decorrelation Bandwidth = ',round(self.Freq_diss,3),' MHz')
+        #print("Screen Dimensions = ", round(xwidth,1) ,' x ', round(ywidth,1) , ' meters')
+        print('Central Frequency decorrelation Bandwidth = ',round(self.Freq_diss,3),' MHz')
         #print('Central Freq scattering timescale = {:.2e}'.format(float(scat_timescale)),' milliseconds')
         #print( scat_timescale)
 
