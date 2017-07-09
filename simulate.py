@@ -61,15 +61,15 @@ class Simulation():
 
             scint_time = self.MD.scint_time/self.MD.scint_time_sample_rate
             scint_samples_per_obs = np.floor(self.MD.TotTime//(scint_time*1e3))
-            print('scint_samples_per_obs',scint_samples_per_obs)
+            #print('scint_samples_per_obs',scint_samples_per_obs)
             gain_norm = self.scint_class.gain.max() #Could set to avoid clipping, but not sure it's needed.
             gain = self.scint_class.gain / gain_norm
             scint_end_bin = scint_samples_per_obs * scint_time*1e3 #integer number of bins in scint
-            print('scint_end_bin',scint_end_bin)
+            #print('scint_end_bin',scint_end_bin)
             self.start_times = np.linspace(0, scint_end_bin, scint_samples_per_obs)
             orig_profile = np.copy(self.P.profile)
             scint_bins = int(scint_time//self.S.TimeBinSize)
-            tweak = 8
+            tweak = 12
             if len(self.start_times) > len(gain[0,:]):
                 raise ValueError('Scattering Screen is not long enough to scintillate at this Dispersion timescale.')
             for ii, bin_time in enumerate(self.start_times) :
