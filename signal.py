@@ -26,16 +26,17 @@ class MetaData(object):
         for ii,jj in Info.items():
             setattr(self, ii, jj)
 
-        """TODO Add error message if someone trys to overlap parameters
-        """
+        #TODO Add error message if someone trys to overlap parameters
+
 
 
 class Signal(object):
     """The signal class
     """
-    def __init__(self, f0=1400, bw=400, Nf=20, Nt=400, TotTime=200, data_type='int8', SignalType = "intensity"):
+    def __init__(self, f0=1400, bw=400, Nf=20, Nt=1000, TotTime=200, data_type='int8', SignalType = "intensity", mode='explore'):
         """initialize Signal(), executed at assignment of new instance
-        data_type = 'int8' or 'int16' supported. Changed to 'uint8' or 'uint16' if intensity signal.
+        data_type = 'int8' or 'int16' supported.
+                    Automatically changed to 'uint8' or 'uint16' if intensity signal.
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
         @param Nf -- number of freq. bins
@@ -58,31 +59,33 @@ class Signal(object):
         if SignalType == 'voltage' and data_type == 'int8':
             self.data_type = 'int8'
             rows = 4 #Easy way to make 2 complex channels of voltage
-            self.Npols = 4
-            self.Nf = Nf
+            self.Npols = int(4)
+            self.Nf = int(Nf)
             self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
             # Set the correct standard deviation for the
             # pulse draws depending on data type.
 
         elif SignalType == 'voltage' and data_type == 'int16':
             self.data_type = 'int16'
-            rows = 4 #Easy way to make 2 complex channels of voltage
-            self.Npols = 4
-            self.Nf = Nf
+            rows = int(4) #Easy way to make 2 complex channels of voltage
+            self.Npols = int(4)
+            self.Nf = int(Nf)
             self.SignalDict['gauss_draw_max'] = np.iinfo(np.int16).max
 
         elif SignalType == 'intensity' and data_type == 'int8':
             self.data_type = 'uint8'
-            self.Nf = Nf
+            self.Nf = int(Nf)
             rows = self.Nf
             self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
 
         elif SignalType == 'intensity' and data_type == 'int16':
             self.data_type = 'uint16'
-            self.Nf = Nf
+            self.Nf = int(Nf)
             rows = self.Nf
             self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
 
+        else:
+            raise ValueError('Signal Type: '+SignalType+' and data type: '+data_type+' not supported together.')
 
         self.TotTime = TotTime #Total time in milliseconds
         self.TimeBinSize = self.TotTime/self.Nt
@@ -98,12 +101,15 @@ class Signal(object):
 
         if self.Nt*self.Nf > 500000: #Limits the array size to 2.048 GB
             SignalPath = "signal.hdf5"
+            if SignalType=='burst': #Use a different file name for a burst
+                SignalPath = "burst_signal.hdf5"
             SignalFile = h5py.File(SignalPath,'a')
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt), dtype=self.data_type)
-            #self.signal = np.memmap(SignalPath, dtype = 'float32', mode = 'w+', shape = (self.Nf, self.Nt))
+            #self.signal = np.memmap(SignalPath, dtype = self.data_type, mode = 'w+', shape = (self.Nf, self.Nt))
         else:
             self.signal = np.zeros((rows, self.Nt),dtype=self.data_type)
 
+        self.SignalDict['mode'] = mode
         self.MetaData.AddInfo(self.SignalDict)
 
     ### Plotting Methods
@@ -117,7 +123,7 @@ class Signal(object):
         return PSS_plot.profile_plot(self, **kwargs)
 
     #Set the signal parameters as properties and assign them to the MetaData
-    
+
     @property
 
     def f0(self):

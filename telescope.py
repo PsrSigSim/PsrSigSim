@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import PSS_utils as utils
+from . import PSS_utils as utils
 
 class Telescope(object):
     def __init__(self, Signal_in):
@@ -17,6 +17,7 @@ class Telescope(object):
         self.Nt = Signal_in.Nt
         self.TotTime = Signal_in.TotTime
         self.TimeBinSize = self.TotTime/self.Nt #in milliseconds
+        self.noise_norm = Signal_in.MetaData.gamma_draw_norm
         #self.SignalSampFreq = 1/self.TimeBinSize
 
     def observe(self, telescope='GBT', Band=1400, mode='search', noise=False):
@@ -62,7 +63,7 @@ class Telescope(object):
         self.NFreqBins, self.NTimeBins = self.signal.shape
 
         if noise :
-            self.signal = self.signal + 2000*np.random.randn(self.NFreqBins, self.NTimeBins)**2
+            self.signal += self.noise_norm * np.random.randn(self.NFreqBins, self.NTimeBins)**2
 
 
 

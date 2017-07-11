@@ -10,6 +10,11 @@ from scipy.optimize import curve_fit
 from scipy import misc
 import scipy.ndimage as  ndimage
 from . import PSS_utils as utils
+from . import PSS_plot
+try:
+    import pyfftw
+except:
+    pass
 
 KOLMOGOROV_BETA = 11.0/3
 c = 2.998e8 #m/s
@@ -19,10 +24,14 @@ KPC_TO_M = 3.086e19
 RAD_TO_MAS = 2.063e8
 r_e = 2.8179403227e-15 #m
 
+
 class phase_screen:
-    def __init__(self, signal_object, DM='use_ism', Nx=30, Ny=30,Number_r_F = 1./64, spectral_ind=11./3., D_pulsar=1, D_screen=0.5, inner=None, outer=None, rmsfres=None, scint_bandwidth=180e6, apply_inner=False,  apply_outer=False, normfres=False, normDM=False):
+    def __init__(self, signal_object, scint_param_model='SC', Freq_DISS=None, DM='use_ism', Nx=200, Ny=200, \
+                Number_r_F = 1./64, spectral_ind=KOLMOGOROV_BETA, \
+                D_pulsar=1, D_screen=0.5, inner=None, outer=None, \
+                rmsfres=None, apply_inner=False,  apply_outer=False):
         """
-        Generates npoints of a realization of power-law noise with unit
+        Generates Nx x Ny points of a realization of power-law noise with unit
         variance with spectral index, spectral_ind and inner and outer scales as
         specified for a sample interval dx.
 
@@ -40,12 +49,17 @@ class phase_screen:
             D = distance to screen in kPc
             D_p = Distance to Pulsar in kPc
             scint_bandwidth = scintillation bandwidth in MHz
+            scint_param_scaling_model = 'SC' , 'Bhat'
+                (SC) Stinebring and Condon, 1990
+                (Bhat) Bhat, et al.
+
     	logical:
             apply_inner
             apply_outer
             normfres 	= True implies normalization to rmsfres
 
             Definition of Fresnel scale: r_F^2 = \lambda D / 2\pi
+
 
         returns:
            xvec, yvec, xseries, xseries_norm, qxvec, qyvec, qshape
@@ -56,50 +70,54 @@ class phase_screen:
            qshape = sqrt(shape of wavenumber spectrum)
 
         references: CR98 is Cordes and Rickett, 1998
-                    LK12 is Lorimer and Kramer, 2012
+                    LK05 is Lorimer and Kramer, 2005
         """
-
-        if DM == 'use_ism':
-            DM = signal_object.MetaData.DM
-        #D_screen *= KPC_TO_M
-        max_freq = signal_object.freq_Array.max()
-        min_freq = signal_object.freq_Array.min() #signal_object.f0
-        self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
         self.PhaseScreen_Dict={}
+
+        if scint_param_model == 'Bhat':
+            if DM == 'use_ism':
+                DM = signal_object.MetaData.DM
+            scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
+            self.Freq_diss = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6
+            self.PhaseScreen_Dict['PhScreen_DM'] = DM
+        elif scint_param_model == 'SC':
+            self.Freq_diss = Freq_DISS
+
+        max_freq = signal_object.freq_Array.max()
+        min_freq = signal_object.freq_Array.min()
+        self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
+
         self.PhaseScreen_Dict['min_Fresnel_radius'] = self.r_Fresnel
 
-        #Below we use ray optics to find the Field Coherence Scale, though other approaches are possible
         #Use the uncertainty relation from CR98 (C_1=1.16) to calculate the length of the hypotenuse for scattering
 
-        scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
-        self.Freq_diss = 1.16/(2*np.pi*scat_timescale*1e-3)/1e6
         #TODO Could Use the scat_timescale calculated at each frequency...
-        self.PhaseScreen_Dict['scat_timescale_f0'] = scat_timescale
+        #self.PhaseScreen_Dict['scat_timescale_f0'] = scat_timescale
         self.PhaseScreen_Dict['DISS_decorr_bw_f0'] = self.Freq_diss
 
-        #delta_x = c * scat_timescale * 1e-3 #1/e^3 gives > 95% of rays
-        #s_0 = np.sqrt(2 * delta_x * D_screen + delta_x**2) #Field Coherence Scale in meters
-        #factor = s_0 / self.r_Fresnel # multiplicative factor since the uncertainty is based on 1/e time.
+        #Below we use ray optics to find the Field Coherence Scale, though other approaches are possible
+        #delta_x = c * scat_timescale * 1e-3 # extra distance from scattering timescale
+        #self.s_0 = np.sqrt(2 * delta_x * D_screen + delta_x**2) #Field Coherence Scale in meters
+        #factor = self.s_0 / self.r_Fresnel # multiplicative factor since the uncertainty is based on 1/e time.
 
         xwidth = Number_r_F * self.r_Fresnel * Nx
         ywidth = Number_r_F * self.r_Fresnel * Ny
+        xmax = xwidth/2
+        ymax = ywidth/2
         self.PhaseScreen_Dict['PhScreen_Nx'] = Nx
         self.PhaseScreen_Dict['PhScreen_Ny'] = Ny
         self.PhaseScreen_Dict['PhScreen_xwidth'] = xwidth
         self.PhaseScreen_Dict['PhScreen_ywidth'] = ywidth
 
-        #xwidth = Nx * self.dx
-        #ywidth = Ny * self.dy
-        #print('scat_timescale', scat_timescale)
-        #print('Freq_diss ', self.Freq_diss)
-        #print('delta_x', delta_x)
-        #print('D_screen', D_screen)
+        #print("Screen Dimensions = ", round(xwidth,1) ,' x ', round(ywidth,1) , ' meters')
+        print('Central Frequency decorrelation Bandwidth = ',round(self.Freq_diss,3),' MHz')
+        #print('Central Freq scattering timescale = {:.2e}'.format(float(scat_timescale)),' milliseconds')
+        #print( scat_timescale)
+
         #print('Field Coherence Scale', s_0)
         #print('Fresnel Length:', self.r_Fresnel)
         #print('xwidth = ', xwidth)
         #print('s0/r_F', factor)
-        xmax = xwidth/2
-        ymax = ywidth/2
 
         #lscale_index = 2. / (si_kol_d-2.)
         #u = max(1., rmsfres_d**lscale_index)
@@ -121,16 +139,11 @@ class phase_screen:
         dqy = 2.*np.pi / ywidth
         qmaxx = (2.* np.pi) / (2.* self.dx) #Largest wavenumber in the given direction
         qmaxy = (2.* np.pi) / (2.* self.dy)
-        #print('dqx',dqx)
-        #print('qmaxx',qmaxx)
         Nqx = 2*int(qmaxx//dqx) # Number of wavenumber samples
         Nqy = 2*int(qmaxy//dqy)
-        #print('targeted number of q samples = ', Nqx, Nqy )
         if Nqx != Nx:
-        #    print("Forcing Nqx = Nx = ", Nx)
             Nqx = Nx
         if Nqy != Ny:
-        #    print("Forcing Nqy = Ny = ", Ny)
             Nqy = Ny
 
         qxvec_centered = (np.arange(0.,Nqx)-Nqx//2+1)*dqx # Make arrays that are centered on zero, over the given widths
@@ -140,16 +153,13 @@ class phase_screen:
 
         #Set inner and outer scale factors if not otherwise set.
         if inner == None:
-            inner = xwidth/(Nx)#self.r_Fresnel/2.
+            inner = self.dx
 
         if outer == None:
-            outer = xwidth*(1.0 + 0.2)# + 100*Number_r_F * self.r_Fresnel#1.5*self.r_Fresnel#xwidth
+            outer = xwidth*(1.2)
 
         qin = 2. * np.pi / inner #Set inner and outer scale wavenumber
         qout = 2. * np.pi / outer
-
-        if apply_outer:
-            print("Applying outer-scale rolloff")
 
         # 2016 Jan 1: put in upper wavenumber cutoff at array size
         # to avoid aliasing
@@ -159,70 +169,46 @@ class phase_screen:
 
         qsq = qxy[0]**2 + qxy[1]**2
         self.qshape = (qout**2 + qsq)**(-spectral_ind/4.) * np.exp(-qsq/(2.*qmax**2))
-        self.qshape_rolloff = np.exp(-qsq / (2.*qin**2))
-
-        qxy_centered = np.meshgrid(qxvec_centered, qyvec_centered, indexing='ij')
-        self.qsq_centered =  qxy_centered[0]**2 + qxy_centered[1]**2
 
         if apply_outer:
             self.qshape *= np.exp(-qout**2 / (2.*qsq))
+            print('Applying outer-scale rolloff.')
 
-        #self.qshape *= cnsq_calc(dnud=scint_bandwidth, nu=freq) #Normalization constant
-
-        #if high_freq==None:
-        #    phase_norm = 1
-        #else:
-        #    phase_norm = high_freq / freq
+        #The following is for use by the images() class to make the FFT(Fresnel kernel).
+        qxy_centered = np.meshgrid(qxvec_centered, qyvec_centered, indexing='ij')
+        self.qsq_centered =  qxy_centered[0]**2 + qxy_centered[1]**2
 
         ## new 2016 Jan 1:  create real white noise in x domain and FFT
         ## to get Hermitian noise
         rand_pull_r = np.random.randn(Nqx, Nqy)
         rand_pull_i = np.random.randn(Nqx, Nqy)
-        #
-        #self.spectrum = np.zeros((signal_object.Nf, Nqx, Nqy))
-        #Cn_squared = np.array([cnsq_calc(taud=scat_timescale*1e-3, nu=jj) for jj in signal_object.array])
 
+        #LK05 Version, From Cordes, et al. 1990
         def CnSq_calc(f,Freq_DISS,d=0.5):
             return 0.002*(f/1e3)**(3.67)*(d)**(-1.83)*(Freq_DISS)**(-0.83)
 
-        if normDM:
-            xformr=cnsq_calc(taud=scat_timescale*1e-3, nu=signal_object.f0)*rand_pull_r*self.qshape
-            xformi=cnsq_calc(taud=scat_timescale*1e-3, nu=signal_object.f0)*rand_pull_i*self.qshape
-            xform = xformr + 1j*xformi
-            self.spectrum = abs(xform)**2 #Is xform*xform.conj() faster here?
-            #Is the spectrum what we should be multiplying by C^2?
-            self.phi = np.real(np.fft.ifft2(xform))
+        xformr = rand_pull_r * self.qshape
+        xformi = rand_pull_i * self.qshape
+        xform = xformr + 1j*xformi
+        self.phi = np.real(np.fft.ifft2(xform))
+        self.phi /= (self.dx*self.dy)*(Nx*Ny)
+        self.phi_norm = []
+        for ii, freq in enumerate(signal_object.freq_Array):
+            #scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
+            #Freq_diss = 0.957 / (2*np.pi*scat_timescale*1e-3) / 1e6 # C1=1.16 for a uniform medium
+            if scint_param_model == 'Bhat':
+                Freq_diss = Bhat_Scint_Param(DM,freq)
+            elif scint_param_model == 'SC':
+                Freq_diss = scale_dnu_d(self.Freq_diss,signal_object.f0,freq)
 
-        else:
-            self.phi = np.zeros((signal_object.Nf, Nqx, Nqy)) #   _high
-            #self.phi_fft = np.zeros((signal_object.Nf, Nqx, Nqy))
-            self.Cn_squared = []
-            for ii, freq in enumerate(signal_object.freq_Array):
-                #Using Michael Lam's version
-                #scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
-                #xformr = np.sqrt(cnsq_calc(taud=scat_timescale*1e-3, nu=freq))*rand_pull_r*self.qshape
-                #xformi = np.sqrt(cnsq_calc(taud=scat_timescale*1e-3, nu=freq))*rand_pull_i*self.qshape
-                #self.Cn_squared = np.append(self.Cn_squared,cnsq_calc(taud=scat_timescale*1e-3, nu=freq))
+            wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 \
+                                        * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
 
-                #Using LK12 Version
-                scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
-                Freq_diss = 0.957 / (2*np.pi*scat_timescale*1e-3) / 1e6 # C1=1.16 for a uniform medium
-                xformr = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_r * self.qshape
-                xformi = np.sqrt(CnSq_calc(freq, Freq_diss,d=D_screen)) * rand_pull_i * self.qshape
-                self.Cn_squared = np.append(self.Cn_squared, CnSq_calc(freq,Freq_diss))
-
-                #Using the one freq method
-                #xformr = cnsq_calc(taud=scat_timescale*1e-3, nu=signal_object.f0)*rand_pull_r*self.qshape
-                #xformi = cnsq_calc(taud=scat_timescale*1e-3, nu=signal_object.f0)*rand_pull_i*self.qshape
-
-
-                xform = xformr + 1j*xformi
-                #self.spectrum = abs(xform)**2 #Is xform*xform.conj() faster here?
-
-                wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
-                self.phi[ii,:,:] = np.real(np.fft.ifft2(xform)) * wave_num_to_phi
-
-            self.phi /= (self.dx*self.dy)*(Nx*Ny)
+            self.phi_norm = np.append(self.phi_norm, \
+                                    np.sqrt(CnSq_calc(freq,Freq_diss)) * wave_num_to_phi)
+            #Using Michael Lam's version, Cordes and Rickett, 1998
+            #self.phi_norm = np.append(self.phi_norm, \
+            #                        np.sqrt(cnsq_calc(taud=scat_timescale*1e-3, nu=freq)) * wave_num_to_phi)
 
         self.Nx = Nx
         self.Ny = Ny
@@ -233,31 +219,18 @@ class phase_screen:
 
         # Normalization factor needs to be calculated on pure power-law spectrum
         # before any rolloff at the refraction scale
-        if normfres: #This normalization gives the desired DM_rms desired at the end.
+        if rmsfres!= None: #This normalization gives the desired DM_rms desired at the end.
+            self.phi_normfres = np.zeros(self.phi.shape)
+            frindx = int(self.r_Fresnel//self.dx)
+            x1dcut = self.phi[0,:]
+            var_fres_in = np.var(x1dcut[0:np.size(x1dcut)-frindx]-x1dcut[frindx:])
+            norm_factor = rmsfres / np.sqrt(var_fres_in)
+            self.phi_normfres = self.phi * norm_factor
+            xn1dcut = self.phi_normfres[0,:]
+            var_fres_out = np.var(xn1dcut[0:np.size(xn1dcut)-frindx]-xn1dcut[frindx:])
 
-            #print('frindx ',frindx)
-            self.phi_norm = np.zeros(self.phi.shape)
-            if len(self.phi.shape)==3:
-                for ii, freq in enumerate(signal_object.freq_Array):
-                    frindx = int(np.sqrt(r_Fres_SQ(freq,D=0.5))//self.dx)
-                    #print(frindx)
-                    x1dcut = self.phi[ii,0,:]
-                    var_fres_in = np.var(x1dcut[0:np.size(x1dcut)-frindx]-x1dcut[frindx:])
-                    norm_factor = rmsfres / np.sqrt(var_fres_in)
-                    self.phi_norm[ii,:,:] = self.phi[ii,:,:] * norm_factor #* max_freq /freq
-                    xn1dcut = self.phi_norm[ii,0,:]
-                    var_fres_out = np.var(xn1dcut[0:np.size(xn1dcut)-frindx]-xn1dcut[frindx:])
-            else:
-                frindx = int(self.r_Fresnel//self.dx)
-                x1dcut = self.phi[0,:]
-                var_fres_in = np.var(x1dcut[0:np.size(x1dcut)-frindx]-x1dcut[frindx:])
-                norm_factor = rmsfres / np.sqrt(var_fres_in)
-                self.phi_norm = self.phi * norm_factor
-                xn1dcut = self.phi_norm[0,:]
-                var_fres_out = np.var(xn1dcut[0:np.size(xn1dcut)-frindx]-xn1dcut[frindx:])
-
-            print("index of fresnel scale = ", frindx)
-            print(var_fres_in, var_fres_out)
+            print("Index of Fresnel scale = ", frindx)
+            print('Phas RMS In:',var_fres_in,' Phase RMS Out:', var_fres_out)
 
 
 
@@ -266,82 +239,85 @@ class phase_screen:
         # now need to recalculate the realization and apply norm_factor
         if apply_inner:
             print("Applying inner-scale rolloff")
+            self.qshape_rolloff = np.exp(-qsq / (2.*qin**2))
 
            # Recalculate
             xform *= self.qshape_rolloff
             self.spectrum = abs(xform)**2
             self.phi = np.real(np.fft.ifft2(xform))
-            #self.phi_norm = self.phi * norm_factor
 
-        if normDM:
-        #  Change phase for different frequencies.
-            freq_norm = signal_object.f0/signal_object.freq_Array[:,np.newaxis,np.newaxis]
-            self.phi = self.phi*freq_norm * 1.34439663e-13
-
-        #if normfres:
-        #    self.phi_norm = self.phi_norm*freq_norm
+            if rmsfres!= None:
+                self.phi_normfres = self.phi * norm_factor
 
 
 class images(object):
-    def __init__(self, phase_screen, signal_object, fourier_mode=True, factor=1, freq=None, high_freq=None, normed=False):
+    def __init__(self, phase_screen, signal_object, fourier_mode=True, speed='slow', mode='explore'):
 
-        if high_freq==None:
-            phase_norm = 1
-        else:
-            phase_norm = high_freq #/ freq
+        if phase_screen.phi.ndim == 3:
+            phase_norm = np.ones(signal_object.Nf)
+        elif phase_screen.phi.ndim == 2:
+            phase_norm = phase_screen.phi_norm
 
+        xy = np.meshgrid(phase_screen.xvec, phase_screen.yvec, indexing='ij')
+        rsqvec = xy[0]**2 + xy[1]**2
 
-        if factor==1:
-            xy = np.meshgrid(phase_screen.xvec, phase_screen.yvec, indexing='ij')
-            rsqvec = xy[0]**2 + xy[1]**2
-        else:
-            dx = phase_screen.xmax*2/(factor*phase_screen.Nx)
-            dy = phase_screen.ymax*2/(factor*phase_screen.Ny)
-            Xvec = (np.arange(0.,factor*phase_screen.Nx) - factor*phase_screen.Nx//2 + 1)*dx
-            Yvec = (np.arange(0.,factor*phase_screen.Ny) - factor*phase_screen.Ny//2 + 1)*dy
-            xy = np.meshgrid(Xvec, Yvec, indexing='ij')
-            rsqvec = xy[0]**2 + xy[1]**2
+        if mode == 'explore':
+            self.gain = np.zeros((phase_screen.Nf,phase_screen.Nx,phase_screen.Ny))
+            self.kernel = np.zeros(self.gain.shape, dtype='complex64')
+            self.kernelFFT = np.zeros(self.gain.shape, dtype='complex64')
+            self.screenFFT = np.zeros(self.gain.shape, dtype='complex64')
+            self.field = np.zeros(self.gain.shape, dtype='complex64')
+        elif mode == 'simulation':
+            self.gain = np.zeros((phase_screen.Nf,phase_screen.Nx))
 
-        self.intensity = np.zeros((phase_screen.Nf,phase_screen.Nx,phase_screen.Ny))
-        #field = np.zeros((phase_screen.Nf,phase_screen.Nx,phase_screen.Ny))
-        self.kernel = np.zeros(self.intensity.shape, dtype='complex64')
-        self.kernelFFT = np.zeros(self.intensity.shape, dtype='complex64')
-        self.screenFFT = np.zeros(self.intensity.shape, dtype='complex64')
-        self.kernelFFT_check = np.zeros(phase_screen.Nf)
-        if normed:
-            phase_screen.phi = phase_screen.phi_norm
-        for ii, frequ in enumerate(phase_screen.freq_Array):
-            r_Fres_squared = r_Fres_SQ(frequ)
-            SD = phase_screen.xmax*phase_screen.ymax#np.exp(-rsqvec / SD)*
+        for ii, freq in enumerate(phase_screen.freq_Array):
+            r_Fres_squared = r_Fres_SQ(freq)
+            #SD = phase_screen.xmax*phase_screen.ymax#np.exp(-rsqvec / SD)*
             if fourier_mode:
-                kmax = phase_screen.qsq_centered.max()
                 FresnelKernel_Norm = 1 #np.sqrt(r_Fres_squared*np.pi)/2
                 kernel0fft = FresnelKernel_Norm * (1+1j) \
                                 * np.exp(-1j*phase_screen.qsq_centered/2 \
                                 *r_Fres_squared)
-                #self.kernelFFT[ii,:,:] = kernel0fft
-                screen0 = np.exp(phase_norm * 1j * phase_screen.phi[ii,:,:])
-                screen0fft = np.fft.fft2(screen0)
-                #self.screenFFT[ii,:,:] = screen0fft
+                screen0 = np.exp(phase_norm[ii] * 1j * phase_screen.phi) #[ii,:,:])
+                if speed == 'slow':
+                    screen0fft = np.fft.fft2(screen0)
+                if speed == 'fast':
+                    screen0fft = pyfftw.interfaces.scipy_fftpack.fft2(screen0)
+
                 field0fft = kernel0fft * screen0fft
+                if mode == 'explore':
+                    self.kernelFFT[ii,:,:] = kernel0fft
+                    self.screenFFT[ii,:,:] = screen0fft
+
             else:
                 kernel0 = np.exp(1j * rsqvec / (2. * r_Fres_squared)) # See Eq (2.1), (Narayan, 1992)
                 screen0 = np.exp(phase_norm * 1j * phase_screen.phi[ii])
                 kernel0fft = np.fft.fft2(kernel0)
                 screen0fft= np.fft.fft2(screen0)
                 field0fft = kernel0fft * screen0fft
-                #self.kernel[ii,:,:] = kernel0
+                if mode == 'explore':
+                    self.kernel[ii,:,:] = kernel0
 
             norm = 1/np.sqrt(2)#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
-            field = norm * np.fft.fftshift(np.fft.ifft2(field0fft))
-            self.intensity[ii,:,:] = abs(field**2)
+            if speed == 'slow':
+                field = norm * np.fft.fftshift(np.fft.ifft2(field0fft))
+            if speed == 'fast':
+                field = norm * pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.scipy_fftpack.ifft2(screen0))
 
+            if mode == 'explore':
+                self.field[ii,:,:] = field
+                self.gain[ii,:,:] = abs(field**2)
+            elif mode == 'simulation':
+                self.gain[ii,:] = abs(field**2)[:,int(phase_screen.Ny//2)]
             signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
-    ### Plots
 
-#    def dynamic_spectrum(self, **kwargs):
-#        return PSS_plot.dynamic_spectrum(image_screen, **kwargs)
+    ###################### Plots ########################
 
+    def dynamic_spectrum(self, signal_object, **kwargs):
+        return PSS_plot.dynamic_spectrum(self, signal_object, **kwargs)
+
+    def gain_pdf(self, **kwargs):
+        return PSS_plot.gain_pdf(self, **kwargs)
 
 
 def r_Fres_SQ(freq, wavelength=None, D=0.5, units=['MHz','kPc']):
@@ -355,6 +331,17 @@ def r_Fres_SQ(freq, wavelength=None, D=0.5, units=['MHz','kPc']):
         wavelength = c/(freq*MHz)
 
     return wavelength * D / (2*np.pi)
+
+def Bhat_Scint_Param(DM,frequency, Output='DeltaF_diss'):
+    """
+    Calculate the dependence of scintillation parameters versus DM and frequency.
+    """
+    scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(frequency/1e3))
+    if Output=='DeltaF_diss':
+        Out = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6 #Calculate Frequency Decorrelation bandwidth
+    elif Output=='Scat_time':
+        Out = scat_timescale
+    return Out
 
 def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.,mode='screen',ds=0.001):
     '''
@@ -417,3 +404,41 @@ def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.
     #print("C_n_squared:",cnsq, np.log10(cnsq))
 
     return cnsq
+
+'''
+Written by Michael Lam, 2017
+Scale dnu_d and dt_d based on:
+dnu_d propto nu^(22/5)
+dt_d propto nu^(6/5) / transverse velocity
+See Stinebring and Condon 1990 for scalings with beta (they call it alpha)
+
+Be careful with float division now. This has been removed to allow for numpy arrays to be passed through.
+'''
+
+def scale_dnu_d(dnu_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = 2.0*beta/(beta-2) #(22.0/5)
+    elif beta > 4:
+        exp = 8.0/(6-beta)
+    return dnu_d*(nu_f/nu_i)**exp
+
+def scale_dt_d(dt_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = 2.0/(beta-2) #(6.0/5)
+    elif beta > 4:
+        exp = float(beta-2)/(6-beta)
+    return dt_d*(nu_f/nu_i)**exp
+
+def scale_tau_d(tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = -2.0*beta/(beta-2) #(-22.0/5)
+    elif beta > 4:
+        exp = -8.0/(6-beta)
+    return tau_d*(nu_f/nu_i)**exp
+
+def scale_dt_r(tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    if beta < 4:
+        exp = beta/float(2-beta) #-2.2
+    elif beta > 4:
+        exp = 4.0/(beta-6)
+    return tau_d*(nu_f/nu_i)**exp

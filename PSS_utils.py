@@ -30,10 +30,13 @@ def shiftit(y, shift):
     work.real = c * yfft.real - s * yfft.imag
     work.imag = c * yfft.imag + s * yfft.real
     # enforce hermiticity
-
-    work.real[size//2:] = work.real[size//2:0:-1]
-    work.imag[size//2:] = -work.imag[size//2:0:-1]
-    work[size//2] = 0.+0.j
+    half_size = int(size//2)
+    work.real[half_size:] = work.real[half_size:0:-1]
+    work.imag[half_size:] = -work.imag[half_size:0:-1]
+    work[half_size] = 0.+0.j
+    #work.real[size//2:] = work.real[size//2:0:-1]
+    #work.imag[size//2:] = -work.imag[size//2:0:-1]
+    #work[size//2] = 0.+0.j
     workifft = np.fft.ifft(work)
     return workifft.real
 
@@ -50,10 +53,11 @@ def rebin(a, newLength):
     """rebin(old array, new number of bins)
     This is a very general downsampling rebinner, but has for loops and if
     statements, hence it is slower than down_sample().
+    'a' must be a 1-d array
     """
     #TODO Make this code run faster. Vectorize
     newBins = np.linspace(0, a.size, newLength, endpoint=False)
-    width = math.ceil(a.size/newLength)
+    width = int(math.ceil(a.size/newLength))
     a_rebin=np.zeros((newLength,width))*np.nan
     #Using NaN means that we do not have extra zeros in the array that would get averaged
     row = 0
@@ -85,13 +89,13 @@ def top_hat_width(sub_band_width, sub_bandwidth_center, DM):
     #freq converted to GHz for calculation above.
     return th_width
 
-def DM_broaden_signal(pulse, width):
-    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
-    in_max = np.amax(pulse)
-    top_hat = sp.signal.boxcar(width)/width
-    #convolved =
-    return np.convolve(width, pulse, 'same')
-    #return convolved*np.sum(convolve)/width
+#def DM_broaden_signal(pulse, width):
+#    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
+#    in_max = np.amax(pulse)
+#    top_hat = sp.signal.boxcar(width)/width
+#    #convolved =
+#    return np.convolve(width, pulse, 'same')
+#    #return convolved*np.sum(convolve)/width
 
 def block_mean(ar, fact): #Courteousy Mike T. Stack Overflow
     assert isinstance(fact, int), type(fact)
@@ -99,7 +103,7 @@ def block_mean(ar, fact): #Courteousy Mike T. Stack Overflow
     X, Y = np.ogrid[0:sx, 0:sy]
     regions = sy//fact * (X//fact) + Y//fact
     res = ndimage.mean(ar, labels=regions, index=np.arange(regions.max() + 1))
-    res.shape = (sx//fact, sy//fact)
+    res.shape = (int(sx//fact), int(sy//fact))
     return res
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy recipes
@@ -163,7 +167,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy re
     if window_size < order + 2:
         raise TypeError("window_size is too small for the polynomials order")
     order_range = range(order+1)
-    half_window = (window_size -1) // 2
+    half_window = int((window_size -1) // 2)
     # precompute coefficients
     b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
     m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
@@ -241,7 +245,53 @@ def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
                 goodinds = np.where(np.isfinite(C))[0] #check for good values
                 retval[j,i] = np.mean(C[goodinds])
         return retval
+def text_search(search_list, header_values, filepath, header_line=0, file_type='txt'):
+    """ Method for pulling value from  a txt file.
+    search_list = list of string-type values that demarcate the line in a txt file
+                from which to pull values
+    header_values = string of column headers or array of column numbers (in Python numbering)
+                the values from which to pull
+    filepath = file path of txt file. (string)
+    header_line = line with headers for values.
+    file_type = 'txt' or 'csv'
 
+    returns: tuple of values matching header values for the search terms given.
+    """
+    #TODO Make work for other file types.
+    #if file_type == 'txt':
+    #    delimiter = ''
+    #elif file_type == 'csv':
+    #    delimiter = ','
+
+    check = 0
+    output_values = list()
+
+    with open(filepath, 'r') as searchfile: # Find Column Numbers from column names
+        if any(isinstance(elem, str) for elem in header_values):
+            column_num = []
+            parsed_header = list(searchfile.readlines()[header_line].split())
+            for ii , header in enumerate(header_values):
+                column_num.append(parsed_header.index(header))
+        else:
+            column_num = np.array(header_values)
+
+
+    with open(filepath, 'r') as searchfile: # Find Values using search keys and column numbers.
+        #TODO Don't know why I need this second with statement, but if I take it out it doesn't work.
+        for line in searchfile:
+            if all(ii in line for ii in search_list):
+
+                info = line.split()
+                for jj, value in enumerate(column_num):
+                    output_values.append(info[value])
+                check += 1
+
+    if check == 0 :
+        raise ValueError('Combination {0} '.format(search_list)+' not found in same line of text file.')
+    if check > 1 :
+        raise ValueError('Combination {0} '.format(search_list)+' returned multiple results in txt file.')
+
+    return tuple([float(i) for i in output_values])
 #def debug_print(check):
 #    if debug:
 #        print(check)
