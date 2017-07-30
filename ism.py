@@ -8,6 +8,7 @@ import scipy as sp
 from scipy import signal
 from . import PSS_utils as utils
 from . import scintillation as scint
+import matplotlib.pyplot as plt 
 
 __all__ = ['ISM','scintillate','convolve_with_profile','make_dm_broaden_tophat','make_scatter_broaden_exp']
 
@@ -42,7 +43,14 @@ class ISM(object):
         self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
         self.ISM_Dict['time_dependent_scatter'] = self.time_dependent_scatter
         self.ISM_Dict['time_dependent_DM'] = self.time_dependent_DM
+<<<<<<< HEAD
+        self.ISM_Dict['dispersed'] = False
+
+
+    def finalize_ism(self):
+=======
         self.ISM_Dict['to_Scintillate'] = self.to_Scintillate
+>>>>>>> 6a6dc9f15a95e4267eb65a7d7e793263ca05d6a0
         if self.mode=='explore':
             raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
@@ -75,7 +83,8 @@ class ISM(object):
 
     def disperse(self):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
-        self.ISM_Dict['dispersion'] = True
+        if self.ISM_Dict['dispersed'] == True:
+            raise ValueError('Signal has already been dispersed!')
         if self.Signal_in.SignalType=='intensity':
             #For intensity signal calculate dispersion for all sub-bands.
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
@@ -96,16 +105,39 @@ class ISM(object):
 
                     #print(self.freq_Array[ii],' MHz ','width=', width) #for debugging
         elif self.Signal_in.SignalType=='voltage':
-            #For voltage signal disperse coherently.
-            raise ValueError('Sorry, Voltage-type signal dispersion is not currently supported!')
-            #for ii in range(4): #Maybe faster to do the complex fft with two channels.
-            #    sig_FFT = np.fft.rfft(self.signal[ii,:])
-            #    fft_len = len(sig_FFT)
-            #    f_array = np.linspace(-(self.last_freq)*1e6,0,length2)
-            #    disp_signal_fft = sig_FFT*np.exp(1j*2*np.pi*4.148808e9/((freq+f0)*f0**2)*DM*freq**2)
-            #    self.signal[ii,:] = np.fft.irfft(disp_signal_fft)
-
+            self.disperse_baseband()
+        
+        self.ISM_Dict['dispersed'] = True
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
+
+
+    def disperse_baseband(self):
+        """
+        Broadens & delays baseband signal w transfer function defined in PSR Handbook, D. Lorimer and M. Kramer, 2006
+        Returns a baseband signal dispersed by the ISM.
+        Use plot_dispersed() in PSS_plot.py to see the dispersed and undispersed signal.
+        """
+        #if self.ISM_Dict['dispersion'] == True:
+        #    raise ValueError('Signal has already been dispersed!')
+        # self.ISM_Dict['dispersion'] = True
+        Npols = self.Signal_in.Npols
+        if self.mode == 'explore':
+            self.Signal_in.undispersedsig = np.empty((Npols, self.Nt))
+        for x in range(Npols):
+            sig = self.signal[x] 
+            DM = self.DM
+            f0 = self.f0
+            dt = self.TimeBinSize
+            fourier = np.fft.rfft(sig)
+            freqs = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e6)*1e3
+            FinalFreqs = freqs-f0+1e-10 # Added the 1e-10 to avoid division by 0 errors in exponent
+            H = np.exp(1j*2*np.pi*4.148808e9/((FinalFreqs+f0)*f0**2)*DM*FinalFreqs**2) # Lorimer & Kramer 2006, eqn. 5.21
+            product = fourier*H
+            Dispersed = np.fft.irfft(product) 
+            if self.mode == 'explore':
+                self.Signal_in.undispersedsig[x] = sig
+            self.signal[x] = Dispersed
+    
 
     def scatter(self, array, scat_timescale):
         """

@@ -7,7 +7,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from . import PSS_utils as utils
 
+<<<<<<< HEAD
+__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum','gain_pdf','plot_dispersed']
+=======
 __all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum','gain_pdf','joy_division_profiles']
+>>>>>>> 6a6dc9f15a95e4267eb65a7d7e793263ca05d6a0
 
 #plt.rcParams['figure.figsize'] = (8.0,6.0)
 plt.rcParams.update({'font.size': 14})
@@ -282,3 +286,27 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         f.savefig('DynamicSpectrum_f0_' + str(S1.f0)+'MHz_DM_'+str(DM))
     plt.draw()
     plt.show()
+
+
+def plot_dispersed(signal_object, channel = 0, **kwargs): # Plots dispersed sig produced in ISM with Disperse()
+    lim = signal_object.MetaData.nBins_per_period 
+    psr_period = signal_object.MetaData.pulsar_period
+    if signal_object.SignalType == 'voltage':
+        plt.title('Voltage vs. Time')
+        plt.ylabel('Voltage')
+        plt.xlabel('Time (ms)')
+        plt.xlim(0,psr_period)
+    elif signal_object.SignalType == 'intensity':
+        plt.title('Intensity vs. Time')
+        plt.ylabel('Intensity')
+        plt.xlabel('Time (ms)')
+        plt.xlim(0,psr_period)
+    plt.yticks([])
+    max_lower = np.amax(signal_object.signal[channel,:lim])
+    min_upper = np.amin(signal_object.undispersedsig[channel,:lim])
+    jump = max_lower + np.abs(min_upper) + 4
+    t = np.linspace(0,psr_period,lim)
+    plt.plot(t, signal_object.undispersedsig[channel,:lim]+jump, c='k', **kwargs)
+    plt.plot(t, signal_object.signal[channel,:lim], c='c', **kwargs) 
+    plt.show()
+    # TODO flag about if it hasn't been dispersed yet
