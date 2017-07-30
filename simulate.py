@@ -6,6 +6,7 @@ import scipy as sp
 from scipy import signal
 import h5py
 import math
+from . import ism
 from . import PSS_utils as utils
 
 
@@ -17,21 +18,28 @@ class Simulation():
         self.S = signal_class
         self.MD = signal_class.MetaData
         self.scint_class = scint_class
+        # self.I = ism_class
         #self.time_dependent_DM = False
         self.time_dependent_scatter = False
+
 
         if not pulsar_class: #Raise error if pulsar_class is not passed.
             raise ValueError('No Pulsar Class specified.')
         else: self.P = pulsar_class
 
-        #if self.MD.to_DM_Broaden:
-            #Convolve the profile with a top hat.(@cassidymwagner, this is where your code will go)
-            #If there is no flag for broadening set then this will throw an exception and skip this step.
+        # if not ism_class: #Raise error if ism_class is not passed.
+        #     raised ValueError('No ISM Class specified')
+        # else self.I = ism_class
 
-        #if self.MD.to_Scatter_Broaden_exp:
-            #Convolve the profile with a decay function.
+        if self.MD.to_DM_Broaden:
+            tophats = ism.make_dm_broaden_tophat(self.P,self.S)
+            ism.convolve_with_profile(self.P,tophats)
 
-        #if self.MD.to_Scatter_Broaden_stoch and not self.MD.time_dependent_scatter:
+        if self.MD.to_Scatter_Broaden_exp:
+            exponentials = ism.make_scatter_broaden_exp(self.P,self.S,self.MD.tau_scatter)
+            ism.convolve_with_profile(self.P,exponentials)
+
+        # if self.MD.to_Scatter_Broaden_stoch and not self.MD.time_dependent_scatter:
             #Convolve the profile with a decay function.
 
 

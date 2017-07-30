@@ -44,7 +44,7 @@ class Pulsar(object):
         if self.SignalType == 'voltage':
             self.NRows = int(4)
         self.gauss_template()
-        
+
         if self.SignalType == 'voltage':
             self.profile = np.sqrt(self.profile)/np.sqrt(np.amax(self.profile)) # Corrects intensity pulse to voltage profile.
             gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
@@ -244,7 +244,7 @@ class Pulsar(object):
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
             #print('Stop time larger than total time. Stop time set to last time.')
-        self.NLastPeriodBins = delta_bins - N_periods_to_make * self.nBinsPeriod #Length of last period
+        self.NLastPeriodBins = int(delta_bins % self.nBinsPeriod)#delta_bins - N_periods_to_make * self.nBinsPeriod #Length of last period
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])
 
