@@ -84,7 +84,6 @@ class ISM(object):
 
     def disperse(self):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
-        self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
         if self.ISM_Dict['dispersed'] == True:
             raise ValueError('Signal has already been dispersed!')
         if self.Signal_in.SignalType=='intensity':
