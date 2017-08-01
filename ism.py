@@ -41,32 +41,6 @@ class ISM(object):
             raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
-    def shiftit(self, y, shift):
-        """
-        shifts array y by amount shift (in sample numbers)
-        uses shift theorem and FFT
-        shift > 0  ==>  lower sample number (earlier)
-        modeled after fortran routine shiftit
-        Optimized from JMC's code by Michael Lam
-        """
-        #TODO Add Try Except for odd length arrays...
-        yfft = np.fft.fft(y)
-        size = np.size(y) #saves time
-        constant = (shift*2*np.pi)/float(size) #needs a negative here for the right direction, put it in?
-        theta = constant*np.arange(size)
-        c = np.cos(theta)
-        s = np.sin(theta)
-        work = np.zeros(size, dtype='complex')
-        work.real = c * yfft.real - s * yfft.imag
-        work.imag = c * yfft.imag + s * yfft.real
-        # enforce hermiticity
-        half_size = int(size//2)
-        work.real[half_size:] = work.real[half_size:0:-1]
-        work.imag[half_size:] = -work.imag[half_size:0:-1]
-        work[half_size] = 0.+0.j
-        workifft = np.fft.ifft(work)
-        return workifft.real
-
     def disperse(self):
         #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
         self.ISM_Dict['dispersion'] = True
@@ -79,7 +53,7 @@ class ISM(object):
             self.widths = np.zeros(self.Nf)
             sub_band_width = self.bw/self.Nf
             for ii, freq in enumerate(self.freq_Array):
-                self.signal[ii,:] = self.shiftit(self.signal[ii,:], self.time_delays[ii])
+                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii])
                 width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
                 if width > 0 and self.to_DM_Broaden:
                     if width > self.Nt:

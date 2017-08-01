@@ -1,5 +1,4 @@
-"""
-utils.py
+"""PSS_utils.py
 A place to organize methods used by multiple modules
 """
 
@@ -9,104 +8,92 @@ import numpy as np
 import scipy as sp
 import math
 from scipy import ndimage
-from scipy.signal import fftconvolve,correlate
+from scipy.signal import fftconvolve, correlate
 
-def shiftit(y, shift):
+
+def shift_t(y, shift, dt=1):
+    """Shift timeseries data in time.
+    Shift array, y, in time by amount, shift. For dt=1 units of samples 
+    (including fractional samples) are used. Otherwise, shift and dt are
+    assumed to have the same physical units (i.e. seconds).
+    Parameters
+    ----------
+    y : array like, shape (N,), real
+        time series data
+    shift : int or float
+        amount to shift
+    dt : float
+        time spacing of samples in y (aka cadence)
+    Returns
+    -------
+    out : ndarray
+        time shifted data
+    Examples
+    --------
+    >>>shift_t(y, 20)
+    shift data by 20 samples
+
+    >>>shift_t(y, 0.35, dt=0.125)
+    shift data sampled at 8 Hz by 0.35 sec
+
+    Uses np.roll() for integer shifts and the Fourier shift theorem with
+    real FFT in general.  Defined so positive shift yeilds a "delay".
     """
-    shifts array y by amount shift (in sample numbers)
-    uses shift theorem and FFT
-    shift > 0  ==>  lower sample number (earlier)
-    modeled after fortran routine shiftit
-    Optimized from JMC's code by Michael Lam
+    if isinstance(shift, int) and dt is 1:
+        out = np.roll(y, shift)
+    else:
+        yfft = np.fft.rfft(y) # hermicity implicitely enforced by rfft
+        fs = np.fft.rfftfreq(len(y), d=dt)
+        phase = -1j*2*np.pi*fs*shift
+        yfft_sh = yfft * np.exp(phase)
+        out = np.fft.irfft(yfft_sh)
+    return out
+
+
+def down_sample(ar, fact):
+    """down_sample(ar, fact)
+    down sample array, ar, by downsampling factor, fact
     """
-    #TODO Add Try Except for odd length arrays...
-    yfft = np.fft.fft(y)
-    size = np.size(y) #saves time
-    constant = (shift*2*np.pi)/float(size) #needs a negative here for the right direction, put it in?
-    theta = constant*np.arange(size)
-    c = np.cos(theta)
-    s = np.sin(theta)
-    work = np.zeros(size, dtype='complex')
-    work.real = c * yfft.real - s * yfft.imag
-    work.imag = c * yfft.imag + s * yfft.real
-    # enforce hermiticity
-    half_size = int(size//2)
-    work.real[half_size:] = work.real[half_size:0:-1]
-    work.imag[half_size:] = -work.imag[half_size:0:-1]
-    work[half_size] = 0.+0.j
-    #work.real[size//2:] = work.real[size//2:0:-1]
-    #work.imag[size//2:] = -work.imag[size//2:0:-1]
-    #work[size//2] = 0.+0.j
-    workifft = np.fft.ifft(work)
-    return workifft.real
+    #TODO this is fast, but not as general as possible
+    downsampled = ar.reshape(-1, fact).mean(axis=1)
+    return downsampled
 
-def down_sample(x, R): #Method to down sample an array by a factor
-    #down_sample(array, downsampling factor)
-    #This is fast, but not as general as possible
 
-    x.reshape(-1, R)
-    downsampled = x.reshape(-1, R).mean(axis=1)#/np.amax(x)
-
-    return downsampled#*np.amax(x)/np.amax(downsampled)
-
-def rebin(a, newLength):
-    """rebin(old array, new number of bins)
-    This is a very general downsampling rebinner, but has for loops and if
-    statements, hence it is slower than down_sample().
-    'a' must be a 1-d array
+def rebin(ar, newlen):
+    """rebin(ar, newlen)
+    down sample array, ar, to newlen number of bins
+    This is a general downsampling rebinner, but is slower than down_sample().
+    'ar' must be a 1-d array
     """
-    #TODO Make this code run faster. Vectorize
-    newBins = np.linspace(0, a.size, newLength, endpoint=False)
-    width = int(math.ceil(a.size/newLength))
-    a_rebin=np.zeros((newLength,width))*np.nan
-    #Using NaN means that we do not have extra zeros in the array that would get averaged
-    row = 0
-    column = 0
-    for ii in range(0, a.size):
-        if ii < (newBins[row] + newBins[1]):
-            a_rebin[row,column] = a[ii]
-            column +=1
-        else:
-            column = 0
-            row += 1
-            a_rebin[row,column] = a[ii]
-            column +=1
+    newBins = np.linspace(0, ar.size, newlen, endpoint=False)
+    stride = newBins[1] - newBins[0]
+    maxWid = int(np.ceil(stride))
+    ar_new = np.empty((newlen, maxWid))  # init empty array
+    ar_new.fill(np.nan)  # fill with NaNs (no extra 0s in mean)
 
-    a_rebinned = sp.nanmean(a_rebin,axis=1)
-    #NaN mean does not count NaNs in total
-    return a_rebinned#*np.amax(a)/np.amax(a_rebinned)
+    for ii, lbin in enumerate(newBins):
+        rbin = int(np.ceil(lbin + stride))
+        lbin = int(np.ceil(lbin))
+        ar_new[ii,0:rbin-lbin] = ar[lbin:rbin]
+
+    return sp.nanmean(ar_new, axis=1)  # ingnore NaNs in mean
 
 
-def top_hat_width(sub_band_width, sub_bandwidth_center, DM):
+def top_hat_width(subband_df, subband_f0, DM):
+    """top_hat_width(subband_df, subband_f0, DM)
+    Returns width of a top-hat pulse to convolve with pulses for dipsersion
+    broadening. Following Lorimer and Kramer, 2005 (sec 4.1.1 and A2.4)
+    subband_df : subband bandwidth (MHz)
+    subband_f0 : subband center frequency (MHz)
+    DM : dispersion measure (pc/cm^3)
+    return top_hat_width (milliseconds)
     """
-    Top Hat pulse to convolve with pulses for dipsersion broadening
-    Given the bandwidth of the subbands and the center of the sub band
-    calculates top_hat width in milliseconds.
-    sub_band_width in MHz
-    sub_bandwidth_center in GHz following
-    (Lorimer and Kramer, 2005)"""
-    th_width = 8.297616e-3 * DM * (sub_band_width) / (sub_bandwidth_center/1e3)**3 #width in milliseconds
-    #freq converted to GHz for calculation above.
-    return th_width
+    D = 4.148808e3  # sec*MHz^2*pc^-1*cm^3, dispersion const
+    width_sec = 2*D * DM * (subband_df) / (subband_f0)**3
+    return width_sec * 1.0e+3  # ms
 
-#def DM_broaden_signal(pulse, width):
-#    """Convolves the pulses with a top hat pulse to DM broaden each pulse. """
-#    in_max = np.amax(pulse)
-#    top_hat = sp.signal.boxcar(width)/width
-#    #convolved =
-#    return np.convolve(width, pulse, 'same')
-#    #return convolved*np.sum(convolve)/width
 
-def block_mean(ar, fact): #Courteousy Mike T. Stack Overflow
-    assert isinstance(fact, int), type(fact)
-    sx, sy = ar.shape
-    X, Y = np.ogrid[0:sx, 0:sy]
-    regions = sy//fact * (X//fact) + Y//fact
-    res = ndimage.mean(ar, labels=regions, index=np.arange(regions.max() + 1))
-    res.shape = (int(sx//fact), int(sy//fact))
-    return res
-
-def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy recipes
+def savitzky_golay(y, window_size, order, deriv=0, rate=1):  # courtesy scipy recipes
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
     It has the advantage of preserving the original shape and
@@ -178,6 +165,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1): #Courteousy scipy re
     y = np.concatenate((firstvals, y, lastvals))
     return np.convolve( m[::-1], y, mode='valid')
 
+
 def find_nearest(array,value):
     """Returns the argument of the element in an array nearest to value.
     For half width at value use array[max:].
@@ -188,8 +176,9 @@ def find_nearest(array,value):
         idx = 1
     return idx
 
+
 def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
-    """Courteousy of Michael Lam's PyPulse
+    """Courtesy of Michael Lam's PyPulse
     Calculate the autocorrelation of a 2 dimensional array.
     """
     if speed == 'fast' or speed == 'slow':
@@ -245,6 +234,8 @@ def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
                 goodinds = np.where(np.isfinite(C))[0] #check for good values
                 retval[j,i] = np.mean(C[goodinds])
         return retval
+
+
 def text_search(search_list, header_values, filepath, header_line=0, file_type='txt'):
     """ Method for pulling value from  a txt file.
     search_list = list of string-type values that demarcate the line in a txt file
@@ -266,25 +257,26 @@ def text_search(search_list, header_values, filepath, header_line=0, file_type='
     check = 0
     output_values = list()
 
-    with open(filepath, 'r') as searchfile: # Find Column Numbers from column names
-        if any(isinstance(elem, str) for elem in header_values):
-            column_num = []
-            parsed_header = list(searchfile.readlines()[header_line].split())
-            for ii , header in enumerate(header_values):
-                column_num.append(parsed_header.index(header))
-        else:
-            column_num = np.array(header_values)
+    with open(filepath, 'r') as f:  # read file to local memory
+        searchfile = f.readlines()
 
+    # Find Column Numbers from column names
+    if any(isinstance(elem, str) for elem in header_values):
+        column_num = []
+        parsed_header = searchfile[header_line].split()
+        for ii, header in enumerate(header_values):
+            column_num.append(parsed_header.index(header))
+    else:
+        column_num = np.array(header_values)
 
-    with open(filepath, 'r') as searchfile: # Find Values using search keys and column numbers.
-        #TODO Don't know why I need this second with statement, but if I take it out it doesn't work.
-        for line in searchfile:
-            if all(ii in line for ii in search_list):
+    # Find Values using search keys and column numbers.
+    for line in searchfile:
+        if all(ii in line for ii in search_list):
 
-                info = line.split()
-                for jj, value in enumerate(column_num):
-                    output_values.append(info[value])
-                check += 1
+            info = line.split()
+            for jj, value in enumerate(column_num):
+                output_values.append(info[value])
+            check += 1
 
     if check == 0 :
         raise ValueError('Combination {0} '.format(search_list)+' not found in same line of text file.')
@@ -292,8 +284,3 @@ def text_search(search_list, header_values, filepath, header_line=0, file_type='
         raise ValueError('Combination {0} '.format(search_list)+' returned multiple results in txt file.')
 
     return tuple([float(i) for i in output_values])
-#def debug_print(check):
-#    if debug:
-#        print(check)
-#    else:
-#        pass
