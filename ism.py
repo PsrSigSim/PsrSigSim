@@ -44,7 +44,8 @@ class ISM(object):
 
 
     def finalize_ism(self):
-        self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
+        if self.mode=='explore':
+            raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
         self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
         self.ISM_Dict['to_Scatter_Broaden_exp'] = self.to_Scatter_Broaden_exp
         self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
@@ -52,8 +53,6 @@ class ISM(object):
         self.ISM_Dict['time_dependent_DM'] = self.time_dependent_DM
         self.ISM_Dict['dispersed'] = False
         self.ISM_Dict['to_Scintillate'] = self.to_Scintillate
-        if self.mode=='explore':
-            raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
     def shiftit(self, y, shift):
