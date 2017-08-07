@@ -77,7 +77,7 @@ class Simulation():
             if len(self.start_times) > len(gain[0,:]):
                 raise ValueError('Scattering Screen is not long enough to scintillate at this Dispersion timescale.')
             for ii, bin_time in enumerate(self.start_times) :
-                self.P.profile = gain[:, ii, np.newaxis] * orig_profile * self.P.gamma_draw_norm 
+                self.P.profile = gain[:, ii, np.newaxis] * orig_profile * self.P.gamma_draw_norm
                 #self.P.profile /= (self.P.profile.max()/tweak)
                 self.P.make_pulses(bin_time, bin_time + scint_time)
                 #bin = int(bin_time //self.S.TimeBinSize)
@@ -85,3 +85,5 @@ class Simulation():
             #self.frig = gain[:,ii,np.newaxis] * orig_profile
         else: #Otherwise just make the pulses using the given profiles.
             self.P.make_pulses()
+
+        #if self.DM:
