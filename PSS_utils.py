@@ -10,7 +10,7 @@ import scipy as sp
 
 def shift_t(y, shift, dt=1):
     """Shift timeseries data in time.
-    Shift array, y, in time by amount, shift. For dt=1 units of samples 
+    Shift array, y, in time by amount, shift. For dt=1 units of samples
     (including fractional samples) are used. Otherwise, shift and dt are
     assumed to have the same physical units (i.e. seconds).
     Parameters
@@ -41,7 +41,7 @@ def shift_t(y, shift, dt=1):
     else:
         yfft = np.fft.rfft(y) # hermicity implicitely enforced by rfft
         fs = np.fft.rfftfreq(len(y), d=dt)
-        phase = -1j*2*np.pi*fs*shift
+        phase = 1j*2*np.pi*fs*shift
         yfft_sh = yfft * np.exp(phase)
         out = np.fft.irfft(yfft_sh)
     return out
