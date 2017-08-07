@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
+import os
 from scipy import signal
 from . import PSS_utils as utils
 from . import scintillation as scint
@@ -13,9 +14,10 @@ import matplotlib.pyplot as plt
 __all__ = ['ISM','scintillate','convolve_with_profile','make_dm_broaden_tophat','make_scatter_broaden_exp']
 
 class ISM(object):
-    def __init__(self, Signal_in, DM = 30, mode='explore'):
+    def __init__(self, Signal_in, DM = 30):
         self.Signal_in = Signal_in
         self.signal = self.Signal_in.signal
+        self.MD = Signal_in.MetaData
         self.f0 = self.Signal_in.f0
         self.bw = self.Signal_in.bw
         self.Nf = self.Signal_in.Nf
@@ -25,7 +27,6 @@ class ISM(object):
         self.first_freq = self.Signal_in.first_freq
         self.last_freq = self.Signal_in.last_freq
         self.freq_Array = self.Signal_in.freq_Array
-        self.mode = mode
         self.DM = DM
         self.tau_scatter = None
         self.to_DM_Broaden = False
@@ -34,7 +35,7 @@ class ISM(object):
         self.to_Scintillate = False
         self.time_dependent_scatter = False
         self.time_dependent_DM = False
-        if mode == 'explore':
+        if self.MD.mode == 'explore':
             self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
             self.ISM_Dict['dispersed'] = False
             self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
@@ -44,8 +45,9 @@ class ISM(object):
 
 
     def finalize_ism(self):
-        if self.mode=='explore':
+        if self.MD.mode=='explore':
             raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
+        self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
         self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
         self.ISM_Dict['to_Scatter_Broaden_exp'] = self.to_Scatter_Broaden_exp
         self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
@@ -121,7 +123,7 @@ class ISM(object):
         #    raise ValueError('Signal has already been dispersed!')
         # self.ISM_Dict['dispersion'] = True
         Npols = self.Signal_in.Npols
-        if self.mode == 'explore':
+        if self.MD.mode == 'explore':
             self.Signal_in.undispersedsig = np.empty((Npols, self.Nt))
         for x in range(Npols):
             sig = self.signal[x]
@@ -134,7 +136,7 @@ class ISM(object):
             H = np.exp(1j*2*np.pi*4.148808e9/((FinalFreqs+f0)*f0**2)*DM*FinalFreqs**2) # Lorimer & Kramer 2006, eqn. 5.21
             product = fourier*H
             Dispersed = np.fft.irfft(product)
-            if self.mode == 'explore':
+            if self.MD.mode == 'explore':
                 self.Signal_in.undispersedsig[x] = sig
             self.signal[x] = Dispersed
 
@@ -220,8 +222,9 @@ class scintillate():
 
         search_list = (pulsar, telescope, freq_band)
         columns = (10,11)
+        path = os.path.dirname(__file__)
         try:
-            scint_bw, scint_timescale = utils.text_search(search_list, columns, 'PTA_pulsar_nb_data.txt')
+            scint_bw, scint_timescale = utils.text_search(search_list, columns, path + '/PTA_pulsar_nb_data.txt')
         except:
             raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
