@@ -284,8 +284,8 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
     plt.show()
 
 
-def plot_dispersed(signal_object, channel = 0, **kwargs): # Plots dispersed sig produced in ISM with Disperse()
-    lim = signal_object.MetaData.nBins_per_period
+def plot_dispersed(signal_object, N_pulses = 2, channel = 0, **kwargs): # Plots dispersed sig produced in ISM with Disperse()
+    lim = N_pulses*signal_object.MetaData.nBins_per_period
     psr_period = signal_object.MetaData.pulsar_period
     if signal_object.SignalType == 'voltage':
         plt.title('Voltage vs. Time')

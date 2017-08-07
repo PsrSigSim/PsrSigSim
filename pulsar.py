@@ -160,7 +160,7 @@ class Pulsar(object):
         self.PulsarDict["width"] = width
 
     def user_template(self,template):
-        """ Function to make any given 1-dimensional numpy array into the profile.
+        """ Function to make any given 2-dimensional numpy array into the profile.
         Assumed to be the intensity profile.
         template is a numpy array. If larger than number of bins per period then downsampled.
         If smaller than number of bins per period then interpolated.
@@ -174,8 +174,8 @@ class Pulsar(object):
         self.PulsarDict["amplitude"] = "None"
         #self.nBinsPeriod = len(template)
         #self.profile = template
-        self.nBinsTemplate = len(template[0,:])
         try: # Assumes that template is a 1-d array and tiles it across a 2-d array: NRows x nBinsTemplate
+            self.nBinsTemplate = template.size
             if self.nBinsTemplate==self.nBinsPeriod:
                 self.profile = np.tile(template,(self.NRows,1)) #What
 
@@ -196,6 +196,7 @@ class Pulsar(object):
                 print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")
 
         except: # Exception assumes template is a 2-d array
+            self.nBinsTemplate = template.shape[1]
             if self.nBinsTemplate==self.nBinsPeriod:
                 self.profile = template
 
