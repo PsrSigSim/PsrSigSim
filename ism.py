@@ -66,7 +66,10 @@ class ISM(object):
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
             self.time_delays = -1e-3*self.K*self.DM*(np.power((self.freq_Array/1e3),-2)) #freq in MHz, delays in milliseconds
                 #Dispersion as compared to infinite frequency
-            self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
+            if self.MD.mode == 'explore':
+                self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
+            if self.MD.mode == 'simulate':
+                self.time_delays = (self.time_delays//self.TimeBinSize) #Convert to time in terms of bins
             self.widths = np.zeros(self.Nf)
             sub_band_width = self.bw/self.Nf
             for ii, freq in enumerate(self.freq_Array):
