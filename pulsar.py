@@ -9,6 +9,7 @@ import scipy as sp
 from scipy import stats
 import h5py
 import math
+import time, sys
 from . import PSS_utils as utils
 
 class Pulsar(object):
@@ -41,6 +42,7 @@ class Pulsar(object):
         self.PulsarDict['signal_pulsed'] = False
         self.PulsarDict['nBins_per_period'] = self.nBinsPeriod
         self.NRows = self.Nf
+        self.mem_size_limit = 100000
         if self.SignalType == 'voltage':
             self.NRows = int(4)
         self.gauss_template()
@@ -249,26 +251,34 @@ class Pulsar(object):
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])
 
-        if self.Nt * self.NRows > 500000: #Limits the array size to 2.048 GB
+        Nt_chunk = int(self.mem_size_limit // self.NRows)
+        self.ChunkSize = int(Nt_chunk // self.nBinsPeriod) # Calc ChunkSize in integer number of periods
+
+
+        if self.Nt * self.NRows > self.mem_size_limit and self.ChunkSize != 0 : #Limits the array size to 2.048 GB
             """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
             of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
             is currently optimized for an 8GB RAM machine. In this process, most of the time is spent writing to disk.
             """
-            self.ChunkSize = 5000
-            if N_periods_to_make < self.ChunkSize :
-                self.ChunkSize = N_periods_to_make
-            try: #Deals with the ChunkSize=0 case
-                self.Nchunks = int(N_periods_to_make // self.ChunkSize)
-                self.NPeriodRemainder = int(N_periods_to_make % self.ChunkSize)
-                for ii in range(self.Nchunks): #limits size of the array in memory
-                    self.signal[:, start_bin + ii * self.ChunkSize * self.nBinsPeriod : \
-                                start_bin + ii * self.ChunkSize * self.nBinsPeriod \
-                                + self.ChunkSize * self.nBinsPeriod] \
-                                = pulseTypeMethod(self.ChunkSize)
-                if self.NPeriodRemainder != 0 :
-                    self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
-            except:
-                pass
+
+            self.Nchunks = int(N_periods_to_make // self.ChunkSize)
+            self.NPeriodRemainder = int(N_periods_to_make % self.ChunkSize)
+            pulse_start = time.time()
+
+            for ii in range(self.Nchunks): #limits size of the array in memory
+                self.signal[:, start_bin + ii * self.ChunkSize * self.nBinsPeriod : \
+                            start_bin + (ii+1) * self.ChunkSize * self.nBinsPeriod] \
+                            = pulseTypeMethod(self.ChunkSize)
+                pulse_check = time.time()
+                try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
+                    print('\r{0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='', flush=True)
+                except: #This is the Python 2 version.
+                    print('\r{0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
+                    sys.stdout.flush()
+            #print()
+
+            if self.NPeriodRemainder != 0 :
+                self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
 
         else:
             self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.
