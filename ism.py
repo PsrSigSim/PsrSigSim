@@ -5,11 +5,15 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import os
+import sys, os, time
 from scipy import signal
 from . import PSS_utils as utils
 from . import scintillation as scint
-import matplotlib.pyplot as plt
+try:
+    import pyfftw
+    use_pyfftw = True
+except:
+    use_pyfftw = False
 
 __all__ = ['ISM','scintillate','convolve_with_profile','make_dm_broaden_tophat','make_scatter_broaden_exp']
 
@@ -65,24 +69,30 @@ class ISM(object):
             #For intensity signal calculate dispersion for all sub-bands.
             self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
             self.time_delays = -1e-3*self.K*self.DM*(np.power((self.freq_Array/1e3),-2)) #freq in MHz, delays in milliseconds
-                #Dispersion as compared to infinite frequency
+            #Dispersion as compared to infinite frequency
             if self.MD.mode == 'explore':
                 self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
             if self.MD.mode == 'simulate':
-                self.time_delays = (self.time_delays//self.TimeBinSize) #Convert to time in terms of bins
-            self.widths = np.zeros(self.Nf)
-            sub_band_width = self.bw/self.Nf
+                self.time_delays = self.time_delays/self.TimeBinSize #Convert to number of bins
+            #self.widths = np.zeros(self.Nf)
+            #sub_band_width = self.bw/self.Nf
+            #if use_pyfftw:
+                #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
+                #Could test putting in data type float32 and seeing if that is faster.
+            shift_start = time.time()
             for ii, freq in enumerate(self.freq_Array):
-                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii])
-                width = int(utils.top_hat_width(sub_band_width, freq, self.DM)//self.TimeBinSize)
-                if width > 0 and self.to_DM_Broaden:
-                    if width > self.Nt:
-                        raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
-                    self.widths[ii] = width
-                    self.signal[ii,:] = sp.signal.convolve(self.signal[ii,:], sp.signal.boxcar(width)/width, mode='same',method='fft').astype(self.Signal_in.data_type)
-                    # The division by width of the boxcar filter normalizes the convolution
+                if self.to_DM_Broaden:
+                    raise ValueError('Dispersion broadening not currently supported in explore mode.')
+                dummy_array[:] = self.signal[ii,:]
+                self.signal[ii,:] = utils.shift_t(dummy_array, self.time_delays[ii], use_pyfftw=use_pyfftw)
+                if (ii+1) % int(self.Nf//20) ==0:
+                    shift_check = time.time()
+                    try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
+                        print('\r{0}% dispersed in {1:.2f} seconds.'.format((ii + 1)*100/self.Nf , shift_check-shift_start), end='', flush=True)
+                    except: #This is the Python 2 version.
+                        print('\r{0}% dispersed in {1:.2f} seconds.'.format((ii + 1)*100/self.Nf , shift_check-shift_start), end='')
+                    sys.stdout.flush()
 
-                    #print(self.freq_Array[ii],' MHz ','width=', width) #for debugging
         elif self.Signal_in.SignalType=='voltage':
             self.disperse_baseband()
 
@@ -108,7 +118,7 @@ class ISM(object):
             f0 = self.f0
             dt = self.TimeBinSize
             fourier = np.fft.rfft(sig)
-            freqs = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e6)*1e3
+            freqs = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e3)*1e6
             FinalFreqs = freqs-f0+1e-10 # Added the 1e-10 to avoid division by 0 errors in exponent
             H = np.exp(1j*2*np.pi*4.148808e9/((FinalFreqs+f0)*f0**2)*DM*FinalFreqs**2) # Lorimer & Kramer 2006, eqn. 5.21
             product = fourier*H
@@ -117,22 +127,6 @@ class ISM(object):
                 self.Signal_in.undispersedsig[x] = sig
             self.signal[x] = Dispersed
 
-
-    def scatter(self, array, scat_timescale):
-        """
-        Simulate scatter broadening by convolving the signal with an exp(-t/tau).
-        """
-        nBins = self.Signal_in.MetaData.nBins_per_period
-        tau = scat_timescale / self.TimeBinSize
-        try:
-            #N_taus = nBins/tau
-            exp_time = np.linspace(0,nBins,nBins)
-            scatter_exp = np.exp(-exp_time/tau)
-            scatter_exp /= np.sum(scatter_exp)
-            return sp.signal.convolve(array, scatter_exp, mode='full',method='fft')[:-nBins]
-            #.astype(self.Signal_in.data_type)
-        except: #Exception if meant for tau too small for given sampling rate.
-            return array
 
 class scintillate():
     def __init__(self, Signal_in, V_ISS = None,scint_bw = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
