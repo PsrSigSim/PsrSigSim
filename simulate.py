@@ -69,8 +69,6 @@ class Simulation():
             self.P.make_pulses()
             try:
                 self.ism.disperse()
-            except:
-                pass
 
     def add_scint(self):
         """
