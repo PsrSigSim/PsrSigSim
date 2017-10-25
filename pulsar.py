@@ -129,6 +129,7 @@ class Pulsar(object):
                         self.profile = np.zeros((self.NRows,self.phase.size))
                         for jj in range(self.NRows):
                             self.profile[jj,:] = np.exp(-0.5 * ((self.phase-peak[jj,0])/width[jj,0])**2)
+                            #NOTE: No amplitude, since only one amp get's normalized to one.
                         self.PulsarDict["amplitude"] = amp
                         self.PulsarDict["Profile"] = "gaussian"
                 except: # Each channel gets a different profile made of one gaussian (array[])
@@ -188,11 +189,12 @@ class Pulsar(object):
                 print("Input array length= ", self.nBinsTemplate,". Pulse template length= ",self.profile.shape[1],".")
 
             else:
-                Len = len(template[0,:])
+                Len = template.shape[0]
                 TempPhase = np.linspace(0, 1, Len)
                 self.profile = np.zeros((self.NRows, self.nBinsPeriod))
+                ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
+
                 for ii in range(self.NRows):
-                    ProfileFcn = sp.interpolate.interp1d(TempPhase, template[ii,:], kind='cubic', bounds_error=True)
                     self.profile[ii,:] = ProfileFcn(self.phase)
                 print("User supplied template has been interpolated using a cubic spline.")
                 print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")
@@ -275,10 +277,9 @@ class Pulsar(object):
                 except: #This is the Python 2 version.
                     print('\r{0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
                     sys.stdout.flush()
-            #print()
 
             if self.NPeriodRemainder != 0 :
-                self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod:] = pulseTypeMethod(self.NPeriodRemainder)
+                self.signal[:,start_bin + self.Nchunks * self.ChunkSize * self.nBinsPeriod : start_bin + (self.Nchunks * self.ChunkSize + self.NPeriodRemainder) * self.nBinsPeriod] = pulseTypeMethod(self.NPeriodRemainder)
 
         else:
             self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.
