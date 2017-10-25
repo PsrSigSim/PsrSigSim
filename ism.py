@@ -95,13 +95,13 @@ class ISM(object):
                     sys.stdout.flush()
 
         elif self.Signal_in.SignalType=='voltage':
-            self.disperse_baseband()
+            self._disperse_baseband()
 
         self.ISM_Dict['dispersed'] = True
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
 
-    def disperse_baseband(self):
+    def _disperse_baseband(self):
         """
         Broadens & delays baseband signal w transfer function defined in PSR Handbook, D. Lorimer and M. Kramer, 2006
         Returns a baseband signal dispersed by the ISM.
