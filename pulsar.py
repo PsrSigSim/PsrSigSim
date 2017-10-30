@@ -13,10 +13,10 @@ import time, sys
 from . import PSS_utils as utils
 
 class Pulsar(object):
-    def __init__(self, Signal_in, period = 50): #period in milliseconds
+    def __init__(self, Signal_in, period = 50, flux=3): #period in milliseconds
         """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
         period = pulsar period in milliseconds.
-
+        flux = mean flux of pulsar in mJy
         Many other attributes can be set, including the statistical parameters of the pulse draws.
         """
 
@@ -26,6 +26,7 @@ class Pulsar(object):
         self.bw = self.Signal_in.bw
         self.Nf = self.Signal_in.Nf
         self.Nt = self.Signal_in.Nt
+        self.flux = flux
         self.SignalType = self.Signal_in.SignalType
         self.TotTime = self.Signal_in.TotTime
         self.TimeBinSize = self.Signal_in.TimeBinSize
@@ -39,6 +40,7 @@ class Pulsar(object):
         self.gauss_draw_sigma = 1
         self.phase = np.linspace(0., 1., self.nBinsPeriod)
         self.PulsarDict = dict(pulsar_period=period)
+        self.PulsarDict['mean_flux'] = self.flux
         self.PulsarDict['signal_pulsed'] = False
         self.PulsarDict['nBins_per_period'] = self.nBinsPeriod
         self.NRows = self.Nf
