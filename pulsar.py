@@ -126,6 +126,7 @@ class Pulsar(object):
                             row_profile = np.zeros(self.phase.size)
                             for ii in range(amp.shape[1]):
                                 row_profile += amp[jj,ii] * np.exp(-0.5 * ((self.phase-peak[jj,ii])/width[jj,ii])**2)
+                            row_profile /= row_profile.max() #Normalize sum
                             self.profile[jj,:] = row_profile
                     elif peak.shape[1] == 1: # Each channel gets a different profile made of one gaussian (array[[]])
                         self.profile = np.zeros((self.NRows,self.phase.size))
@@ -145,11 +146,12 @@ class Pulsar(object):
             elif peak.shape[0] > 1 and peak.ndim == 1:
                 self.PulsarDict["amplitude"] = amp
                 self.PulsarDict["Profile"] = "multiple gaussians"
-                amp = amp/amp.max()  # normalize sum
+
                 row_profile = np.zeros(self.phase.size)
                 self.profile = np.zeros((self.NRows, self.phase.size))
                 for ii in range(amp.size):
                     self.profile += amp[ii] * np.exp(-0.5 * ((self.phase-peak[ii])/width[ii])**2)
+                self.profile /= self.profile.max()  # normalize sum
 
             #elif peak.shape[0] and peak.ndim == 1:
 
