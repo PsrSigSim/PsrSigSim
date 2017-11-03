@@ -18,7 +18,6 @@ class Simulation():
         self.S = signal_class
         self.MD = signal_class.MetaData
         self.scint_class = scint_class
-        # self.I = ism_class
         #self.time_dependent_DM = False
         self.time_dependent_scatter = False
 
@@ -30,15 +29,15 @@ class Simulation():
         if not ism_class: #Print Warning if ism_class is not passed.
             print('Warning!! No ISM Class specified.')
         else:
-            self.I = ism_class
+            self.ism = ism_class
 
         if self.MD.to_DM_Broaden:
             tophats = ism.make_dm_broaden_tophat(self.P,self.S)
-            ism.convolve_with_profile(self.P,tophats)
+            ism.convolve_with_profile(self.P, tophats)
 
         if self.MD.to_Scatter_Broaden_exp:
             exponentials = ism.make_scatter_broaden_exp(self.P,self.S,self.MD.tau_scatter)
-            ism.convolve_with_profile(self.P,exponentials)
+            ism.convolve_with_profile(self.P, exponentials)
 
         # if self.MD.to_Scatter_Broaden_stoch and not self.MD.time_dependent_scatter:
             #Convolve the profile with a decay function.
@@ -63,7 +62,7 @@ class Simulation():
         else: #Otherwise just make the pulses using the given profiles.
             self.P.make_pulses()
             try:
-                self.I.disperse()
+                self.ism.disperse()
             except:
                 pass
 
