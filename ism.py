@@ -72,26 +72,25 @@ class ISM(object):
             #Dispersion as compared to infinite frequency
             if self.MD.mode == 'explore':
                 self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
-            if self.MD.mode == 'simulate':
-                self.time_delays = self.time_delays/self.TimeBinSize #Convert to number of bins
-            #self.widths = np.zeros(self.Nf)
-            #sub_band_width = self.bw/self.Nf
+            elif self.MD.mode == 'simulate':
+                pass
+
             #if use_pyfftw:
                 #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
                 #Could test putting in data type float32 and seeing if that is faster.
             shift_start = time.time()
 
             for ii, freq in enumerate(self.freq_Array):
-                if self.to_DM_Broaden:
+                if self.to_DM_Broaden and self.MD.mode=='explore':
                     raise ValueError('Dispersion broadening not currently supported in explore mode.')
                 #dummy_array[:] = self.signal[ii,:]
-                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii], use_pyfftw=use_pyfftw)
+                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii], use_pyfftw=use_pyfftw, dt=self.TimeBinSize)
                 if (ii+1) % int(self.Nf//20) ==0:
                     shift_check = time.time()
                     try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                        print('\r{0}% dispersed in {1:.2f} seconds.'.format((ii + 1)*100/self.Nf , shift_check-shift_start), end='', flush=True)
+                        print('\r{0}% dispersed in {1} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
                     except: #This is the Python 2 version.
-                        print('\r{0}% dispersed in {1:.2f} seconds.'.format((ii + 1)*100/self.Nf , shift_check-shift_start), end='')
+                        print('\r{0}% dispersed in {1} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
                     sys.stdout.flush()
 
         elif self.Signal_in.SignalType=='voltage':

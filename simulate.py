@@ -18,7 +18,6 @@ class Simulation():
         self.S = signal_class
         self.MD = signal_class.MetaData
         self.scint_class = scint_class
-        # self.I = ism_class
         #self.time_dependent_DM = False
         self.time_dependent_scatter = False
 
@@ -27,17 +26,18 @@ class Simulation():
             raise ValueError('No Pulsar Class specified.')
         else: self.P = pulsar_class
 
-        # if not ism_class: #Raise error if ism_class is not passed.
-        #     raised ValueError('No ISM Class specified')
-        # else self.I = ism_class
+        if not ism_class: #Print Warning if ism_class is not passed.
+            print('Warning!! No ISM Class specified.')
+        else:
+            self.ism = ism_class
 
         if self.MD.to_DM_Broaden:
             tophats = ism.make_dm_broaden_tophat(self.P,self.S)
-            ism.convolve_with_profile(self.P,tophats)
+            ism.convolve_with_profile(self.P, tophats)
 
         if self.MD.to_Scatter_Broaden_exp:
             exponentials = ism.make_scatter_broaden_exp(self.P,self.S,self.MD.tau_scatter)
-            ism.convolve_with_profile(self.P,exponentials)
+            ism.convolve_with_profile(self.P, exponentials)
 
         # if self.MD.to_Scatter_Broaden_stoch and not self.MD.time_dependent_scatter:
             #Convolve the profile with a decay function.
@@ -45,12 +45,6 @@ class Simulation():
 
 
     def simulate(self):
-        #If DM is set, then disperse the signal using the ism class
-        try:
-            self.ism = ism_class
-            self.DM = ism.DM
-        except: #If DM is not set then pass
-            pass
 
         if self.MD.time_dependent_scatter or self.MD.time_dependent_DM or self.MD.to_Scintillate:
             #If some part of the code is time dependent, then run this loop.
