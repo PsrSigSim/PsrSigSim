@@ -27,9 +27,10 @@ class Simulation():
             raise ValueError('No Pulsar Class specified.')
         else: self.P = pulsar_class
 
-        # if not ism_class: #Raise error if ism_class is not passed.
-        #     raised ValueError('No ISM Class specified')
-        # else self.I = ism_class
+        if not ism_class: #Print Warning if ism_class is not passed.
+            print('Warning!! No ISM Class specified.')
+        else:
+            self.I = ism_class
 
         if self.MD.to_DM_Broaden:
             tophats = ism.make_dm_broaden_tophat(self.P,self.S)
@@ -45,12 +46,6 @@ class Simulation():
 
 
     def simulate(self):
-        #If DM is set, then disperse the signal using the ism class
-        try:
-            self.ism = ism_class
-            self.DM = ism.DM
-        except: #If DM is not set then pass
-            pass
 
         if self.MD.time_dependent_scatter or self.MD.time_dependent_DM or self.MD.to_Scintillate:
             #If some part of the code is time dependent, then run this loop.
@@ -68,7 +63,7 @@ class Simulation():
         else: #Otherwise just make the pulses using the given profiles.
             self.P.make_pulses()
             try:
-                self.ism.disperse()
+                self.I.disperse()
             except:
                 pass
 
