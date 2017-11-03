@@ -72,10 +72,9 @@ class ISM(object):
             #Dispersion as compared to infinite frequency
             if self.MD.mode == 'explore':
                 self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
-            if self.MD.mode == 'simulate':
-                self.time_delays = self.time_delays#/self.TimeBinSize #Convert to number of bins
-            #self.widths = np.zeros(self.Nf)
-            #sub_band_width = self.bw/self.Nf
+            elif self.MD.mode == 'simulate':
+                pass
+            
             #if use_pyfftw:
                 #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
                 #Could test putting in data type float32 and seeing if that is faster.
