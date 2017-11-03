@@ -137,7 +137,7 @@ class Telescope(object):
             out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii,:] = utils.rebin(row, new_Nt)
-            print("Input signal sampling frequency= ", dt_sig," ms. Telescope sampling frequency = ",dt_tel," ms")
+            print("Input signal sampling frequency= ", dt_sig," ms.\nTelescope sampling frequency = ",dt_tel," ms")
 
         else:
             # Throw error if the input signal has a lower sampling frequency than the telescope sampling frequency.
