@@ -16,7 +16,7 @@ class Pulsar(object):
     def __init__(self, Signal_in, period = 50, flux=3): #period in milliseconds
         """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
         period = pulsar period in milliseconds.
-        flux = mean flux of pulsar in mJy
+        flux = mean flux density of pulsar in mJy
         Many other attributes can be set, including the statistical parameters of the pulse draws.
         """
 
@@ -310,3 +310,16 @@ class Pulsar(object):
             self.PulsarDict['gauss_draw_norm'] = self.gauss_draw_norm
             self.PulsarDict['gauss_draw_sigma'] = self.gauss_draw_sigma
         self.Signal_in.MetaData.AddInfo(self.PulsarDict)
+
+    @property
+    def Smax(self):
+        if not hasattr(self, '_Smax'):
+            Smean = self.flux
+            if self.SignalType == 'voltage':
+                Smean = np.sqrt(Smean)
+
+            pr = self.profile
+            dph = self.phase[1] - self.phase[0]
+            _Smax = Smean / (np.sum(pr) * dph)
+
+        return _Smax

@@ -74,6 +74,8 @@ def down_sample(ar, fact):
     downsampled = ar.reshape(-1, fact).mean(axis=1)
     return downsampled
 
+    return sp.nanmean(ar_new, axis=1)  # ingnore NaNs in mean
+
 
 def rebin(ar, newlen):
     """rebin(ar, newlen)
