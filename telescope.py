@@ -143,21 +143,38 @@ class Telescope(object):
             raise ValueError("Signal Sampling Frequency Lower than Telescope Sampling Frequency")
 
         if noise :
-            out += self.radiometer_noise(signal, out.shape)
+            out += self.radiometer_noise(signal, out.shape, dt_tel)
+        
+        if signal.SignalType == 'voltage':
+            clip = signal.MetaData.gauss_draw_max
+
+            out[out>clip] = clip
+            out[out<-clip] = -clip
+        else:
+            clip = signal.MetaData.gamma_draw_max
+            out[out>clip] = clip
+        
+        out = np.array(out, dtype=signal.MetaData.data_type)
 
         return out
 
-    def radiometer_noise(self, signal, shape):
-        # flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
+    def radiometer_noise(self, signal, shape, dt):
+        """compute radiometer white noise
+        signal -- signal object (needed for BW & Npol... should use telescope properties)
+        shape -- shape of output noise array (could probably be determined from telescope properties)
+        dt -- telescope sample rate in msec
+
+        flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
+        """
         #TODO replace A with Aeff, depends on pointing for some telescopes
         #TODO Tsys -> Trec, compute Tsky, Tspill, Tatm from pointing
-        Tobs = signal.TotTime * 1.0e-3  # convert to sec
+        dt *= 1.0e-3  # convert to sec
         BW = signal.bw  # MHz
         Np = signal.Npols
         G = self.area / (Np*_kB)  # K/Jy (gain)
         
         # noise variance
-        sigS = self.Tsys / G / np.sqrt(Np * Tobs * BW)  # mJy
+        sigS = self.Tsys / G / np.sqrt(Np * dt * BW)  # mJy
         
         if signal.SignalType == 'voltage':
             norm = np.sqrt(sigS) * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
