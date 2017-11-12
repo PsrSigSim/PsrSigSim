@@ -192,7 +192,7 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         Normalized_Intensity -= Normalized_Intensity.mean()
         #Mean of gain should be 1, but will vary in different realizations.
 
-    ACF = utils.acf2d(Normalized_Intensity, mode='same')
+    ACF = utils.acf2d(Normalized_Intensity, mode='same') #2d autocorrelation
     ACF /= np.amax(ACF)
     middle_freq, middle_time = np.unravel_index(np.argmax(ACF), ACF.shape)
 
@@ -221,10 +221,10 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         time_factor = 50
         freq_frame_size = int(scint_bandwidth//S.freqBinSize)*freq_factor
         time_frame_size = scint_timescale*time_factor
-        while 2*freq_frame_size > S.Nf:
+        while 2*freq_frame_size > S.Nf and freq_factor > 2:
             freq_factor -= 2
             freq_frame_size = int(scint_bandwidth//S.freqBinSize)*freq_factor
-        while 2*time_frame_size > S.MetaData.PhScreen_Nx:
+        while 2*time_frame_size > S.MetaData.PhScreen_Nx and time_factor > 2:
             time_factor -= 2
             time_frame_size = scint_timescale*time_factor
 
