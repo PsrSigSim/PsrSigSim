@@ -192,8 +192,8 @@ class phase_screen:
         xformi = rand_pull_i * self.qshape
         xform = xformr + 1j*xformi
         self.phi = np.real(np.fft.ifft2(xform))
-        self.phi /= (self.dx*self.dy)*(Nx*Ny)
-        self.phi *= 2*np.pi
+        self.phi /= np.sqrt(self.dx*self.dy) #self.dx*self.dy*Nx*Ny
+        self.phi *= 2*np.pi*np.sqrt(Nx*Ny)
         self.phi_norm = []
         for ii, freq in enumerate(signal_object.freq_Array):
             #scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
@@ -203,8 +203,8 @@ class phase_screen:
             elif scint_param_model == 'SC':
                 Freq_diss = scale_dnu_d(self.Freq_diss,signal_object.f0,freq)
 
-            wave_num_to_phi = np.sqrt((2*np.pi)**3 * (freq*1e6/c)**2 \
-                                        * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
+            wave_num_to_phi = (2*np.pi)**3 * (freq*1e6/c)**2 \
+                                * (D_screen * KPC_TO_M)#0.0330054 * D_screen)#* 0.0198339
 
             self.phi_norm = np.append(self.phi_norm, \
                                      np.sqrt(CnSq_calc(freq,Freq_diss)) * wave_num_to_phi)
@@ -277,10 +277,10 @@ class images(object):
             r_Fres_squared = r_Fres_SQ(freq)
             #SD = phase_screen.xmax*phase_screen.ymax#np.exp(-rsqvec / SD)*
             if fourier_mode:
-                FresnelKernel_Norm = np.sqrt(r_Fres_squared*np.pi)/2 #1
+                FresnelKernel_Norm =  1#np.sqrt(r_Fres_squared*np.pi)/2
                 kernel0fft = FresnelKernel_Norm * (1+1j) \
                                 * np.exp(-1j*phase_screen.qsq_centered/2 \
-                                *r_Fres_squared)
+                                * r_Fres_squared)
                 screen0 = np.exp(phase_norm[ii] * 1j * phase_screen.phi) #[ii,:,:])
                 if speed == 'slow':
                     screen0fft = np.fft.fft2(screen0)
