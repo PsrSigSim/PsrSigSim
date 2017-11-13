@@ -260,14 +260,14 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         DM = 'NA'
     if round(S.MetaData.DISS_decorr_bw_f0) ==0:
         freq_units = ' kHZ'
-        unit_factor =1e3
+        unit_factor = 1e3
     else:
         freq_units = ' MHZ'
-        unit_factor =1  
+        unit_factor = 1
 
     f.suptitle('Spacial Dynamic Spectra Check, DM= '+ str(DM)+'\n Input Scintillation BW=' + \
                 str(unit_factor*round(S.MetaData.DISS_decorr_bw_f0,3)) + freq_units \
-                +'\n Measured Scintillation BW=' + str(scint_bandwidth) + freq_units)
+                +'\n Measured Scintillation BW=' + str(unit_factor*scint_bandwidth) + freq_units)
 
     ax[0, 1].plot(time_lag, ACF[middle_freq, middle_time-time_frame_size\
                                 :middle_time+time_frame_size])
