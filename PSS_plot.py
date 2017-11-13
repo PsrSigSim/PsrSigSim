@@ -27,8 +27,6 @@ def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
         #plt.ylabel(Y_label)
         plt.yticks([])
         plt.ylim(0,profile.max()*1.05)
-        plt.title(Title)
-        plt.show()
 
     else:
         stop_time = signal_object.MetaData.pulsar_period
@@ -38,9 +36,10 @@ def profile_plot(signal_object, freq_bin=0, phase=False, **kwargs):
         #plt.ylabel(Y_label)
         plt.ylim(0,profile.max()*1.05)
         #plt.yticks([])
-        plt.title(Title)
-        plt.show()
 
+    plt.title(Title)
+    plt.show()
+    plt.close()
 
 def joy_division_profiles(pulsar_object, step=1, N=10,Title='Profile by Frequency Channel'):
     array=pulsar_object.profile
@@ -64,6 +63,7 @@ def joy_division_profiles(pulsar_object, step=1, N=10,Title='Profile by Frequenc
     plt.xlim(0,len(array[0,:]))
     plt.ylim(0,n*step+0.1)
     plt.show()
+    plt.close()
 
 def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, phase=False, **kwargs):
     try:
@@ -86,8 +86,6 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         plt.xlabel('Phase')
         #plt.ylabel(Y_label)
         #plt.yticks([])
-        plt.title(Title)
-        plt.show()
 
     else:
         stop_time = start_time + N_pulses*nBins_per_period*signal_object.TimeBinSize
@@ -97,8 +95,11 @@ def pulse_plot(signal_object, N_pulses=1, pol_bin=0, freq_bin=0, start_time=0, p
         plt.xlabel('Time (ms)')
         #plt.ylabel(Y_label)
         #plt.yticks([])
-        plt.title(Title)
-        plt.show()
+
+    plt.title(Title)
+    plt.show()
+    plt.close()
+
 
 def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False, **kwargs):
     try:
@@ -130,8 +131,6 @@ def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False
             ax.set_xticks(np.linspace(Extent[0], Extent[1], N_pulses*10), minor=True);
             ax.set_yticks(np.linspace(Extent[2], Extent[3], signal_object.Nf), minor=True);
             ax.grid(which='both', color='black', linestyle='-', linewidth=0.5)
-        plt.title(Title)
-        plt.show()
 
     else:
         time = len(signal_object.signal[0,:])
@@ -147,8 +146,10 @@ def filter_bank(signal_object, grid=False, N_pulses=1, start_time=0, phase=False
             ax.set_xticks(np.linspace(Extent[0], Extent[1], 20), minor=True);
             ax.set_yticks(np.linspace(Extent[2], Extent[3], signal_object.Nf), minor=True);
             ax.grid(which='both', color='black', linestyle='-', linewidth=0.5)
-        plt.title(Title)
-        plt.show()
+
+    plt.title(Title)
+    plt.show()
+    plt.close()
 
 def gain_pdf(image_screen, which_sample='middle'):
 
@@ -174,6 +175,8 @@ def gain_pdf(image_screen, which_sample='middle'):
     plt.yticks([])
     plt.legend(loc='upper right')
     plt.show()
+    plt.close()
+
 
 def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'optimal', **kwargs):
     """
@@ -282,6 +285,7 @@ def dynamic_spectrum(image_screen, signal_object, save=False, window_size = 'opt
         f.savefig('DynamicSpectrum_f0_' + str(S1.f0)+'MHz_DM_'+str(DM))
     plt.draw()
     plt.show()
+    plt.close()
 
 
 def plot_dispersed(signal_object, N_pulses = 2, channel = 0, **kwargs): # Plots dispersed sig produced in ISM with Disperse()
@@ -305,4 +309,5 @@ def plot_dispersed(signal_object, N_pulses = 2, channel = 0, **kwargs): # Plots 
     plt.plot(t, signal_object.undispersedsig[channel,:lim]+jump, c='k', **kwargs)
     plt.plot(t, signal_object.signal[channel,:lim], c='c', **kwargs)
     plt.show()
+    plt.close()
     # TODO flag about if it hasn't been dispersed yet
