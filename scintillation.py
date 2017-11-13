@@ -83,6 +83,7 @@ class phase_screen:
         elif scint_param_model == 'SC':
             self.Freq_diss = Freq_DISS
 
+
         max_freq = signal_object.freq_Array.max()
         min_freq = signal_object.freq_Array.min()
         self.r_Fresnel = np.sqrt(c / (max_freq * 1e6) * (D_screen * KPC_TO_M) / (2.0*np.pi))
@@ -192,6 +193,7 @@ class phase_screen:
         xform = xformr + 1j*xformi
         self.phi = np.real(np.fft.ifft2(xform))
         self.phi /= (self.dx*self.dy)*(Nx*Ny)
+        self.phi *= 2*np.pi
         self.phi_norm = []
         for ii, freq in enumerate(signal_object.freq_Array):
             #scat_timescale = 10**(-6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(freq/1e3))
@@ -205,10 +207,11 @@ class phase_screen:
                                         * 0.0198339 * (D_screen * KPC_TO_M))#0.0330054 * D_screen)#
 
             self.phi_norm = np.append(self.phi_norm, \
-                                    np.sqrt(CnSq_calc(freq,Freq_diss)) * wave_num_to_phi)
+                                     np.sqrt(CnSq_calc(freq,Freq_diss)) * wave_num_to_phi)
             #Using Michael Lam's version, Cordes and Rickett, 1998
             #self.phi_norm = np.append(self.phi_norm, \
-            #                        np.sqrt(cnsq_calc(taud=scat_timescale*1e-3, nu=freq)) * wave_num_to_phi)
+            #                        np.sqrt(cnsq_calc(dnud=Freq_diss*1e6, nu=freq)) * wave_num_to_phi)
+            #taud=scat_timescale*1e-3,, mode = 'uniform'
 
         self.Nx = Nx
         self.Ny = Ny
@@ -274,7 +277,7 @@ class images(object):
             r_Fres_squared = r_Fres_SQ(freq)
             #SD = phase_screen.xmax*phase_screen.ymax#np.exp(-rsqvec / SD)*
             if fourier_mode:
-                FresnelKernel_Norm = 1 #np.sqrt(r_Fres_squared*np.pi)/2
+                FresnelKernel_Norm = np.sqrt(r_Fres_squared*np.pi)/2 #1
                 kernel0fft = FresnelKernel_Norm * (1+1j) \
                                 * np.exp(-1j*phase_screen.qsq_centered/2 \
                                 *r_Fres_squared)
@@ -300,11 +303,11 @@ class images(object):
                 if mode == 'explore':
                     self.kernel[ii,:,:] = kernel0
 
-            norm = 1/np.sqrt(2)#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
+            norm = 1#/np.sqrt(2)#((phase_screen.dx*phase_screen.dy)/( r_Fres_squared))/(phase_screen.Nx*phase_screen.Ny)#2.*np.pi*
             if speed == 'slow':
                 field = norm * np.fft.fftshift(np.fft.ifft2(field0fft))
             if speed == 'fast':
-                field = norm * pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.scipy_fftpack.ifft2(screen0))
+                field = norm * pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.scipy_fftpack.ifft2(field0fft))
                 #probably should del field and just straight calculate the gain?
 
             if mode == 'explore':
