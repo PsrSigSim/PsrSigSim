@@ -154,7 +154,7 @@ class phase_screen:
 
         #Set inner and outer scale factors if not otherwise set.
         if inner == None:
-            inner = self.dx
+            inner = 2*self.r_Fresnel#self.dx
 
         if outer == None:
             outer = xwidth*(1.2)
@@ -272,6 +272,7 @@ class images(object):
             self.field = np.zeros(self.gain.shape, dtype='complex64')
         elif mode == 'simulation':
             self.gain = np.zeros((phase_screen.Nf,phase_screen.Nx))
+            self.field = np.zeros(self.gain.shape, dtype='complex64')
 
         for ii, freq in enumerate(phase_screen.freq_Array):
             r_Fres_squared = r_Fres_SQ(freq)
@@ -312,10 +313,12 @@ class images(object):
 
             if mode == 'explore':
                 self.field[ii,:,:] = field
-                self.gain[ii,:,:] = abs(field**2)
             elif mode == 'simulation':
-                self.gain[ii,:] = abs(field**2)[:,int(phase_screen.Ny//2)]
-            signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
+                self.field[ii,:] = field[:,int(phase_screen.Ny//2)]
+
+        self.gain = self.field.real**2 + self.field.imag**2
+        signal_object.MetaData.AddInfo(phase_screen.PhaseScreen_Dict)
+
 
     ###################### Plots ########################
 
