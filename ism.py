@@ -107,12 +107,16 @@ class ISM(object):
             DM = self.DM
             f0 = self.f0
             dt = self.TimeBinSize
+            t = np.linspace(0, self.Nt*dt, self.Nt)
+
             fourier = np.fft.rfft(sig)
-            freqs = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e6)*1e3
-            FinalFreqs = freqs-f0+1e-10 # Added the 1e-10 to avoid division by 0 errors in exponent
-            H = np.exp(1j*2*np.pi*4.148808e9/((FinalFreqs+f0)*f0**2)*DM*FinalFreqs**2) # Lorimer & Kramer 2006, eqn. 5.21
+            u = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e3)*1e-6
+            f = u-self.bw/2. # u in [0,bw], f in [-bw/2, bw/2]
+
+            H = np.exp(1j*2*np.pi*4.148808e9/((f+f0)*f0**2)*DM*f**2) # Lorimer & Kramer 2006, eqn. 5.21
             product = fourier*H
             Dispersed = np.fft.irfft(product)
+
             if self.MD.mode == 'explore':
                 self.Signal_in.undispersedsig[x] = sig
             self.signal[x] = Dispersed
