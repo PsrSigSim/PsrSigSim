@@ -107,7 +107,6 @@ class ISM(object):
             DM = self.DM
             f0 = self.f0
             dt = self.TimeBinSize
-            t = np.linspace(0, self.Nt*dt, self.Nt)
 
             fourier = np.fft.rfft(sig)
             u = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e3)*1e-6
