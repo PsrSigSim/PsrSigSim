@@ -12,12 +12,16 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
+    'numpy',
+    'scipy',
+    'matplotlib>=2.0.0',
+    'h5py'
     # TODO: put package requirements here
 ]
 
 setup_requirements = [
     'pytest-runner',
-    # TODO(Hazboun6): put setup requirements (distutils extensions, etc.) here
+    # TODO: put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
