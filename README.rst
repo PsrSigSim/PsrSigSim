@@ -1,10 +1,35 @@
-# Pulsar Signal Simulator Version 0.0
+=========
+PsrSimSig
+=========
 
-This document serves as a summary of the __Pulsar Signal Simulator Working Group__’s plan for the first version of the simulator.
-In our first two meetings it was decided that the simulator will be written using ```Python 3.x``` (including imports from the ```__future__``` module for ```Python 2.7``` compatibility) and that a private GitHub page will be used for storing and collaborating on the code.
+
+.. image:: https://img.shields.io/pypi/v/psrsimsig.svg
+        :target: https://pypi.python.org/pypi/psrsimsig
+
+.. image:: https://img.shields.io/travis/PsrSigSim/VersionZeroPointZero.svg
+        :target: https://travis-ci.org/PsrSigSim/VersionZeroPointZero
+
+.. image:: https://readthedocs.org/projects/psrsimsig/badge/?version=latest
+        :target: https://psrsimsig.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
+
+.. image:: https://pyup.io/repos/github/PsrSigSim/VersionZeroPointZero/shield.svg
+     :target: https://pyup.io/repos/github/PsrSigSim/VersionZeroPointZero
+     :alt: Updates
+
+
+The NANOGrav pulsar signal simulator.
+
+
+* Free software: MIT license
+* Documentation: https://psrsimsig.readthedocs.io.
+
+This document serves as a summary of the **Pulsar Signal Simulator Working Group**’s plan for the first version of the simulator.
+In our first two meetings it was decided that the simulator will be written using ``Python 3.x`` (including imports from the ``__future__`` module for ``Python 2.7`` compatibility) and that a private GitHub page will be used for storing and collaborating on the code.
 If you wish to have access to the GitHub repository please contact Nathaniel Garver-Daniels and include you GitHub username and he will send you an invitation.
 
-## The Signal
+The Signal
+--------
 
 The main structure of the code will consist of a signal which will be a class object.
 It will be acted on by other classes modeling the physical processes a pulsar signal experiences as it propagates.
@@ -12,7 +37,8 @@ The signal class will consist of time series data, modeling the pulsar signal an
 In an effort to obtain a minimal working model as efficiently as possible the first version of the signal will be a single series of intensity versus time data with a sampling frequency about ten times that of a telescopes sampling frequency.
 The signal will be designed, from the beginning, with the goal of expanding the number of time series and increasing the sampling frequency.
 
-## The Modules
+The Modules
+--------
 
 The modules will each be class objects that model various physical processes acting on the signal.
 They will take the signal class as their primary input along with any other necessary parameters needed to model the physical process.
@@ -30,3 +56,17 @@ Other modules that have been discussed include, but are not limited to:
 * Ionospheric Module
 * Interplanetary Module
 * Telescope Backend Module
+
+More Features
+--------
+
+* TODO
+
+Credits
+---------
+
+This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
