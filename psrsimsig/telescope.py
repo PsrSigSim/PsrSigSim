@@ -5,7 +5,6 @@ telescopes for observing signals, includes radiometer noise and RFI
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import scipy as sp
 from . import PSS_utils as utils
 
 _kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K 

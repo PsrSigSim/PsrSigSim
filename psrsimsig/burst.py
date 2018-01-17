@@ -4,10 +4,8 @@ module to create single pulses for FRB type searches
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import scipy as sp
+import scipy.interpolate as interp
 from scipy import stats
-import h5py
-import math
 from . import PSS_utils as utils
 
 
@@ -107,7 +105,7 @@ class Burst(object):
 
         else:
             TempPhase = np.linspace(0,1,len(template))
-            ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
+            ProfileFcn = interp.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
             self.profile = ProfileFcn(self.phase)
             print("User supplied template has been interpolated using a cubic spline.")
             print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.size,".")

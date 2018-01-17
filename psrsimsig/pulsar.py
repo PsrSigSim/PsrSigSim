@@ -3,12 +3,9 @@ module to create pulses
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-
 import numpy as np
-import scipy as sp
+import scipy.interpolate as interp
 from scipy import stats
-import h5py
-import math
 import time, sys
 from . import PSS_utils as utils
 
@@ -200,7 +197,7 @@ class Pulsar(object):
                 Len = template.shape[0]
                 TempPhase = np.linspace(0, 1, Len)
                 self.profile = np.zeros((self.NRows, self.nBinsPeriod))
-                ProfileFcn = sp.interpolate.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
+                ProfileFcn = interp.interp1d(TempPhase, template, kind='cubic', bounds_error=True)
 
                 for ii in range(self.NRows):
                     self.profile[ii,:] = ProfileFcn(self.phase)
@@ -222,7 +219,7 @@ class Pulsar(object):
             else:
                 TempPhase = np.linspace(0,1,len(template))
                 for ii in range(self.NRows):
-                    ProfileFcn = sp.interpolate.interp1d(TempPhase, template[ii,:], kind='cubic', bounds_error=True)
+                    ProfileFcn = interp.interp1d(TempPhase, template[ii,:], kind='cubic', bounds_error=True)
                     self.profile[ii,:] = ProfileFcn(self.phase)
                 print("User supplied template has been interpolated using a cubic spline.")
                 print("Input array length was ", self.nBinsTemplate," bins. New pulse template length is ",self.profile.shape[1],".")

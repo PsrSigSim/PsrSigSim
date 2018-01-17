@@ -4,9 +4,8 @@ module to cause dispersion
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import scipy as sp
 import sys, os, time
-from scipy import signal
+import scipy.signal as spsig
 from . import PSS_utils as utils
 from . import scintillation as scint
 #try:
@@ -230,7 +229,7 @@ def convolve_with_profile(pulsar_object,input_array):
         input_array_norm = input_array[ii,:] / input_array_sum
 
         #Convolving the input array with the pulse profile
-        convolved_prof = signal.convolve(pulsar_prof_norm, input_array_norm, mode='full',method='fft')
+        convolved_prof = spsig.convolve(pulsar_prof_norm, input_array_norm, mode='full',method='fft')
 
         #Renormalizing the convolved pulse profile
         pulsar_object.profile[ii,:] = (pulsar_prof_sum)*(convolved_prof[:width])
@@ -268,7 +267,7 @@ def make_dm_broaden_tophat(pulsar_object,signal_object):
         if tophat_width > pulsar_object.Nt:
             raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
         dm_widths[ii] = tophat_width
-        tophat = signal.boxcar(tophat_width)
+        tophat = spsig.boxcar(tophat_width)
         tophat_len=len(tophat)
         tophat = np.append(tophat,np.zeros(lowest_freq_top_hat_width-tophat_len))
         tophat_array[ii,:] = tophat

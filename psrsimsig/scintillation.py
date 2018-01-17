@@ -4,15 +4,6 @@ module for scintillation effects
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import math as m
-import pylab as pylab
-import scipy as sp
-from scipy import stats
-from scipy import constants
-from scipy.optimize import curve_fit
-from scipy import misc
-import scipy.ndimage as  ndimage
-from . import PSS_utils as utils
 from . import PSS_plot
 try:
     import pyfftw

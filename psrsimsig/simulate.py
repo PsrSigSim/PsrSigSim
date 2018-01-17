@@ -5,12 +5,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 
 import numpy as np
-import scipy as sp
-from scipy import signal
-import h5py
-import math
 from . import ism
-from . import PSS_utils as utils
 
 
 class Simulation():

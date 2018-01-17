@@ -5,7 +5,6 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import scipy as sp
-import sys
 #try:
 #    import pyfftw
 #    use_pyfftw = True
