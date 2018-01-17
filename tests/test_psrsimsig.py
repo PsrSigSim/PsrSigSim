@@ -6,7 +6,7 @@
 import pytest
 
 
-from psrsimsig import psrsimsig
+import psrsimsig
 
 
 @pytest.fixture
@@ -17,9 +17,11 @@ def response():
     """
     # import requests
     # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+    pass
 
 
 def test_content(response):
     """Sample pytest test function with the pytest fixture as an argument."""
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
+    pass
