@@ -1,5 +1,5 @@
 """telescope.py
-module to add RFI and downsample data
+telescopes for observing signals, includes radiometer noise and RFI
 """
 
 from __future__ import (absolute_import, division,

@@ -1,5 +1,5 @@
-"""pulsar.py
-a starting point for the Pulsar class.
+"""signal.py
+a starting point for the Signal class.
 """
 
 from __future__ import (absolute_import, division,

@@ -1,4 +1,11 @@
-#__init__.py
+# -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+
+__author__ = """Jeffrey S. Hazboun"""
+__email__ = 'jeffrey.hazboun@nanograv.org'
+__version__ = '0.1.0'
+
 from .signal import Signal
 from .pulsar import Pulsar
 from .ism import *
