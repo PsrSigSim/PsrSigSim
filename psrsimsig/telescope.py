@@ -54,17 +54,15 @@ class Backend(object):
     def samprate(self):
         return self._samprate
 
-    def fold(self, signal, P_fold, N_fold=100):
-        """fold(signal, P_fold, N_fold=100)
-        fold a signal at period=P_fold, N_fold times
+    def fold(self, signal, psr):
+        """fold data a pulsar period
+        signal -- array to fold
+        pulsar -- Pulsar instance
         """
-        Nt, Nf = signal.shape
-        Npbins = int(P_fold * 2*self.samprate)
-        if Npbins*N_fold > Nt:
-            print("UserWarning: not enough observed time for {:d} folds"
-                  .format(N_fold))
-            N_fold = Nt // Npbins
-            print("UserWarning: setting N_fold = {:d}".format(N_fold))
+        period = psr.T
+        Nf, Nt = signal.shape
+        Npbins = int(period * 2*self.samprate)  # number of phase bins
+        N_fold = Nt // Npbins  # number of folds
         fold_sig = signal[:, Npbins:Npbins*(N_fold+1)].reshape(
                                                          Nf, N_fold, Npbins)
         return np.sum(fold_sig, axis=1)
