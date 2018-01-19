@@ -2,7 +2,7 @@
 from .signal import Signal
 from .pulsar import Pulsar
 from .ism import *
-from .telescope import Telescope
+from .telescope import *
 from .burst import Burst
 from . import PSS_utils as utils
 from .PSS_plot import *

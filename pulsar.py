@@ -51,13 +51,13 @@ class Pulsar(object):
             self.NRows = int(4)
         self.gauss_template()
 
-        if self.SignalType == 'voltage':
+        if self.SignalType == 'voltage': #baseband
             gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
             # Normalizes the 99.9 percentile to the dtype maximum.
 
-        elif self.SignalType == 'intensity':
+        elif self.SignalType == 'intensity': #filterbank
             gamma_limit = stats.gamma.ppf(0.999, self.gamma_shape, scale=self.gamma_scale)
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gamma_draw_norm = self.Signal_in.MetaData.gamma_draw_max/gamma_limit
@@ -232,7 +232,7 @@ class Pulsar(object):
             #with positive-definite distributions for draws of pulses.
             self.profile = np.where(self.profile > 0, self.profile, self.profile-self.MinCheck)
             #TODO Message that you've shifted the array!
-        
+
         self.profile /= self.profile.max()
         if self.SignalType == 'voltage':
             self.profile = np.sqrt(self.profile)
@@ -261,7 +261,7 @@ class Pulsar(object):
             last_bin = self.Nt
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
-            #print('Stop time larger than total time. Stop time set to last time.')
+
         self.NLastPeriodBins = int(delta_bins % self.nBinsPeriod)#delta_bins - N_periods_to_make * self.nBinsPeriod #Length of last period
         pulseType = {"intensity":"draw_intensity_pulse", "voltage":"draw_voltage_pulse"}
         pulseTypeMethod = getattr(self, pulseType[self.SignalType])

@@ -8,7 +8,8 @@ import numpy as np
 import scipy as sp
 from . import PSS_utils as utils
 
-_kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K 
+__all__ = ['Receiver','Backend','Telescope','GBT','Arecibo']
+_kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K
 
 class Receiver(object):
     def __init__(self, centfreq, bandwidth, response=None, name=None):
@@ -142,7 +143,7 @@ class Telescope(object):
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii,:] = utils.rebin(row, new_Nt)
-            print("Input signal sampling frequency= ", dt_sig," ms. Telescope sampling frequency = ",dt_tel," ms")
+            print("Input signal sampling frequency= ", dt_sig," ms.\nTelescope sampling frequency = ",dt_tel," ms")
 
         else:
             # Throw error if the input signal has a lower sampling frequency than the telescope sampling frequency.
@@ -178,10 +179,10 @@ class Telescope(object):
         BW = signal.bw  # MHz
         Np = signal.Npols
         G = self.area / (Np*_kB)  # K/Jy (gain)
-        
+
         # noise variance
         sigS = self.Tsys / G / np.sqrt(Np * dt * BW)  # mJy
-        
+
         if signal.SignalType == 'voltage':
             norm = np.sqrt(sigS) * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
             noise = norm * np.random.normal(0, 1, shape)
