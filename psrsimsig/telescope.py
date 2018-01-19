@@ -129,7 +129,7 @@ class Telescope(object):
         dt_sig = signal.TotTime / signal.Nt
 
         if dt_sig == dt_tel:
-            out = sig_in
+            out = np.array(sig_in, dtype=float)
 
         elif dt_tel % dt_sig == 0:
             SampFactor = int(dt_tel // dt_sig)
