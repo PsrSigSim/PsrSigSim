@@ -120,7 +120,7 @@ class Telescope(object):
         signal -- Signal() instance
         system -- dict key for system to use
         """
-        message = "sig samp freq = {0:.3f} kHz\n tel samp freq = {1:.3f} kHz"
+        msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
         #rec = self.systems[system][0]
         bak = self.systems[system][1]
 
@@ -140,7 +140,7 @@ class Telescope(object):
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii, :] = utils.down_sample(row, SampFactor)
-            print(message.format(1/dt_sig, 1/dt_tel))
+            print(msg.format(1/dt_sig, 1/dt_tel))
 
         elif dt_tel > dt_sig:
             new_Nt = int(signal.TotTime // dt_tel)
@@ -150,7 +150,7 @@ class Telescope(object):
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii, :] = utils.rebin(row, new_Nt)
-            print(message.format(1/dt_sig, 1/dt_tel))
+            print(msg.format(1/dt_sig, 1/dt_tel))
 
         else:
             # input signal has lower samp freq than telescope samp freq
