@@ -56,42 +56,41 @@ class Signal(object):
             self.Nt = Nt # phase bins
         else: self.Nt = Nt + 1
 
-        if SignalType == 'voltage' and data_type == 'int8':
-            self.data_type = 'int8'
-            rows = 4 #Easy way to make 2 complex channels of voltage
-            self.Npols = int(4)
+        if SignalType == 'voltage':
             self.Nf = int(Nf)
-            self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
-            self.SignalDict['data_type'] = np.int8
-            # Set the correct standard deviation for the
-            # pulse draws depending on data type.
+            self.Npols = 4  # Easy way to make 2 complex channels of voltage
+            rows = self.Npols
 
-        elif SignalType == 'voltage' and data_type == 'int16':
-            self.data_type = 'int16'
-            rows = int(4) #Easy way to make 2 complex channels of voltage
-            self.Npols = int(4)
-            self.Nf = int(Nf)
-            self.SignalDict['gauss_draw_max'] = np.iinfo(np.int16).max
-            self.SignalDict['data_type'] = np.int16
+            if data_type == 'int8':
+                self.data_type = 'int8'
+                self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
+                self.SignalDict['data_type'] = np.int8
+                # Set the correct standard deviation for the
+                # pulse draws depending on data type.
 
-        elif SignalType == 'intensity' and data_type == 'int8':
-            self.data_type = 'uint8'
+            elif data_type == 'int16':
+                self.data_type = 'int16'
+                self.SignalDict['gauss_draw_max'] = np.iinfo(np.int16).max
+                self.SignalDict['data_type'] = np.int16
+
+        elif SignalType == 'intensity':
             self.Nf = int(Nf)
-            self.Npols = int(1)
+            self.Npols = 1
             rows = self.Nf
-            self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
-            self.SignalDict['data_type'] = np.uint8
+            
+            if data_type == 'int8':
+                self.data_type = 'uint8'
+                self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
+                self.SignalDict['data_type'] = np.uint8
 
-        elif SignalType == 'intensity' and data_type == 'int16':
-            self.data_type = 'uint16'
-            self.Nf = int(Nf)
-            self.Npols = int(1)
-            rows = self.Nf
-            self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
-            self.SignalDict['data_type'] = np.uint16
+            elif data_type == 'int16':
+                self.data_type = 'uint16'
+                self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint16).max
+                self.SignalDict['data_type'] = np.uint16
 
         else:
-            raise ValueError('Signal Type: '+SignalType+' and data type: '+data_type+' not supported together.')
+            err_msg = 'SiganlType: {0} + data_type: {1} not supported'
+            raise ValueError(err_msg.format(SignalType, data_type))
 
         self.TotTime = TotTime #Total time in milliseconds
         self.TimeBinSize = self.TotTime/self.Nt
