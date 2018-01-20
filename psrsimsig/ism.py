@@ -183,26 +183,26 @@ class scintillate():
         self.Scint_Dict['to_Scintillate'] = self.to_Scintillate
         Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
-    def NG_scint_param(self, pulsar, telescope, freq_band):
-        """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
-        from a txt file.
-        pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
-                    See 'PTA_pulsar_nb_data.txt' for details.
-        telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
-        freq_band = [327 ,430, 820, 1400, 2300]
-        """
-        freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
-        freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
+def NG_scint_param(self, pulsar, telescope, freq_band):
+    """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
+    from a txt file.
+    pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
+                See 'PTA_pulsar_nb_data.txt' for details.
+    telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
+    freq_band = [327 ,430, 820, 1400, 2300]
+    """
+    freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
+    freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
 
-        search_list = (pulsar, telescope, freq_band)
-        columns = (10,11)
-        path = os.path.dirname(__file__)
-        try:
-            scint_bw, scint_timescale = utils.text_search(search_list, columns, path + '/PTA_pulsar_nb_data.txt')
-        except:
-            raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
+    search_list = (pulsar, telescope, freq_band)
+    columns = (10,11)
+    path = os.path.dirname(__file__)
+    try:
+        scint_bw, scint_timescale = utils.text_search(search_list, columns, path + '/PTA_pulsar_nb_data.txt')
+    except:
+        raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
-        return scint_bw, scint_timescale
+    return scint_bw, scint_timescale
 
 
 def convolve_with_profile(pulsar_object,input_array):

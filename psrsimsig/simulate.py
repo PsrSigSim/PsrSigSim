@@ -60,6 +60,7 @@ class Simulation():
         else: #Otherwise just make the pulses using the given profiles.
             self.P.make_pulses()
             try:
+                print('\n')
                 self.ism.disperse()
             except:
                 pass
