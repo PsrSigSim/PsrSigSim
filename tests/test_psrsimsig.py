@@ -6,7 +6,7 @@
 import pytest
 
 
-import psrsimsig
+import psrsimsig as PSS
 
 
 @pytest.fixture
@@ -25,3 +25,7 @@ def test_content(response):
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
     pass
+
+def test_signal():
+    """Test Signal Instantiation"""
+    S1 = PSS.Signal()
