@@ -30,9 +30,10 @@ class test_PSS_classes(unittest.TestCase):
 
     def test_signal(self):
         """Test Signal Instantiation"""
-        self.S1 = PSS.Signal()
+        S1 = PSS.Signal()
 
     def test_pulsar(self):
         """Test Pulsar Class"""
-        self.P1 = PSS.Pulsar(self.S1)
-        self.P1.make_pulses()
+        S1 = PSS.Signal()
+        P1 = PSS.Pulsar(S1)
+        P1.make_pulses()
