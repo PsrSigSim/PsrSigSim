@@ -9,7 +9,8 @@ import h5py
 from . import PSS_plot
 
 class MetaData(object):
-    """the MetaData class to contain information about the signal
+    """
+    The MetaData class to contain information about the signal
     """
     def __init__(self):
         self.f0 = None # central freq (MHz)
@@ -33,35 +34,46 @@ class MetaData(object):
 class Signal(object):
     """The signal class
     """
-    def __init__(self, f0=1400, bw=400, Nf=20, Nt=1000, TotTime=200, data_type='int8', SignalType = "intensity", mode='explore'):
+    def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, TotTime=200, data_type='float32', SignalType = "intensity", mode='explore'):
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity signal.
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
+        @param f_samp -- samplinf frequency (MHz)
         @param Nf -- number of freq. bins
         @param Nt -- number of phase bins
         Totime = total time of the observation in milliseconds
         SignalType = 'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage'
-                    which carries a 4 x Nt array of voltage vs. time pulses representing 4 stokes channels
+                    which carries a 2 x Nt array of voltage vs. time pulses representing 4 stokes channels
         """
         self.MetaData = MetaData()
         self.f0 = f0 # (MHz)
         self.bw = bw # (MHz)
+        self.f_samp = f_samp # (MHz)
          # freq bins
         self.data_type = data_type
         self.SignalType = SignalType
         self.SignalDict = {}
+        self.TotTime = TotTime #Total time in milliseconds
+        Nt = int(self.TotTime*1e-3 * self.f_samp*1e6)+1
+
         if Nt%2 == 0: # Make signal even in length (for FFTs)
             self.Nt = Nt # phase bins
         else: self.Nt = Nt + 1
 
         if SignalType == 'voltage':
             self.Nf = int(Nf)
-            self.Npols = 4  # Easy way to make 2 complex channels of voltage
+            self.Npols = 2  # Easy way to make 2 channels of voltage
             rows = self.Npols
 
-            if data_type == 'int8':
+            if data_type == 'float32':
+                self.data_type = 'float32'
+                self.SignalDict['gauss_draw_max'] = 200
+                self.SignalDict['gamma_draw_max'] = 200
+                self.SignalDict['data_type'] = np.float32
+
+            elif data_type == 'int8':
                 self.data_type = 'int8'
                 self.SignalDict['gauss_draw_max'] = np.iinfo(np.int8).max
                 self.SignalDict['data_type'] = np.int8
@@ -77,8 +89,14 @@ class Signal(object):
             self.Nf = int(Nf)
             self.Npols = 1
             rows = self.Nf
-            
-            if data_type == 'int8':
+
+            if data_type == 'float32':
+                self.data_type = 'float32'
+                self.SignalDict['gauss_draw_max'] = 200
+                self.SignalDict['gamma_draw_max'] = 200
+                self.SignalDict['data_type'] = np.float32
+
+            elif data_type == 'int8':
                 self.data_type = 'uint8'
                 self.SignalDict['gamma_draw_max'] = np.iinfo(np.uint8).max
                 self.SignalDict['data_type'] = np.uint8
@@ -92,7 +110,6 @@ class Signal(object):
             err_msg = 'SiganlType: {0} + data_type: {1} not supported'
             raise ValueError(err_msg.format(SignalType, data_type))
 
-        self.TotTime = TotTime #Total time in milliseconds
         self.TimeBinSize = self.TotTime/self.Nt
         self.freqBinSize = self.bw/self.Nf
         self.first_freq = self.f0 - self.freqBinSize * self.Nf/2

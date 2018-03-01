@@ -11,7 +11,8 @@ from . import PSS_utils as utils
 
 class Pulsar(object):
     def __init__(self, Signal_in, period = 50, flux=3): #period in milliseconds
-        """Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
+        """
+        Intializes pulsar class. Inherits attributes of input signal class as well as pulse period.
         period = pulsar period in milliseconds.
         flux = mean flux density of pulsar in mJy
         Many other attributes can be set, including the statistical parameters of the pulse draws.
@@ -45,10 +46,14 @@ class Pulsar(object):
         self.NRows = self.Nf
         self.mem_size_limit = 100000
         if self.SignalType == 'voltage':
-            self.NRows = int(4)
+            self.NRows = int(2)
         self.gauss_template()
 
-        if self.SignalType == 'voltage': #baseband
+        if self.Signal_in.MetaData.data_type == np.float32:
+            self.gauss_draw_norm = 1
+            self.gamma_draw_norm = 1
+
+        elif self.SignalType == 'voltage': #baseband
             gauss_limit = stats.norm.ppf(0.999, scale=self.gauss_draw_sigma)
             # Sets the limit so there is only a small amount of clipping because of dtype.
             self.gauss_draw_norm = self.Signal_in.MetaData.gauss_draw_max/gauss_limit
