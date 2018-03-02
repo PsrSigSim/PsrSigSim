@@ -304,29 +304,6 @@ def text_search(search_list, header_values, filepath, header_line=0, file_type='
     return tuple([float(i) for i in output_values])
 
 
-def unit_init(param, default_unit):
-    """Convenience function to intialize a parameter as an astropy quantity.
-    param == parameter to initialize.
-    default_unit == string that matches an astropy unit, set as
-                    default for this parameter.
-
-    returns:
-        an astropy quantity
-
-    example:
-        self.f0 = unit_init(f0,'MHz')
-    """
-    if hasattr(param, default_unit):
-        try:
-            junk = param.to(getattr(u, default_unit))
-        except u.UnitConversionError:
-            log.error("Frequency for TOA with incompatible unit {0}".format(freq))
-        quantity = param
-    else:
-        quantity = param * getattr(u, default_unit)
-
-    return quantity
-
 def make_quant(param, default_unit):
     """Convenience function to intialize a parameter as an astropy quantity.
     param == parameter to initialize.
