@@ -17,7 +17,7 @@ class MetaData(object):
         self.bw = None # bandwidth (MHz)
         self.Nf = None # number of frequency bins
         self.Nt = None # number of time/phase bins
-        self.TotTime = None #Total time in milliseconds
+        self.ObsTime = None #Total time in milliseconds
 
     def AddInfo(self,Info):
         """Function to Add Information into the metadata from a dictionary
@@ -34,7 +34,7 @@ class MetaData(object):
 class Signal(object):
     """The signal class
     """
-    def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, TotTime=200, data_type='float32', SignalType = "intensity", mode='explore'):
+    def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, ObsTime=200, data_type='float32', SignalType = "intensity", mode='explore'):
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity signal.
@@ -55,8 +55,8 @@ class Signal(object):
         self.data_type = data_type
         self.SignalType = SignalType
         self.SignalDict = {}
-        self.TotTime = TotTime #Total time in milliseconds
-        Nt = int(self.TotTime*1e-3 * self.f_samp*1e6)+1
+        self.ObsTime = ObsTime #Total time in milliseconds
+        Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
         if Nt%2 == 0: # Make signal even in length (for FFTs)
             self.Nt = Nt # phase bins
@@ -110,7 +110,7 @@ class Signal(object):
             err_msg = 'SiganlType: {0} + data_type: {1} not supported'
             raise ValueError(err_msg.format(SignalType, data_type))
 
-        self.TimeBinSize = self.TotTime/self.Nt
+        self.TimeBinSize = self.ObsTime/self.Nt
         self.freqBinSize = self.bw/self.Nf
         self.first_freq = self.f0 - self.freqBinSize * self.Nf/2
         if self.first_freq == 0.0 :
@@ -188,13 +188,13 @@ class Signal(object):
 
     @property
 
-    def TotTime(self):
-        return self._TotTime
+    def ObsTime(self):
+        return self._ObsTime
 
-    @TotTime.setter
-    def TotTime(self, value):
-        self._TotTime = value
-        self.MetaData.TotTime = self._TotTime
+    @ObsTime.setter
+    def ObsTime(self, value):
+        self._ObsTime = value
+        self.MetaData.ObsTime = self._ObsTime
 
     @property
 
