@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 import h5py
+from astropy import units as u
 from . import PSS_plot
 
 class MetaData(object):
