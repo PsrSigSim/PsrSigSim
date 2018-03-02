@@ -288,9 +288,9 @@ class Pulsar(object):
                             = pulseTypeMethod(self.ChunkSize)
                 pulse_check = time.time()
                 try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                    print('\r{0:2.0} sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='', flush=True)
+                    print('\r{0:2.0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='', flush=True)
                 except: #This is the Python 2 version.
-                    print('\r{0:2.0} sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
+                    print('\r{0:2.0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
                     sys.stdout.flush()
 
             if self.NPeriodRemainder != 0 :

@@ -87,9 +87,9 @@ class ISM(object):
                 if (ii+1) % int(self.Nf//20) ==0:
                     shift_check = time.time()
                     try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                        print('\r{0:2.0f} dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
+                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
                     except: #This is the Python 2 version.
-                        print('\r{0:2.0f} dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
+                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
                     sys.stdout.flush()
 
         elif self.Signal_in.SignalType=='voltage':
