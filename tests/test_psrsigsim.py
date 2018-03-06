@@ -26,11 +26,12 @@ def test_content(response):
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
     pass
 
+
 class test_PSS_classes(unittest.TestCase):
 
     def test_signal(self):
         """Test Signal Instantiation"""
-        S1 = PSS.Signal()
+        PSS.Signal()
 
     def test_pulsar(self):
         """Test Pulsar Class"""
