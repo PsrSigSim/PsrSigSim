@@ -7,23 +7,24 @@ import numpy as np
 from . import PSS_plot
 try:
     import pyfftw
-except:
+except ImportError:
     pass
 
 KOLMOGOROV_BETA = 11.0/3
-c = 2.998e8 #m/s
+c = 2.998e8  # m/s
 #lam = c/nu
 KPC_TO_CM = 3.086e21
 KPC_TO_M = 3.086e19
 RAD_TO_MAS = 2.063e8
-r_e = 2.8179403227e-15 #m
+r_e = 2.8179403227e-15  # m
 
 
 class phase_screen:
-    def __init__(self, signal_object, scint_param_model='SC', Freq_DISS=None, DM='use_ism', Nx=200, Ny=200, \
-                Number_r_F = 1./64, spectral_ind=KOLMOGOROV_BETA, \
-                D_pulsar=1, D_screen=0.5, inner=None, outer=None, \
-                rmsfres=None, apply_inner=False,  apply_outer=False):
+    def __init__(self, signal_object, scint_param_model='SC', Freq_DISS=None,
+                 DM='use_ism', Nx=200, Ny=200,
+                 Number_r_F=1./64, spectral_ind=KOLMOGOROV_BETA,
+                 D_pulsar=1, D_screen=0.5, inner=None, outer=None,
+                 rmsfres=None, apply_inner=False,  apply_outer=False):
         """
         Generates Nx x Ny points of a realization of power-law noise with unit
         variance with spectral index, spectral_ind and inner and outer scales as
@@ -71,7 +72,9 @@ class phase_screen:
         if scint_param_model == 'Bhat':
             if DM == 'use_ism':
                 DM = signal_object.MetaData.DM
-            scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2-3.86*np.log10(signal_object.f0/1e3))
+            scat_timescale = 10**(-6.46+0.154*np.log10(DM)
+                                  +1.07*(np.log10(DM))**2-3.86
+                                  *np.log10(signal_object.f0/1e3))
             self.Freq_diss = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6
             self.PhaseScreen_Dict['PhScreen_DM'] = DM
         elif scint_param_model == 'SC':
@@ -373,7 +376,7 @@ def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.
     elif mode == 'uniform' and beta == 4:
         C1 = 1.53
     else:
-        C1 = 1.0 ### See Lambert and Rickett 1998 for calculation
+        C1 = 1.0  # See Lambert and Rickett 1998 for calculation
 
     if taud is None and dnud is None:
         raise ValueError("Require either taud or dnud to be set.")
@@ -383,12 +386,12 @@ def cnsq_calc(nu=1000, dnud=None, taud=None, dtd=None, D=1, PM=None, beta=11./3.
         dnud = C1 / (2*np.pi*taud)
 
     if PM is None:
-        vp = 100*1e3 #m/s
+        vp = 100*1e3  # m/s
     else:
-        vp = 4.74*1e3*PM #m/s
+        vp = 4.74*1e3*PM  # m/s
 
 
-    if mode == 'screen': ### For now assume screen distance is half way
+    if mode == 'screen':  # For now assume screen distance is half way
         if taud is not None:
             eta0ds = 2*c*taud / (0.5*D*KPC_TO_M*(1-0.5))
         elif dtd is not None:
