@@ -149,7 +149,7 @@ class scintillate():
             if telescope==None or freq_band==None:
                 raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
 
-            self.scint_bw, self.scint_time = self.NG_scint_param(pulsar, telescope, freq_band)
+            self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope, freq_band)
 
             if scint_timescale != None:
                 print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
@@ -183,7 +183,7 @@ class scintillate():
         self.Scint_Dict['to_Scintillate'] = self.to_Scintillate
         Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
-def NG_scint_param(self, pulsar, telescope, freq_band):
+def NG_scint_param(pulsar, telescope, freq_band):
     """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
     from a txt file.
     pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
