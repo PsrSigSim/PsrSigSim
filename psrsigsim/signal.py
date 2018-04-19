@@ -40,7 +40,7 @@ class Signal(object):
                     Automatically changed to 'uint8' or 'uint16' if intensity signal.
         @param f0 -- central frequency (MHz)
         @param bw -- bandwidth (MHz)
-        @param f_samp -- samplinf frequency (MHz)
+        @param f_samp -- sampling frequency (MHz)
         @param Nf -- number of freq. bins
         @param Nt -- number of phase bins
         Totime = total time of the observation in milliseconds
