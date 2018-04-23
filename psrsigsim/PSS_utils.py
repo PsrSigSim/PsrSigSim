@@ -45,19 +45,23 @@ def shift_t(y, shift, use_pyfftw=False, PE='FFTW_EXHAUSTIVE', dt=1):
         out = np.roll(y, shift)
     else:
         if use_pyfftw:
-            #print('Starting rfft')
-            #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
-            rfftw_Object = pyfftw.builders.rfft(y, planner_effort=PE) #'FFTW_EXHAUSTIVE'
-            #print('Past rfft intialization')
-            yfft = rfftw_Object(y) # hermicity implicitely enforced by rfft
-            #print('Past rfft')
-            fs = np.fft.rfftfreq(len(y), d=dt)
-            phase = 1j*2*np.pi*fs*shift
-            yfft_sh = yfft * np.exp(phase)
-            irfftw_Object = pyfftw.builders.irfft(yfft_sh, planner_effort=PE) #'FFTW_EXHAUSTIVE'
-            out = irfftw_Object(yfft_sh)
+            pass
+            # #print('Starting rfft')
+            # #dummy_array = pyfftw.empty_aligned
+            # (self.Nt, dtype=self.MD.data_type)
+            # rfftw_Object = pyfftw.builders.rfft(y, planner_effort=PE)
+            # 'FFTW_EXHAUSTIVE'
+            # #print('Past rfft intialization')
+            # yfft = rfftw_Object(y) # hermicity implicitely enforced by rfft
+            # #print('Past rfft')
+            # fs = np.fft.rfftfreq(len(y), d=dt)
+            # phase = 1j*2*np.pi*fs*shift
+            # yfft_sh = yfft * np.exp(phase)
+            # irfftw_Object = pyfftw.builders.irfft(yfft_sh, planner_effort=PE)
+            #'FFTW_EXHAUSTIVE'
+            # out = irfftw_Object(yfft_sh)
         else:
-            yfft = np.fft.rfft(y) # hermicity implicitely enforced by rfft
+            yfft = np.fft.rfft(y)  # hermicity implicitely enforced by rfft
             fs = np.fft.rfftfreq(len(y), d=dt)
             phase = 1j*2*np.pi*fs*shift
             yfft_sh = yfft * np.exp(phase)
@@ -72,8 +76,6 @@ def down_sample(ar, fact):
     #TODO this is fast, but not as general as possible
     downsampled = ar.reshape(-1, fact).mean(axis=1)
     return downsampled
-
-    return sp.nanmean(ar_new, axis=1)  # ingnore NaNs in mean
 
 
 def rebin(ar, newlen):
@@ -91,7 +93,7 @@ def rebin(ar, newlen):
     for ii, lbin in enumerate(newBins):
         rbin = int(np.ceil(lbin + stride))
         lbin = int(np.ceil(lbin))
-        ar_new[ii,0:rbin-lbin] = ar[lbin:rbin]
+        ar_new[ii, 0:rbin-lbin] = ar[lbin:rbin]
 
     return sp.nanmean(ar_new, axis=1)  # ingnore NaNs in mean
 
@@ -110,7 +112,8 @@ def top_hat_width(subband_df, subband_f0, DM):
     return width_sec * 1.0e+3  # ms
 
 
-def savitzky_golay(y, window_size, order, deriv=0, rate=1):  # courtesy scipy recipes
+def savitzky_golay(y, window_size, order, deriv=0, rate=1):
+    # courtesy scipy recipes
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
     It has the advantage of preserving the original shape and
@@ -126,7 +129,8 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):  # courtesy scipy re
         the order of the polynomial used in the filtering.
         Must be less then `window_size` - 1.
     deriv: int
-        the order of the derivative to compute (default = 0 means only smoothing)
+        the order of the derivative to compute
+        (default = 0 means only smoothing)
     Returns
     -------
     ys : ndarray, shape (N)
@@ -163,7 +167,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):  # courtesy scipy re
     try:
         window_size = np.abs(np.int(window_size))
         order = np.abs(np.int(order))
-    except:# ValueError, msg:
+    except TypeError:  # ValueError, msg:
         raise ValueError("window_size and order have to be of type int")
     if window_size % 2 != 1 or window_size < 1:
         raise TypeError("window_size size must be a positive odd number")
@@ -172,17 +176,18 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):  # courtesy scipy re
     order_range = range(order+1)
     half_window = int((window_size -1) // 2)
     # precompute coefficients
-    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
+    b = np.mat([[k**i for i in order_range] for k in range(-half_window,
+                                                           half_window+1)])
     m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
     # pad the signal at the extremes with
     # values taken from the signal itself
-    firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
+    firstvals = y[0] - np.abs(y[1:half_window+1][::-1] - y[0])
     lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
     y = np.concatenate((firstvals, y, lastvals))
-    return np.convolve( m[::-1], y, mode='valid')
+    return np.convolve(m[::-1], y, mode='valid')
 
 
-def find_nearest(array,value):
+def find_nearest(array, value):
     """Returns the argument of the element in an array nearest to value.
     For half width at value use array[max:].
     """
@@ -193,73 +198,76 @@ def find_nearest(array,value):
     return idx
 
 
-def acf2d(array,speed='fast',mode='full',xlags=None,ylags=None):
+def acf2d(array, speed='fast', mode='full', xlags=None, ylags=None):
     """Courtesy of Michael Lam's PyPulse
     Calculate the autocorrelation of a 2 dimensional array.
     """
     from scipy.signal import fftconvolve, correlate
 
     if speed == 'fast' or speed == 'slow':
-        ones = np.ones(np.shape(array))
-        norm = fftconvolve(ones,ones,mode=mode) #very close for either speed
+        ones = np.ones(np.shape(array))  # very close for either speed
+        norm = fftconvolve(ones, ones, mode=mode)
         if speed=='fast':
-            return fftconvolve(array,np.flipud(np.fliplr(array)),mode=mode)/norm
+            return fftconvolve(array, np.flipud(np.fliplr(array)),
+                               mode=mode)/norm
         else:
-            return correlate(array,array,mode=mode)/norm
+            return correlate(array, array, mode=mode)/norm
     elif speed == 'exact':
-        #NOTE: (r,c) convention is flipped from (x,y), also that increasing c is decreasing y
+        #NOTE: (r,c) convention is flipped from (x,y),
+        # also that increasing c is decreasing y
         LENX = len(array[0])
         LENY = len(array)
         if xlags is None:
-            xlags = np.arange(-1*LENX+1,LENX)
+            xlags = np.arange(-1*LENX+1, LENX)
         if ylags is None:
-            ylags = np.arange(-1*LENY+1,LENY)
-        retval = np.zeros((len(ylags),len(xlags)))
-        for i,xlag in enumerate(xlags):
+            ylags = np.arange(-1*LENY+1, LENY)
+        retval = np.zeros((len(ylags), len(xlags)))
+        for i, xlag in enumerate(xlags):
             print(xlag)
-            for j,ylag in enumerate(ylags):
+            for j, ylag in enumerate(ylags):
                 if ylag > 0 and xlag > 0:
-                    A = array[:-1*ylag,xlag:] #the "stationary" array
-                    B = array[ylag:,:-1*xlag]
+                    A = array[:-1*ylag, xlag:]  # the "stationary" array
+                    B = array[ylag:, :-1*xlag]
                 elif ylag < 0 and xlag > 0:
-                    A = array[-1*ylag:,xlag:]
-                    B = array[:ylag,:-1*xlag]
-                elif ylag > 0 and xlag < 0:#optimize later via symmetries
-                    A = array[:-1*ylag,:xlag]
-                    B = array[ylag:,-1*xlag:]
+                    A = array[-1*ylag:, xlag:]
+                    B = array[:ylag, :-1*xlag]
+                elif ylag > 0 and xlag < 0:  # optimize later via symmetries
+                    A = array[:-1*ylag, :xlag]
+                    B = array[ylag:, -1*xlag:]
                 elif ylag < 0 and xlag < 0:
-                    A = array[-1*ylag:,:xlag]
-                    B = array[:ylag,-1*xlag:]
-                else: #one of the lags is zero
+                    A = array[-1*ylag:, :xlag]
+                    B = array[:ylag, -1*xlag:]
+                else:  # one of the lags is zero
                     if ylag == 0 and xlag > 0:
-                        A = array[-1*ylag:,xlag:]
-                        B = array[:,:-1*xlag]
+                        A = array[-1*ylag:, xlag:]
+                        B = array[:, :-1*xlag]
                     elif ylag == 0 and xlag < 0:
-                        A = array[-1*ylag:,:xlag]
-                        B = array[:,-1*xlag:]
+                        A = array[-1*ylag:, :xlag]
+                        B = array[:, -1*xlag:]
                     elif ylag > 0 and xlag == 0:
-                        A = array[:-1*ylag,:]
-                        B = array[ylag:,-1*xlag:]
+                        A = array[:-1*ylag, :]
+                        B = array[ylag:, -1*xlag:]
                     elif ylag < 0 and xlag == 0:
-                        A = array[-1*ylag:,:]
-                        B = array[:ylag,-1*xlag:]
+                        A = array[-1*ylag:, :]
+                        B = array[:ylag, -1*xlag:]
                     else:
-                        A = array[:,:]
-                        B = array[:,:]
+                        A = array[:, :]
+                        B = array[:, :]
                         #print xlag,ylag,A,B
                 C = A*B
                 C = C.flatten()
-                goodinds = np.where(np.isfinite(C))[0] #check for good values
-                retval[j,i] = np.mean(C[goodinds])
+                goodinds = np.where(np.isfinite(C))[0]  # check for good values
+                retval[j, i] = np.mean(C[goodinds])
         return retval
 
 
-def text_search(search_list, header_values, filepath, header_line=0, file_type='txt'):
+def text_search(search_list, header_values, filepath, header_line=0,
+                file_type='txt'):
     """ Method for pulling value from  a txt file.
-    search_list = list of string-type values that demarcate the line in a txt file
-                from which to pull values
-    header_values = string of column headers or array of column numbers (in Python numbering)
-                the values from which to pull
+    search_list = list of string-type values that demarcate the line in a txt
+                  file from which to pull values
+    header_values = string of column headers or array of column numbers
+                    (in Python numbering) the values from which to pull
     filepath = file path of txt file. (string)
     header_line = line with headers for values.
     file_type = 'txt' or 'csv'
@@ -296,10 +304,12 @@ def text_search(search_list, header_values, filepath, header_line=0, file_type='
                 output_values.append(info[value])
             check += 1
 
-    if check == 0 :
-        raise ValueError('Combination {0} '.format(search_list)+' not found in same line of text file.')
-    if check > 1 :
-        raise ValueError('Combination {0} '.format(search_list)+' returned multiple results in txt file.')
+    if check == 0:
+        raise ValueError('Combination {0} '.format(search_list)+' not found in \
+                            same line of text file.')
+    if check > 1:
+        raise ValueError('Combination {0} '.format(search_list)+' returned \
+                            multiple results in txt file.')
 
     return tuple([float(i) for i in output_values])
 
@@ -318,9 +328,10 @@ def make_quant(param, default_unit):
     """
     if hasattr(param, 'unit'):
         try:
-            junk = param.to(getattr(u, default_unit))
+            param.to(getattr(u, default_unit))
         except u.UnitConversionError:
-            log.error("Frequency for {0} with incompatible unit {1}".format(param,default_unit))
+            raise ValueError("Frequency for {0} with incompatible unit {1}"
+                             .format(param, default_unit))
         quantity = param
     else:
         quantity = param * getattr(u, default_unit)
