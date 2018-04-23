@@ -27,14 +27,14 @@ class Pulsar(object):
         self.Npols = self.Signal_in.Npols
         self.flux = flux
         self.SignalType = self.Signal_in.SignalType
-        self.TotTime = self.Signal_in.TotTime
+        self.ObsTime = self.Signal_in.ObsTime
         self.TimeBinSize = self.Signal_in.TimeBinSize
         self.freqBinSize = self.Signal_in.freqBinSize
         self.T = period
         self.mode = self.Signal_in.MetaData.mode
         self.nBinsPeriod = int(self.T//self.TimeBinSize)
-        self.NPeriods = np.int(self.TotTime//self.T) #Number of periods that can fit in the time given
-        #self.time = np.linspace(0., self.TotTime, self.Nt)
+        self.NPeriods = np.int(self.ObsTime//self.T) #Number of periods that can fit in the time given
+        #self.time = np.linspace(0., self.ObsTime, self.Nt)
         self.gamma_shape = 1
         self.gamma_scale = 2
         self.gauss_draw_sigma = 1
@@ -250,16 +250,16 @@ class Pulsar(object):
             raise ValueError('Signal has already been generated.')
 
         if stop_time == None:
-            stop_time = self.TotTime
+            stop_time = self.ObsTime
         start_bin = int(start_time // self.TimeBinSize )
         last_bin = int(stop_time // self.TimeBinSize )
-        if stop_time == self.TotTime and start_time == 0:
+        if stop_time == self.ObsTime and start_time == 0:
             N_periods_to_make = self.NPeriods
             delta_bins = self.Nt
-        elif stop_time < self.TotTime:
+        elif stop_time < self.ObsTime:
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
-        elif stop_time > self.TotTime:
+        elif stop_time > self.ObsTime:
             last_bin = self.Nt
             delta_bins = last_bin - start_bin
             N_periods_to_make = int(delta_bins // self.nBinsPeriod)
@@ -288,9 +288,9 @@ class Pulsar(object):
                             = pulseTypeMethod(self.ChunkSize)
                 pulse_check = time.time()
                 try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                    print('\r{0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='', flush=True)
+                    print('\r{0:2.0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='', flush=True)
                 except: #This is the Python 2 version.
-                    print('\r{0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
+                    print('\r{0:2.0}% sampled in {1:.2f} seconds.'.format((ii + 1)*100/self.Nchunks , pulse_check-pulse_start), end='')
                     sys.stdout.flush()
 
             if self.NPeriodRemainder != 0 :

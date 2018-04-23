@@ -18,9 +18,9 @@ class Burst(object):
         self.bw = self.Signal_in.bw
         self.Nf = self.Signal_in.Nf
         self.Nt = self.Signal_in.Nt
-        self.TotTime = self.Signal_in.TotTime
+        self.ObsTime = self.Signal_in.ObsTime
         self.SignalType = self.Signal_in.SignalType
-        self.TimeBinSize = self.TotTime/self.Nt
+        self.TimeBinSize = self.ObsTime/self.Nt
         self.Time_location = int(Signal_in.Nt//2)
         self.burst_width_time = burst_width # In microseconds
         self.burst_width_bins = int(self.burst_width_time // self.TimeBinSize)
