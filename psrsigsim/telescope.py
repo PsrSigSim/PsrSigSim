@@ -127,7 +127,7 @@ class Telescope(object):
 
         sig_in = signal.signal
         dt_tel = 1/(2*bak.samprate)
-        dt_sig = signal.TotTime / signal.Nt
+        dt_sig = signal.ObsTime / signal.Nt
 
         if dt_sig == dt_tel:
             out = np.array(sig_in, dtype=float)
@@ -144,7 +144,7 @@ class Telescope(object):
             print(msg.format(1/dt_sig, 1/dt_tel))
 
         elif dt_tel > dt_sig:
-            new_Nt = int(signal.TotTime // dt_tel)
+            new_Nt = int(signal.ObsTime // dt_tel)
             if signal.SignalType == 'voltage':
                 out = np.zeros((signal.Npols, new_Nt))
             else:

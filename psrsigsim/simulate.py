@@ -73,7 +73,7 @@ class Simulation():
         with folding the PSRFITS file.
         """
         scint_time = self.MD.scint_time/self.MD.scint_time_sample_rate
-        scint_samples_per_obs = np.floor(self.MD.TotTime//(scint_time*1e3))
+        scint_samples_per_obs = np.floor(self.MD.ObsTime//(scint_time*1e3))
         #print('scint_samples_per_obs',scint_samples_per_obs)
         #gain_norm = self.scint_class.gain.max() #Could set to avoid clipping, but not sure it's needed.
         gain = self.scint_class.gain# / gain_norm
