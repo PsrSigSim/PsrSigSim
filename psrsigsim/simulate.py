@@ -9,8 +9,11 @@ import pint
 from pint.models import polycos
 from pint import models
 from pint import utils
+import os.path
 
-default_path = "/../data/"
+d_path = os.path.dirname(__file__)
+
+default_path = os.path.join(d_path, '../data/')
 class Simulation(object):
     
     def __init__(self, psr = None, sim_telescope = None, sim_ism = False, sim_scint = False, \
@@ -277,7 +280,7 @@ class Simulation(object):
         @param scint_timescale -- scintilation timescale   
          """
     
-        p = utils.get_pint_models(self.psr, self.sim_file_path) 
+        p = PSS.PSS_utils.get_pint_models(self.psr, self.sim_file_path) 
         param_dict = {'F0': p.F0.value, 'dm':p.DM.value} 
         [scint_bw, scint_timescale] = PSS.ism.NG_scint_param(self.psr, self.sim_telescope , self.sim_dict['freq_band']) 
         param_dict['scint_bw'] = scint_bw
