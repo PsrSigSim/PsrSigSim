@@ -191,9 +191,13 @@ def NG_scint_param(pulsar, telescope, freq_band):
     telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
     freq_band = [327 ,430, 820, 1400, 2300]
     """
+    if telescope == 'Arecibo':
+        telescope = 'AO'
+    if telescope == 'Greenbank':
+        telescope = 'GBT'
     freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
     freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
-
+    
     search_list = (pulsar, telescope, freq_band)
     columns = (10,11)
     path = os.path.dirname(__file__)
