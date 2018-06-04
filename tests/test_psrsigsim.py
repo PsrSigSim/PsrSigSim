@@ -39,7 +39,7 @@ class test_PSS_classes(unittest.TestCase):
         P1 = PSS.Pulsar(S1)
         P1.make_pulses()
         
-    def test_simulate(self)
+    def test_simulate(self):
         test_dict = {'f0':1400 , 'bw': 400, 'Nf' : 50, 'data_type': 'int8', 'SignalType': 'intensity', 'freq_band': 1400,\
                      'ObsTime': 10, 'flux' : 3, 'f_samp': 4, 'radiometer_noise' : False,'tau_scatter':6e-08,\
                      'to_DM_Broaden': False}
