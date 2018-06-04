@@ -39,6 +39,7 @@ setup(
     url='https://github.com/PsrSigSim/VersionZeroPointZero',
     packages=find_packages(include=['psrsigsim']),
     include_package_data=True,
+    package_data={'psrsigsim': ['PTA_pulsar_nb_data.txt', 'data/*.par']},
     install_requires=requirements,
     license="MIT license",
     zip_safe=False,
