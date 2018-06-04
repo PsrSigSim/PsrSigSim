@@ -51,5 +51,5 @@ class test_PSS_classes(unittest.TestCase):
         s2.init_signal()
         s2.init_pulsar()
         s2.init_ism()
-        s2.init_telecope()
+        s2.init_telescope()
         s2.simulate()
