@@ -13,7 +13,7 @@ import os.path
 
 d_path = os.path.dirname(__file__)
 
-default_path = os.path.join(d_path, '../data/')
+default_path = os.path.join(d_path, './data/')
 class Simulation(object):
     
     def __init__(self, psr = None, sim_telescope = None, sim_ism = False, sim_scint = False, \
@@ -166,9 +166,11 @@ class Simulation(object):
                 pulsar=None, to_use_NG_pulsar=False, telescope=None, freq_band=None)
                                 
         except KeyError:
-            self.Scient = PSS.scintillate(self.signal,  V_ISS=None, scint_bw=None, scint_timescale=None,\
-                        pulsar=d['pulsar'], to_use_NG_pulsar=True, telescope=d['telescope'], freq_band=d['freq_band'])
+            #self.Scint = PSS.scintillate(self.signal,  V_ISS=None, scint_bw=None, scint_timescale=None,\
+                        #pulsar=d['pulsar'], to_use_NG_pulsar=True, telescope=d['telescope'], freq_band=d['freq_band'])
             
+            self.Scint = PSS.scintillate(self.signal,  V_ISS=None, scint_bw=None, scint_timescale=None,\
+                        pulsar=self.psr, to_use_NG_pulsar=True, telescope=self.sim_telescope, freq_band=d['freq_band'])
             
         
         
