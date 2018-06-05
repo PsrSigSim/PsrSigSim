@@ -10,6 +10,7 @@ from pint.models import polycos
 from pint import models
 from pint import utils
 import os.path
+from __future__ import division
 
 d_path = os.path.dirname(__file__)
 
