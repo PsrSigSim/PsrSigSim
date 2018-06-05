@@ -130,7 +130,7 @@ class Simulation(object):
         @param flux -- mean flux density of pulsar in mJy"""
         
         d =  self._check_simul_dict(pulsar_dict)
-        self.pulsar = PSS.Pulsar(self.signal, period = (1/d['F0'] * 1000), flux = d['flux']) # in units of milliseconds
+        self.pulsar = PSS.Pulsar(self.signal, period = (float(1/d['F0']) * 1000), flux = d['flux']) # in units of milliseconds
         
         
     def init_ism(self,ism_dict = None):
