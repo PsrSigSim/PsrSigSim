@@ -33,7 +33,7 @@ class Pulsar(object):
         self.T = period
         self.mode = self.Signal_in.MetaData.mode
         self.nBinsPeriod = int(self.T//self.TimeBinSize)
-        self.NPeriods = np.int(self.ObsTime//self.T) #Number of periods that can fit in the time given
+        self.NPeriods = np.int(float(self.ObsTime)//self.T) #Number of periods that can fit in the time given
         #self.time = np.linspace(0., self.ObsTime, self.Nt)
         self.gamma_shape = 1
         self.gamma_scale = 2
