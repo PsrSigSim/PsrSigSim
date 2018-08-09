@@ -183,7 +183,7 @@ class scintillate():
         self.Scint_Dict['to_Scintillate'] = self.to_Scintillate
         Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
-def NG_scint_param(pulsar, telescope, freq_band):
+def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
     """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
     from a txt file.
     pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
@@ -200,9 +200,13 @@ def NG_scint_param(pulsar, telescope, freq_band):
     
     search_list = (pulsar, telescope, freq_band)
     columns = (10,11)
-    path = os.path.dirname(__file__)
+
+    if file_path is None:
+        path = os.path.dirname(__file__)
+        file_path = path + '/PTA_pulsar_nb_data.txt'
+
     try:
-        scint_bw, scint_timescale = utils.text_search(search_list, columns, path + '/PTA_pulsar_nb_data.txt')
+        scint_bw, scint_timescale = utils.text_search(search_list, columns, file_path)
     except:
         raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
