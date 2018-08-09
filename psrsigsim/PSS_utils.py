@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 import scipy as sp
 from astropy import units as u
+from pint import models
 #try:
 #    import pyfftw
 #    use_pyfftw = True
@@ -337,3 +338,11 @@ def make_quant(param, default_unit):
         quantity = param * getattr(u, default_unit)
 
     return quantity
+
+def get_pint_models(psr_name, psr_file_path):
+        """Function that returns pint model given a specific pulsar"""
+        # will need to add section for J1713 T2 file. gls is not file wanted for this specfic pulsar.
+        model_name = "{0}{1}_NANOGrav_11yv1.gls.par".format(psr_file_path,psr_name)
+        par_model = models.get_model(model_name) 
+
+        return par_model
