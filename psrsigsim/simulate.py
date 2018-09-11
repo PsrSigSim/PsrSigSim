@@ -366,13 +366,24 @@ class Simulation(object):
     
     
     def _set_pulsar_dict(self):
-        """Takes Pulsar name and retrieves the following parameters:
+        """Takes Pulsar name, retrieves the following parameters:
              
-        @param F0 -- Pulsar Spin Frequency (Hz)  
-        @param dm -- dispersion measure 
-        @param scint_bw -- scintilation Bandwidth            
-        @param scint_timescale -- scintilation timescale   
-         """
+        F0 : float
+            Pulsar Spin Frequency (Hz)
+        dm : float
+            Dispersion measure
+        scint_bw : float
+            scintillation Bandwidth
+        scint_timescale : float
+            Scintillation timescale
+
+        and returns them in a dictionary.
+
+        Returns
+        -------
+        param_dict : dict
+            Dictionary containing parameters to be added to sim_dict in Simulation().
+        """
     
         p = PSS.PSS_utils.get_pint_models(self.psr, self.sim_file_path) 
         param_dict = {'F0': p.F0.value, 'dm':p.DM.value} 
