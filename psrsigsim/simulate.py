@@ -3,6 +3,7 @@ simulation wrapper
 
 (Key : Value type/possible values) explain
 units for V_ISS etc.
+check simul dict code if not d:?
 """
 import psrsigsim as PSS
 import psrsigsim as PSS
@@ -276,7 +277,9 @@ class Simulation(object):
         
         
     def simulate(self):
-        """This is the fucntion that runs the simulation once the desired classes are initialized."""
+        """This is the function that runs the simulation once the desired classes
+        are initialized.
+        """
         if hasattr(self,'ISM'):
             if 'tau_scatter' in self.sim_dict.keys():
                 self.ISM.to_Scatter_Broaden_exp = True
@@ -327,9 +330,27 @@ class Simulation(object):
 ####Convenience Methods
                                     
     def _check_simul_dict(self,d):
-        """ This is used to make the init methods easier to write.
-            Takes the init methed and checks to see if there is an input dictionary and sets it
-            as a dictionary to be used in the initialization of the class"""                        
+        """Checks for input dictionary in init method and sets it as a dictionary
+        to be used in the initialization of the class.
+
+        This function is used to make the init methods easier to write.
+
+        Parameters
+        ----------
+        d
+            The input to dictionary keyword in init methods. If empty, d is assigned
+            the dictionary used when Simulation() is called.
+
+        Returns
+        -------
+        d : dict
+            Dictionary of simulation parameters to be used in class initialization.
+        str
+            ValueError message if there is no parameter dictionary in both init methods
+            and Simulation class constructor.
+        str
+            TypeError message if input dictionary is not a dictionary.
+        """
         if not d:
             if self.sim_dict:  
                 d = self.sim_dict
