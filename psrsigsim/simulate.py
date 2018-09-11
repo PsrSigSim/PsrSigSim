@@ -3,7 +3,6 @@ simulation wrapper
 
 (Key : Value type/possible values) explain
 units for V_ISS etc.
-check simul dict code if not d:?
 """
 import psrsigsim as PSS
 import psrsigsim as PSS
@@ -19,37 +18,85 @@ d_path = os.path.dirname(__file__)
 
 default_path = os.path.join(d_path, './data/')
 class Simulation(object):
-    
+    """This class simulates an observing run given a pulsar name or a
+    dictionary of parameters.
+
+    Once the simulation is called, the different classes
+    (signal, pulsar,ism,scint,telescope) can be initialized with the
+    initialization functions. init_signal and init_pulsar are the only required
+    functions to run the simulation. If a pulsar name is input, then these
+    function are ran automatically.
+    The required parameters needed for the simulation are:
+
+    f0 : float
+        Central frequency (MHz).
+    F0 : float
+        Pulsar Spin Frequency (Hz).
+    bw : float
+        Bandwidth (MHz).
+    Nf :int
+        Number of frequency bins.
+    ObsTime : float
+        Total observation time in milliseconds.
+    f_samp : float
+        Sampling frequency (MHz).
+    SignalType : {'intensity', 'voltage'}
+        'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage'
+         which carries a 4 x Nt array of voltage vs. time pulses representing
+         4 stokes channels.
+    dm : float
+        Dispersion measure.
+    V_ISS : float
+        Interstellar scintillation velocity.
+    scint_bw : float
+        Scintillation bandwidth.
+    scint_timescale : float
+        Scintillation timescale.
+    pulsar : str
+        Pulsar name
+    telescope : {'GBT', 'Arecibo'}
+        Telescope name (GBT or Arecibo).
+    freq_band : {327 ,430, 820, 1400, 2300}
+        Frequency band.
+    aperture : float
+        Telescope aperture (m).
+    area : float
+        Collecting area (m^2).
+    Tsys : float
+        System temp (K), total of receiver, sky, spillover, etc. (only needed for noise).
+    name : {'GBT', 'Arecibo'}
+        GBT or Arecibo.
+    tau_scatter : float
+        Scattering time (ms).
+    radiometer_noise : bool
+        Changes whether radiometer noise is included or not. True/False.
+    to_DM_broaden : bool
+        Changes whether dm broadening is included. True/False.
+
+    Parameters retrieved when pulsar name is input : F0, dm, scint_bw, scint_timescale.
+
+    Parameters
+    ----------
+    psr : str, optional
+        Pulsar name.
+    sim_telescope : {'GBT', 'Arecibo'}, optional
+        Specified telescope class is initialized to "observe" simulated pulsar.
+    sim_ism : bool, optional
+        If 'True', initializes ism class, adding dispersion effects.
+    sim_scint : bool, optional
+        If 'True', scintillate class is initialized to scintillate pulsar signal.
+    sim_dict : dict, optional
+        Dictionary containing parameters of the simulation. If set to default None,
+        dictionaries containing parameters must be created manually and inputted
+        to each init methods used by user.
+    sim_file_path : str, optional
+        Path to data files.
+
+    """
     def __init__(self, psr = None, sim_telescope = None, sim_ism = False, sim_scint = False, \
-                 sim_dict = None, sim_file_path = default_path ): 
-        """ This class simulates an observing run given a pulsar name or a dictionary of paramters. Once the simulation is called,
-    the different classes (signal, pulsar,ism,scint,telescope) can be initialized with the initiatlization functions. init_signal and init_pulsar are the 
-    only required functions to run the simulation. If a pulsar name is input, then these function are ran automatically. The required paramaters needed
-    for the simulation are:
-    
-        @param f0 -- central frequency (MHz)
-        @param F0 -- Pulsar Spin Frequency (Hz)
-        @param bw -- bandwidth (MHz)
-        @param Nf -- number of freq. bins
-        @param ObsTime --  total time of observation (add units once confirmed)
-        @param f_samp -- sampling frequency (MHz) 
-        @param SignalType -- 'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage' which carries a 4 x Nt array of voltage vs. time pulses representing 4 stokes channels
-        @param dm -- dispersion measure
-        @param V_ISS -- Intersteller Scintilation Velocity
-        @param scint_bw -- scintilation Bandwidth
-        @param scint_timescale -- scintilation timescale
-        @param pulsar -- pulsar name
-        @param telescope -- telescope name(GBT or Arecibo)
-        @param freq_band -- frequency band [327 ,430, 820, 1400, 2300]
-        @param aperature -- aperature (m)
-        @param area -- collecting area (m^2)
-        @param Tsys -- system temp (K), total of receiver, sky, spillover, etc. (only needed for noise)
-        @param name -- GBT or Arecibo
-        @param tau_scatter -- scattering time (ms)
-        @param radiometer_noise -- changes whther radiometer noise is included or not. True/False
-        @param to_DM_broaden -- changes whether dm broadening is included. True/False
-        
-        Parameters retrieved when pulsar name is input : F0, dm, scint_bw, scint_timescale. 
+                 sim_dict = None, sim_file_path = default_path ):
+       """
+
         
         Example Simulations:
          Using Pulsar name: 
@@ -164,7 +211,7 @@ class Simulation(object):
         
         
     def init_ism(self,ism_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary
+        """This is a function that initializes the ism class using a dictionary
         of parameters.
 
         It either uses the dictionary set when Simulation() is called, if ism_dict
@@ -188,7 +235,7 @@ class Simulation(object):
         
     
     def init_scint(self,scint_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary
+        """This is a function that initializes the scintillate class using a dictionary
         of parameters.
 
         It either uses the dictionary set when Simulation() is called,
@@ -234,7 +281,7 @@ class Simulation(object):
     
     
     def init_telescope(self,telescope_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary
+        """This is a function that initializes the telescope class using a dictionary
         of parameters.
 
         It either uses the dictionary set when Simulation() is called, if
