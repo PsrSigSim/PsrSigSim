@@ -1,5 +1,8 @@
 """simulate.py
 simulation wrapper
+
+(Key : Value type/possible values) explain
+units for V_ISS etc.
 """
 import psrsigsim as PSS
 import psrsigsim as PSS
@@ -111,7 +114,8 @@ class Simulation(object):
         Parameters
         ----------
         signal_dict : dict, optional
-            Required parameters of this dictionary are
+            Required keys of this dictionary are parameters
+            (Key : Value type/possible values)
 
             f0 : float
                 Central frequency (MHz).
@@ -133,26 +137,48 @@ class Simulation(object):
         d = self._check_simul_dict(signal_dict)
         self.signal = PSS.Signal(f0 = d['f0'],bw = d['bw'], Nf = d['Nf'], f_samp = d['f_samp'] , ObsTime = d['ObsTime']\
                                     ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate')        
-        
-    
+
+
     def init_pulsar(self,pulsar_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary of paramaters.It either uses the
-        dictionary set when Simulation() is called, when pulsar_dict is left as None, or a dictianary that is input directly
+        """This is a function that initializes the pulsar class using a dictionary
+        of parameters.
+
+        It either uses the dictionary set when Simulation() is called,
+        if pulsar_dict is left as None, or a dictionary that is input directly
         into the init_pulsar function.
-        
-        @param F0 -- Pulsar Spin Frequency (Hz)
-        @param flux -- mean flux density of pulsar in mJy"""
-        
+
+        Parameters
+        ----------
+        pulsar_dict : dict, optional
+            Required keys of this dictionary are parameters
+            (Key : Value type/possible values)
+
+            F0 : float
+                Pulsar spin frequency (Hz).
+            flux : float
+                Mean flux density of pulsar (mJy).
+        """
         d =  self._check_simul_dict(pulsar_dict)
         self.pulsar = PSS.Pulsar(self.signal, period = 1000/float(d['F0']) , flux = d['flux']) # in units of milliseconds
         
         
     def init_ism(self,ism_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary of paramaters.It either uses the dictionary
-        set when Simulation() is called, when ism_dict is left as None, or a dictianary that is input directly
-        into the init_ism function.
-        
-        @param dm -- dispersion measure"""
+        """This is a function that initializes the pulsar class using a dictionary
+        of parameters.
+
+        It either uses the dictionary set when Simulation() is called, if ism_dict
+        is left as None, or a dictionary that is input directly into the
+        init_ism function.
+
+        Parameters
+        ----------
+        ism_dict : dict, optional
+            Required key of this dictionary is parameter
+            (Key : Value type/possible values)
+
+            dm : float
+            Dispersion measure.
+        """
         d = self._check_simul_dict(ism_dict)
         self.ISM = PSS.ISM(self.signal, DM = d['dm']) 
         
@@ -161,18 +187,34 @@ class Simulation(object):
         
     
     def init_scint(self,scint_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary of paramaters.It either uses the dictionary
-        set when Simulation() is called, when scint_dict is left as None, or a dictianary that is input directly
+        """This is a function that initializes the pulsar class using a dictionary
+        of parameters.
+
+        It either uses the dictionary set when Simulation() is called,
+        if scint_dict is left as None, or a dictionary that is input directly
         into the init_scint function.
-        
-        @param V_ISS -- Intersteller Scintilation Velocity
-        @param scint_bw -- scintilation Bandwidth
-        @param scint_timescale -- scintilation timescale
-        @param pulsar -- pulsar name
-        @param to_use_NG_pulsar -- use NG pulsar (True/False)
-        @param telescope -- telescope name(GBT or Arecibo)
-        @param freq_band -- frequency band"""
-        
+
+        Parameters
+        ----------
+        scint_dict : dict, optional
+            Required keys of this dictionary are parameters
+            (Key : Value type/possible values)
+
+            V_ISS : float
+                Interstellar scintillation velocity.
+            scint_bw : float.
+                Scintillation bandwidth
+            scint_timescale : float
+                Scintillation timescale.
+            pulsar : str
+                Pulsar name.
+            to_use_NG_pulsar : bool
+                'True' to use NG pulsar. False otherwise.
+            telescope : {'GBT', 'Arecibo'}
+                Telescope name. Either Green Bank telescope or Arecibo telescope.
+            freq_band : float
+                Frequency band.
+        """
         d = self._check_simul_dict(scint_dict)
         
         try:
@@ -191,16 +233,31 @@ class Simulation(object):
     
     
     def init_telescope(self,telescope_dict = None):
-        """This is a function that initializes the pulsar class using a dictionary of paramaters.It either uses the dictionary
-        set when Simulation() is called, when telescope_dict is left as None, oor a dictianary that is input directly
-        into the init_tlescope function. If a GBT or Arecibo is input to sim_telescope then it will be automatically put 
-        into the simulation
-        
-        @param aperature -- aperature (m)
-        @param area -- collecting area (m^2)
-        @param Tsys -- system temp (K), total of receiver, sky, spillover, etc. (only needed for noise)
-        @param name -- GBT or Arecibo. Uses telescope parameter"""
-        
+        """This is a function that initializes the pulsar class using a dictionary
+        of parameters.
+
+        It either uses the dictionary set when Simulation() is called, if
+        telescope_dict is left as None, or a dictionary that is input directly
+        into the init_telescope function. If 'GBT' or 'Arecibo' is input to
+        sim_telescope then it will be automatically put
+        into the simulation.
+
+        Parameters
+        ----------
+        telescope_dict : dict, optional
+            Required keys of this dictionary are parameters
+            (Key : Value type/possible values)
+
+            aperture : float
+                Telescope aperture (m)
+            area : float
+                Collecting area (m^2)
+            Tsys : float
+                System temperature (K), total of receiver, sky, spillover, etc.
+                (only needed for noise)
+            name : {'GBT', 'Arecibo'}
+                Telescope name.
+        """
         if self.sim_telescope == 'GBT':
             self.telescope = PSS.GBT()
             
