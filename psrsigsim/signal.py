@@ -57,7 +57,7 @@ class Signal(object):
 
     Parameters
     ----------
-    mode : {'explore', 'simulation'}, optional
+    mode : {'explore', 'simulate'}, optional
         'explore' mode to add effects individually.
         'simulation' to add selected effects at once.
 

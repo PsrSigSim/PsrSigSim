@@ -101,21 +101,35 @@ class Simulation(object):
         
         
     def init_signal(self,signal_dict = None): 
-        """This is a function that intiatlizes a signal class using a dictionary of parameters. It either uses the
-        dictionary set when Simulation() is called, when signal_dict is left as None, or a dictianary that is input directly
-        into the init_signal function. 
-        
-        
-        @param f0 -- central frequency (MHz)
-        @param bw -- bandwidth (MHz)
-        @param Nf -- number of freq. bins
-        @param f_samp -- samplinf frequency (MHz)  
-        @param ObsTime --  total time of observation (add units once confirmed)
-        @param data_type -- 'int8' or 'int16' supported. Automatically changed to 'uint8' or 'uint16' if intensity signal.          
-        @param SignalType -- 'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage'
-                which carries a 4 x Nt array of voltage vs. time pulses representing 4 stokes channels
-        @param mode -- 'simulate' beccause this is the simulator mode"""
-        
+        """This is a function that initializes a signal class using a dictionary
+         of parameters.
+
+        It either uses the dictionary set when Simulation() is called, if
+        signal_dict is left as None, or a dictionary that is input directly
+        into the init_signal function. mode is automatically set to 'simulate'.
+
+        Parameters
+        ----------
+        signal_dict : dict, optional
+            Required parameters of this dictionary are
+
+            f0 : float
+                Central frequency (MHz).
+            bw : float
+                Bandwidth (MHz).
+            Nf : int
+                Number of frequency bins.
+            f_samp : float
+                Sampling frequency (MHz).
+            ObsTime : float
+                Total observation time in milliseconds.
+            data_type : {'int8', 'int16'}
+                Automatically changed to 'uint8' or 'uint16' if intensity signal.
+            SignalType : {'voltage', 'intensity'}
+                'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage'
+                which carries a 4 x Nt array of voltage vs. time pulses representing
+                4 stokes channels
+        """
         d = self._check_simul_dict(signal_dict)
         self.signal = PSS.Signal(f0 = d['f0'],bw = d['bw'], Nf = d['Nf'], f_samp = d['f_samp'] , ObsTime = d['ObsTime']\
                                     ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate')        
