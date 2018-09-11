@@ -1,8 +1,10 @@
-"""simulate.py
-simulation wrapper
+"""simulate.py, a wrapper for all other modules in simulation.
 
-(Key : Value type/possible values) explain
-units for V_ISS etc.
+For init method docstrings, under parameter section, the information
+beneath format (Key : Value type/possible values) pertains not to
+function parameters, but to the required contents of the dictionary parameter.
+
+Units for V_ISS etc.?
 """
 import psrsigsim as PSS
 import psrsigsim as PSS
@@ -82,9 +84,9 @@ class Simulation(object):
     sim_telescope : {'GBT', 'Arecibo'}, optional
         Specified telescope class is initialized to "observe" simulated pulsar.
     sim_ism : bool, optional
-        If 'True', initializes ism class, adding dispersion effects.
+        If True, initializes ism class, adding dispersion effects.
     sim_scint : bool, optional
-        If 'True', scintillate class is initialized to scintillate pulsar signal.
+        If True, scintillate class is initialized to scintillate pulsar signal.
     sim_dict : dict, optional
         Dictionary containing parameters of the simulation. If set to default None,
         dictionaries containing parameters must be created manually and inputted
@@ -92,27 +94,34 @@ class Simulation(object):
     sim_file_path : str, optional
         Path to data files.
 
+    Examples
+    --------
+    Simulations using pulsar name:
+
+    >>> dictionary = {'f0':1400,'bw':400,'Nf':100,'f_samp':4,ObsTime':10,
+    ...              'data_type':'int8','SignalType':"intensity",'flux':3,
+    ...              'tau_scatter':6e-05,'radiometer_noise: True, to_DM_broaden: True}
+    >>> s1 = Simuation(psr = 'J1614-2230',sim_telescope ='GBT', sim_ism = True,
+    ...               sim_scint = True, sim_dict = None)
+    >>> s1.simulate()
+
+    Simulations using own dictionary:
+
+    >>> dictionary = {'f0':1400,'dm':15.921200, 'F0': 218, 'bw':400,'Nf':100,
+    ...               'f_samp':4,ObsTime':10,'data_type':'int8',
+    ...               'SignalType':"intensity",'flux':3,'tau_scatter':6e-05,
+    ...               'radiometer_noise: True, to_DM_broaden: True}
+    >>> s2 = Simulation(psr = None,sim_telescope = 'Arecibo',sim_ism = None,
+    ...                 sim_scint = None,sim_dict = dictionary)
+    >>> s2.init_signal()
+    >>> s2.init_pulsar()
+    >>> s2.init_ism()
+    >>> s2.init_telescope()
+    >>> s2.simulate()
     """
     def __init__(self, psr = None, sim_telescope = None, sim_ism = False, sim_scint = False, \
                  sim_dict = None, sim_file_path = default_path ):
-       """
-
         
-        Example Simulations:
-         Using Pulsar name: 
-             $ dictionary = {'f0':1400,'bw':400,'Nf':100,'f_samp':4,ObsTime':10,'data_type':'int8','SignalType':"intensity",'flux':3 \
-             ,'tau_scatter':6e-05,'radiometer_noise: True, to_DM_broaden: True}
-             $ s1 = Simuation(psr = 'J1614-2230',sim_telescope ='GBT', sim_ism = True, sim_scint = True, sim_dict = None)
-             $ s1.simulate()
-         Using own dictionary:
-             $ dictionary = {'f0':1400,'dm':15.921200, 'F0': 218, 'bw':400,'Nf':100,'f_samp':4,ObsTime':10,'data_type':'int8'\
-             ,'SignalType':"intensity",'flux':3,'tau_scatter':6e-05,'radiometer_noise: True, to_DM_broaden: True}
-             $ s2 = Simulation(psr = None,sim_telescope = 'Arecibo',sim_ism = None,sim_scint = None,sim_dict = dictionary)
-             $ s2.init_signal()
-             $ s2.init_pulsar()
-             $ s2.init_ism()
-             $ s2.init_telescope()
-             $ s2.simulate()"""
         self.psr = psr
         self.sim_telescope = sim_telescope
         self.sim_ism = sim_ism
@@ -257,7 +266,7 @@ class Simulation(object):
             pulsar : str
                 Pulsar name.
             to_use_NG_pulsar : bool
-                'True' to use NG pulsar. False otherwise.
+                True to use NG pulsar. False otherwise.
             telescope : {'GBT', 'Arecibo'}
                 Telescope name. Either Green Bank telescope or Arecibo telescope.
             freq_band : float
