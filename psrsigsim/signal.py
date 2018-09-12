@@ -270,7 +270,7 @@ class Signal(object):
 
     @property
     def Nt(self):
-        """Property Nt, number of phase bins."""
+        """Property Nt, number of time/phase bins."""
         return self._Nt
 
     @Nt.setter
