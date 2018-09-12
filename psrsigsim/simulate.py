@@ -121,7 +121,7 @@ class Simulation(object):
     """
     def __init__(self, psr = None, sim_telescope = None, sim_ism = False, sim_scint = False, \
                  sim_dict = None, sim_file_path = default_path ):
-        
+
         self.psr = psr
         self.sim_telescope = sim_telescope
         self.sim_ism = sim_ism
