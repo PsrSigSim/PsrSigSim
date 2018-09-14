@@ -1,15 +1,15 @@
 """telescope.py
-module to add RFI and downsample data
+telescopes for observing signals, includes radiometer noise and RFI
 """
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import scipy as sp
 from . import PSS_utils as utils
 
-__all__ = ['Receiver','Backend','Telescope','GBT','Arecibo']
+__all__ = ['Receiver', 'Backend', 'Telescope', 'GBT', 'Arecibo']
 _kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K
+
 
 class Receiver(object):
     def __init__(self, centfreq, bandwidth, response=None, name=None):
@@ -25,12 +25,15 @@ class Receiver(object):
     @property
     def name(self):
         return self._name
+
     @property
     def centfreq(self):
         return self._centfreq
+
     @property
     def bandwidth(self):
         return self._bandwidth
+
     @property
     def response(self):
         return self._response
@@ -47,21 +50,22 @@ class Backend(object):
     @property
     def name(self):
         return self._name
+
     @property
     def samprate(self):
         return self._samprate
 
-    def fold(self, signal, P_fold, N_fold=100):
-        """fold(signal, P_fold, N_fold=100)
-        fold a signal at period=P_fold, N_fold times
+    def fold(self, signal, psr):
+        """fold data a pulsar period
+        signal -- array to fold
+        pulsar -- Pulsar instance
         """
-        Nt, Nf = signal.shape
-        Npbins = int(P_fold * 2*self.samprate)
-        if Npbins*N_fold > Nt:
-            print("UserWarning: not enough observed time for {:d} folds".format(N_fold))
-            N_fold = Nt // Npbins
-            w.warn("UserWarning: setting N_fold = {:d}".format(N_fold))
-        fold_sig = signal[:,Npbins:Npbins*(N_fold+1)].reshape(Nf, N_fold, Npbins)
+        period = psr.T
+        Nf, Nt = signal.shape
+        Npbins = int(period * 2*self.samprate)  # number of phase bins
+        N_fold = Nt // Npbins  # number of folds
+        fold_sig = signal[:, Npbins:Npbins*(N_fold+1)].reshape(
+                                                         Nf, N_fold, Npbins)
         return np.sum(fold_sig, axis=1)
 
 
@@ -73,7 +77,7 @@ class Telescope(object):
         area: collecting area (m^2) (if omitted, assume circular single dish)
         Tsys: system temp (K), total of receiver, sky, spillover, etc. (only needed for noise)
         name: string
-        """
+        """ # noqa E501
         #TODO: specify Trec in Receiver and compute others from pointing
         self._name = name
         self._area = area
@@ -84,22 +88,25 @@ class Telescope(object):
             # assume circular single dish
             self._area = np.pi * (aperture/2)**2
 
-
     def __repr__(self):
         return "Telescope({:s}, {:f}m)".format(self._name, self._aperture)
 
     @property
     def name(self):
         return self._name
+
     @property
     def area(self):
         return self._area
+
     @property
     def Tsys(self):
         return self._Tsys
+
     @property
     def aperture(self):
         return self._aperture
+
     @property
     def systems(self):
         return self._systems
@@ -114,15 +121,16 @@ class Telescope(object):
         signal -- Signal() instance
         system -- dict key for system to use
         """
-        rec = self.systems[system][0]
+        msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
+        #rec = self.systems[system][0]
         bak = self.systems[system][1]
 
         sig_in = signal.signal
         dt_tel = 1/(2*bak.samprate)
-        dt_sig = signal.TotTime / signal.Nt
+        dt_sig = signal.ObsTime / signal.Nt
 
         if dt_sig == dt_tel:
-            out = sig_in
+            out = np.array(sig_in, dtype=float)
 
         elif dt_tel % dt_sig == 0:
             SampFactor = int(dt_tel // dt_sig)
@@ -132,26 +140,26 @@ class Telescope(object):
             else:
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
-                out[ii,:] = utils.down_sample(row, SampFactor)
-            print("Input signal sampling frequency= ", 1/dt_sig," kHz.\nTelescope sampling frequency = ",1/dt_tel," kHz")
+                out[ii, :] = utils.down_sample(row, SampFactor)
+            print(msg.format(1/dt_sig, 1/dt_tel))
 
         elif dt_tel > dt_sig:
-            new_Nt = int(signal.TotTime // dt_tel)
+            new_Nt = int(signal.ObsTime // dt_tel)
             if signal.SignalType == 'voltage':
                 out = np.zeros((signal.Npols, new_Nt))
             else:
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
-                out[ii,:] = utils.rebin(row, new_Nt)
-            print("Input signal sampling frequency= ", dt_sig," ms.\nTelescope sampling frequency = ",dt_tel," ms")
+                out[ii, :] = utils.rebin(row, new_Nt)
+            print(msg.format(1/dt_sig, 1/dt_tel))
 
         else:
-            # Throw error if the input signal has a lower sampling frequency than the telescope sampling frequency.
-            raise ValueError("Signal Sampling Frequency Lower than Telescope Sampling Frequency")
+            # input signal has lower samp freq than telescope samp freq
+            raise ValueError("Signal sampling freq < Telescope sampling freq")
 
-        if noise :
+        if noise:
             out += self.radiometer_noise(signal, out.shape, dt_tel)
-        
+
         if signal.SignalType == 'voltage':
             clip = signal.MetaData.gauss_draw_max
 
@@ -160,7 +168,7 @@ class Telescope(object):
         else:
             clip = signal.MetaData.gamma_draw_max
             out[out>clip] = clip
-        
+
         out = np.array(out, dtype=signal.MetaData.data_type)
 
         return out
@@ -172,7 +180,7 @@ class Telescope(object):
         dt -- telescope sample rate in msec
 
         flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
-        """
+        """ # noqa E501
         #TODO replace A with Aeff, depends on pointing for some telescopes
         #TODO Tsys -> Trec, compute Tsky, Tspill, Tatm from pointing
         dt *= 1.0e-3  # convert to sec
@@ -184,7 +192,8 @@ class Telescope(object):
         sigS = self.Tsys / G / np.sqrt(Np * dt * BW)  # mJy
 
         if signal.SignalType == 'voltage':
-            norm = np.sqrt(sigS) * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
+            norm = np.sqrt(sigS) \
+                   * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
             noise = norm * np.random.normal(0, 1, shape)
         else:
             norm = sigS * signal.MetaData.gamma_draw_norm/signal.MetaData.Smax
@@ -192,15 +201,14 @@ class Telescope(object):
 
         return noise
 
-
     def rfi(self):
         pass
+
     def init_signal(self, system):
         """init_signal(system)
         instantiate a signal object with same Nt, Nf, bandwidth, etc
         as the system to be used for observation"""
         pass
-
 
 
 # Convenience functions to construct GBT and AO telescopes
@@ -211,7 +219,7 @@ def GBT():
     at ~1 GHz: effective area ~ 5500 m^2
                Tsys ~ 35 K
     see: http://www.gb.nrao.edu/~rmaddale/GBT/ReceiverPerformance/PlaningObservations.htm
-    """
+    """ # noqa E501
     g = Telescope(100.0, area=5500.0, Tsys=35.0, name="GBT")
     g.add_system(name="820_GUPPI",
                  receiver=Receiver(820, 180, name="820"),  # check me
@@ -220,6 +228,7 @@ def GBT():
                  receiver=Receiver(1400, 400, name="Lband"),  # check me
                  backend=Backend(samprate=12.5, name="GUPPI"))
     return g
+
 
 def Arecibo():
     """The Arecibo 300m Telescope

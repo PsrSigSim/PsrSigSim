@@ -4,9 +4,8 @@ module to cause dispersion
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import scipy as sp
 import sys, os, time
-from scipy import signal
+import scipy.signal as spsig
 from . import PSS_utils as utils
 from . import scintillation as scint
 #try:
@@ -88,9 +87,9 @@ class ISM(object):
                 if (ii+1) % int(self.Nf//20) ==0:
                     shift_check = time.time()
                     try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                        print('\r{0}% dispersed in {1} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
+                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
                     except: #This is the Python 2 version.
-                        print('\r{0}% dispersed in {1} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
+                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
                     sys.stdout.flush()
 
         elif self.Signal_in.SignalType=='voltage':
@@ -150,7 +149,7 @@ class scintillate():
             if telescope==None or freq_band==None:
                 raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
 
-            self.scint_bw, self.scint_time = self.NG_scint_param(pulsar, telescope, freq_band)
+            self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope, freq_band)
 
             if scint_timescale != None:
                 print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
@@ -184,7 +183,7 @@ class scintillate():
         self.Scint_Dict['to_Scintillate'] = self.to_Scintillate
         Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
-def NG_scint_param(self, pulsar, telescope, freq_band):
+def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
     """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
     from a txt file.
     pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
@@ -192,14 +191,22 @@ def NG_scint_param(self, pulsar, telescope, freq_band):
     telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
     freq_band = [327 ,430, 820, 1400, 2300]
     """
+    if telescope == 'Arecibo':
+        telescope = 'AO'
+    if telescope == 'Greenbank':
+        telescope = 'GBT'
     freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
     freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
-
+    
     search_list = (pulsar, telescope, freq_band)
     columns = (10,11)
-    path = os.path.dirname(__file__)
+
+    if file_path is None:
+        path = os.path.dirname(__file__)
+        file_path = path + '/PTA_pulsar_nb_data.txt'
+
     try:
-        scint_bw, scint_timescale = utils.text_search(search_list, columns, path + '/PTA_pulsar_nb_data.txt')
+        scint_bw, scint_timescale = utils.text_search(search_list, columns, file_path)
     except:
         raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
@@ -230,7 +237,7 @@ def convolve_with_profile(pulsar_object,input_array):
         input_array_norm = input_array[ii,:] / input_array_sum
 
         #Convolving the input array with the pulse profile
-        convolved_prof = signal.convolve(pulsar_prof_norm, input_array_norm, mode='full',method='fft')
+        convolved_prof = spsig.convolve(pulsar_prof_norm, input_array_norm, mode='full',method='fft')
 
         #Renormalizing the convolved pulse profile
         pulsar_object.profile[ii,:] = (pulsar_prof_sum)*(convolved_prof[:width])
@@ -268,7 +275,7 @@ def make_dm_broaden_tophat(pulsar_object,signal_object):
         if tophat_width > pulsar_object.Nt:
             raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
         dm_widths[ii] = tophat_width
-        tophat = signal.boxcar(tophat_width)
+        tophat = spsig.boxcar(tophat_width)
         tophat_len=len(tophat)
         tophat = np.append(tophat,np.zeros(lowest_freq_top_hat_width-tophat_len))
         tophat_array[ii,:] = tophat
