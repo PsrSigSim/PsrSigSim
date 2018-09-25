@@ -43,7 +43,7 @@ def shift_t(y, shift, dt=1):
     else:
         yfft = np.fft.rfft(y)  # hermicity implicitely enforced by rfft
         fs = np.fft.rfftfreq(len(y), d=dt)
-        phase = 1j*2*np.pi*fs*shift
+        phase = -1j*2*np.pi*fs*shift
         yfft_sh = yfft * np.exp(phase)
         out = np.fft.irfft(yfft_sh)
 

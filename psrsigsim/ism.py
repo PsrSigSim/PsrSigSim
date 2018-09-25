@@ -8,13 +8,12 @@ import sys, os, time
 import scipy.signal as spsig
 from . import PSS_utils as utils
 from . import scintillation as scint
-#try:
-#    import pyfftw
-#    use_pyfftw = True
-#except:
-use_pyfftw = False
 
-__all__ = ['ISM','scintillate','convolve_with_profile','make_dm_broaden_tophat','make_scatter_broaden_exp']
+
+__all__ = ['ISM','scintillate',
+           'convolve_with_profile',
+           'make_dm_broaden_tophat',
+           'make_scatter_broaden_exp']
 
 class ISM(object):
     def __init__(self, Signal_in, DM = 30):
@@ -39,7 +38,11 @@ class ISM(object):
         self.time_dependent_scatter = False
         self.time_dependent_DM = False
         if self.MD.mode == 'explore':
-            self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
+            self.ISM_Dict = dict(tau_scatter = self.tau_scatter,
+                                 DM = self.DM,
+                                 dispersion=False,
+                                 scattering=False,
+                                 scintillation=False)
             self.ISM_Dict['dispersed'] = False
             self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
             self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
@@ -49,8 +52,13 @@ class ISM(object):
 
     def finalize_ism(self):
         if self.MD.mode=='explore':
-            raise ValueError('No Need to run finalize_ism() if simulator is in explore mode.')
-        self.ISM_Dict = dict(tau_scatter = self.tau_scatter, DM = self.DM, dispersion=False, scattering=False, scintillation=False)
+            raise ValueError('No Need to run finalize_ism()'
+                             'if simulator is in explore mode.')
+        self.ISM_Dict = dict(tau_scatter = self.tau_scatter,
+                             DM = self.DM,
+                             dispersion=False,
+                             scattering=False,
+                             scintillation=False)
         self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
         self.ISM_Dict['to_Scatter_Broaden_exp'] = self.to_Scatter_Broaden_exp
         self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
@@ -79,7 +87,7 @@ class ISM(object):
     def _disperse_filterbank(self):
         self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
         #freq in MHz, delays in milliseconds
-        self.time_delays = -1e-3*self.K*self.DM \
+        self.time_delays = 1e-3*self.K*self.DM \
                            *(np.power((self.freq_Array/1e3),-2))
         #Dispersion as compared to infinite frequency
         if self.MD.mode == 'explore':
