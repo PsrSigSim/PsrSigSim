@@ -61,47 +61,62 @@ class ISM(object):
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
     def disperse(self):
-        #Function to calculate the dispersion per frequency bin for 1/f^2 dispersion
+        """
+        Function to calculate the dispersion
+        per frequency bin for 1/f^2 dispersion
+        """
         if self.ISM_Dict['dispersed'] == True:
             raise ValueError('Signal has already been dispersed!')
+
         if self.Signal_in.SignalType=='intensity':
-            #For intensity signal calculate dispersion for all sub-bands.
-            self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
-            self.time_delays = -1e-3*self.K*self.DM*(np.power((self.freq_Array/1e3),-2)) #freq in MHz, delays in milliseconds
-            #Dispersion as compared to infinite frequency
-            if self.MD.mode == 'explore':
-                self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
-            elif self.MD.mode == 'simulate':
-                pass
-
-            #if use_pyfftw:
-                #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
-                #Could test putting in data type float32 and seeing if that is faster.
-            shift_start = time.time()
-
-            for ii, freq in enumerate(self.freq_Array):
-                if self.to_DM_Broaden and self.MD.mode=='explore':
-                    raise ValueError('Dispersion broadening not currently supported in explore mode.')
-                #dummy_array[:] = self.signal[ii,:]
-                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii], use_pyfftw=use_pyfftw, dt=self.TimeBinSize)
-                if (ii+1) % int(self.Nf//20) ==0:
-                    shift_check = time.time()
-                    try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
-                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='', flush=True)
-                    except: #This is the Python 2 version.
-                        print('\r{0:2.0f}% dispersed in {1:4.3f} seconds.'.format(round((ii + 1)*100/self.Nf) , shift_check-shift_start), end='')
-                    sys.stdout.flush()
-
+            self._disperse_filterbank()
         elif self.Signal_in.SignalType=='voltage':
             self._disperse_baseband()
 
         self.ISM_Dict['dispersed'] = True
         self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
 
+    def _disperse_filterbank(self):
+        self.K = 1.0/2.41e-4 #constant used to be more consistent with PSRCHIVE
+        #freq in MHz, delays in milliseconds
+        self.time_delays = -1e-3*self.K*self.DM \
+                           *(np.power((self.freq_Array/1e3),-2))
+        #Dispersion as compared to infinite frequency
+        if self.MD.mode == 'explore':
+            #Convert to number of bins
+            self.time_delays = np.rint(self.time_delays//self.TimeBinSize)
+            shift_dt = 1
+        elif self.MD.mode == 'simulate':
+            shift_dt = self.TimeBinSize
+
+        shift_start = time.time()
+
+        for ii, freq in enumerate(self.freq_Array):
+            if self.to_DM_Broaden and self.MD.mode=='explore':
+                raise ValueError('Dispersion broadening not currently '
+                                 'supported in explore mode.')
+            self.signal[ii,:] = utils.shift_t(self.signal[ii,:],
+                                              self.time_delays[ii],
+                                              dt=shift_dt)
+            if (ii+1) % int(self.Nf//20) ==0:
+                shift_check = time.time()
+                percent = round((ii + 1)*100/self.Nf)
+                elapsed = shift_check-shift_start
+                chk_str = '\r{0:2.0f}% dispersed'.format(percent)
+                chk_str += ' in {0:4.3f} seconds.'.format(elapsed)
+
+                try:
+                    print(chk_str , end='',flush=True)
+                #This is the Python 2 version
+                #__future__ does not have 'flush' kwarg.
+                except:
+                    print(chk_str , end='')
+                sys.stdout.flush()
 
     def _disperse_baseband(self):
         """
-        Broadens & delays baseband signal w transfer function defined in PSR Handbook, D. Lorimer and M. Kramer, 2006
+        Broadens & delays baseband signal w transfer function defined in PSR
+        Handbook, D. Lorimer and M. Kramer, 2006
         Returns a baseband signal dispersed by the ISM.
         Use plot_dispersed() in PSS_plot.py to see the dispersed and undispersed signal.
         """
@@ -197,7 +212,7 @@ def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
         telescope = 'GBT'
     freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
     freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
-    
+
     search_list = (pulsar, telescope, freq_band)
     columns = (10,11)
 
