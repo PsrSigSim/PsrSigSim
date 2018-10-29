@@ -25,16 +25,15 @@ class PulseProfile(object):
         else:
             raise NotImplementedError()
 
-    def _make_rf_pulses()
+    def _make_rf_pulses(self):
         """generate radio frequency pulses"""
-
         raise NotImplementedError()
 
-    def _make_bb_pulses()
+    def _make_bb_pulses(self):
         """generate baseband pulses"""
         raise NotImplementedError()
 
-    def _make_fb_pulses()
+    def _make_fb_pulses(self):
         """generate filter bank pulses"""
         raise NotImplementedError()
 
