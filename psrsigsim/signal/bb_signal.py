@@ -17,8 +17,6 @@ class BasebandSignal(Signal):
 
         bandwidth [float]: radio bandwidth of signal (MHz)
         
-        t_obs [float]: observation time (sec)
-
     Optional Args:
         sample_rate [float]: sample rate of data (MHz), default: ``None``
             If no ``sample_rate`` is given the observation will default to
@@ -28,18 +26,16 @@ class BasebandSignal(Signal):
         dtype [type]: data type of array, default: ``np.float32``
     """
 
-    self._sig_type = "BasebandSignal"
+    _sigtype = "BasebandSignal"
 
     def __init__(self,
                  f_cent, bandwidth,
-                 t_obs,
                  sample_rate=None,
                  fold=False,
                  dtype=np.float32):
 
         self._fcent = make_quant(f_cent, 'MHz')
         self._bw = make_quant(bandwidth, 'MHz')
-        self._tobs = make_quant(t_obs, 's')
         
         f_Nyquist = 2 * self._bw
         if sample_rate is None:
