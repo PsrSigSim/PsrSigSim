@@ -48,3 +48,18 @@ class BasebandSignal(Signal):
                 print("Warning: "+msg)
 
         self._dtype = dtype
+
+    def to_RF(self):
+        """convert signal to RFSignal
+        """
+        raise NotImplementedError()
+
+    def to_Baseband(self):
+        """convert signal to BasebandSignal
+        """
+        return self
+
+    def to_FilterBank(self, subbw):
+        """convert signal to FilterBankSignal
+        """
+        raise NotImplementedError()

@@ -27,7 +27,7 @@ class RFSignal(Signal):
         dtype [type]: data type of array, default: ``np.float32``
     """
 
-    _sig_type = "RFSignal"
+    _sigtype = "RFSignal"
 
     def __init__(self,
                  f_cent, bandwidth,
@@ -50,3 +50,17 @@ class RFSignal(Signal):
 
         self._dtype = dtype
 
+    def to_RF(self):
+        """convert signal to RFSignal
+        """
+        return self
+
+    def to_Baseband(self):
+        """convert signal to BasebandSignal
+        """
+        raise NotImplementedError()
+
+    def to_FilterBank(self, subbw):
+        """convert signal to FilterBankSignal
+        """
+        raise NotImplementedError()

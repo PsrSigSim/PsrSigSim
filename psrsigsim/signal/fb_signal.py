@@ -63,3 +63,18 @@ class FilterBankSignal(Signal):
     @property
     def subbw(self):
         return self._subbw
+    
+    def to_RF(self):
+        """convert signal to RFSignal
+        """
+        raise NotImplementedError()
+
+    def to_Baseband(self):
+        """convert signal to BasebandSignal
+        """
+        raise NotImplementedError()
+
+    def to_FilterBank(self):
+        """convert signal to FilterBankSignal
+        """
+        return self

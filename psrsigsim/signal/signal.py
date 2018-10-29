@@ -56,6 +56,21 @@ class Signal(object):
         raise NotImplementedError()
         #self._tobs = make_quant(tobs, 's')
 
+    def to_RF(self):
+        """convert signal to RFSignal
+        must be implemented in subclass!"""
+        raise NotImplementedError()
+
+    def to_Baseband(self):
+        """convert signal to BasebandSignal
+        must be implemented in subclass!"""
+        raise NotImplementedError()
+
+    def to_FilterBank(self, subbw):
+        """convert signal to FilterBankSignal
+        must be implemented in subclass!"""
+        raise NotImplementedError()
+
     @property
     def sigtype(self):
         return self._sigtype
