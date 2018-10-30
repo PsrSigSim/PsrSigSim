@@ -8,7 +8,7 @@ from ..utils.utils import make_quant
 
 class FilterBankSignal(Signal):
     """a filter bank signal, breaking the time domain signal into RF bins
-    
+
     Unlike purely time domain signals, :class:`FilterBankSingnal`s are 2-D
     arrays. Filter banks record the intensity of the signal and can be much
     more sparsely sampled. The time binning must accurately capture the
@@ -17,12 +17,12 @@ class FilterBankSignal(Signal):
     We allow for direct filter bank signals to save memory.
 
     Required Args:
-        f_cent [float]: central radio frequency (MHz)
+        fcent [float]: central radio frequency (MHz)
 
         bandwidth [float]: radio bandwidth of signal (MHz)
-        
+
         sub_bw [float]: radio bandwidth of subbands (MHz)
-        
+
         t_obs [float]: observation time (sec)
 
     Optional Args:
@@ -37,25 +37,25 @@ class FilterBankSignal(Signal):
     _sigtype = "FilterBankSignal"
 
     def __init__(self,
-                 f_cent, bandwidth,
+                 fcent, bandwidth,
                  t_obs,
                  sample_rate=None,
                  fold=False,
                  dtype=np.float32):
         raise NotImplementedError()
 
-        self._fcent = make_quant(f_cent, 'MHz')
+        self._fcent = make_quant(fcent, 'MHz')
         self._bw = make_quant(bandwidth, 'MHz')
         self._subbw = make_quant(sub_bw, 'MHz')
-        
+
         f_Nyquist = 2 * (self._fcent + self._bw/2)
         if sample_rate is None:
-            self._sr = f_Nyquist
+            self._samprate = f_Nyquist
         else:
-            self._sr = make_quant(sample_rate, 'MHz')
-            if self._sr < f_Nyquist:
+            self._samprate = make_quant(sample_rate, 'MHz')
+            if self._samprate < f_Nyquist:
                 msg = ("specified sample rate {} < Nyquist frequency {}"
-                       .format(self._sr, f_Nyquist))
+                       .format(self._samprate, f_Nyquist))
                 print("Warning: "+msg)
 
         self._dtype = dtype
@@ -63,7 +63,7 @@ class FilterBankSignal(Signal):
     @property
     def subbw(self):
         return self._subbw
-    
+
     def to_RF(self):
         """convert signal to RFSignal
         """

@@ -9,12 +9,12 @@ __all__ = ["Signal"]
 
 class Signal(object):
     """base class for signals, subclass from this
-    
+
     Required Args:
-        f_cent [float]: central radio frequency
+        fcent [float]: central radio frequency
 
         bandwidth [float]: radio bandwidth of signal
-        
+
     Optional Args:
         sample_rate [float]: sample rate of data, default: ``None``
             If no ``sample_rate`` is given the observation will default to
@@ -27,14 +27,14 @@ class Signal(object):
     _sigtype = "Signal"
 
     def __init__(self,
-                 f_cent, bandwidth,
+                 fcent, bandwidth,
                  sample_rate=None,
                  fold=False,
                  dtype=np.float32):
-        
-        self._fcent = f_cent
+
+        self._fcent = fcent
         self._bw = bandwidth
-        self._sr = sample_rate
+        self._samprate = sample_rate
         self._dtype = dtype
 
     def __repr__():
@@ -92,7 +92,7 @@ class Signal(object):
 
     @property
     def sr(self):
-        return self._sr
+        return self._samprate
 
     @property
     def dtype(self):
