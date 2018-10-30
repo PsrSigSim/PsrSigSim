@@ -1,73 +1,14 @@
-"""telescope.py
-telescopes for observing signals, includes radiometer noise and RFI
-"""
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-from . import PSS_utils as utils
 
-__all__ = ['Receiver', 'Backend', 'Telescope', 'GBT', 'Arecibo']
+from .receiver import Receiver, flat_bandpass, bandpass_from_data
+from .backend import Backend
+from ..utils.utils import down_sample, rebin
+
+__all__ = ['Telescope', 'GBT', 'Arecibo']
 _kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K
-
-
-class Receiver(object):
-    def __init__(self, centfreq, bandwidth, response=None, name=None):
-        """Telescope Reciever"""
-        self._name = name
-        self._centfreq = centfreq
-        self._bandwidth = bandwidth
-        self._response = response
-
-    def __repr__(self):
-        return "Receiver({:s})".format(self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def centfreq(self):
-        return self._centfreq
-
-    @property
-    def bandwidth(self):
-        return self._bandwidth
-
-    @property
-    def response(self):
-        return self._response
-
-
-class Backend(object):
-    def __init__(self, samprate=None, name=None):
-        self._name = name
-        self._samprate = samprate
-
-    def __repr__(self):
-        return "Backend({:s})".format(self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def samprate(self):
-        return self._samprate
-
-    def fold(self, signal, psr):
-        """fold data a pulsar period
-        signal -- array to fold
-        pulsar -- Pulsar instance
-        """
-        period = psr.T
-        Nf, Nt = signal.shape
-        Npbins = int(period * 2*self.samprate)  # number of phase bins
-        N_fold = Nt // Npbins  # number of folds
-        fold_sig = signal[:, Npbins:Npbins*(N_fold+1)].reshape(
-                                                         Nf, N_fold, Npbins)
-        return np.sum(fold_sig, axis=1)
-
 
 class Telescope(object):
     """contains: observe(), noise(), rfi() methods"""
