@@ -28,14 +28,14 @@ class Pulsar(object):
         self.flux = flux
         self.SignalType = self.Signal_in.SignalType
         self.ObsTime = self.Signal_in.ObsTime
-        self.TimeBinSize = self.Signal_in.TimeBinSize
+        self.TimeBinSize = self.Signal_in.TimeBinSize # ms
         self.freqBinSize = self.Signal_in.freqBinSize
         self.T = period
         self.mode = self.Signal_in.MetaData.mode
         # Need to fix this as well, add subint for pulsar mode so phase bins are over subints
-        self.subintlen = self.Signal_in.subintlen
+        self.subintlen = self.Signal_in.subintlen # seconds 
         if self.subintlen:
-            self.nBinsPeriod = int(self.subintlen//self.TimeBinSize)
+            self.nBinsPeriod = int(self.subintlen//(self.TimeBinSize/1000.0)) # convert timebinsize from ms to s
         else:
             self.nBinsPeriod = int(self.T//self.TimeBinSize)
         self.NPeriods = np.int(self.ObsTime//self.T) #Number of periods that can fit in the time given
