@@ -78,9 +78,11 @@ class Pulsar(object):
         """
         pr = np.tile(self.profile, reps)
         L = pr.shape
+        print(reps)
         # BRENT HACK: Think that this is right? not sure if we want chi-squared instead...
         if pulses_per_subint:
-            pulse = pr * self.gamma_draw_norm * np.random.gamma(pulses_per_subint, scale=self.gamma_scale, size=L)
+            #pulse = pr * self.gamma_draw_norm * np.random.gamma(pulses_per_subint, scale=self.gamma_scale, size=L)
+            pulse = pr * self.gamma_draw_norm * np.random.chisquare(pulses_per_subint,  size=L) # Use chi-squared here
         else:
             pulse = pr * self.gamma_draw_norm * np.random.gamma(self.gamma_shape, scale=self.gamma_scale, size=L)
         #pull from gamma distribution

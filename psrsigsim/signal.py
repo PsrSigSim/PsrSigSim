@@ -60,8 +60,15 @@ class Signal(object):
         self.SignalType = SignalType
         self.SignalDict = {}
         self.ObsTime = ObsTime   # Total time in milliseconds
-        self.subintlen = subintlen
-        Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
+        self.subintlen = subintlen # time in seconds
+        # BRENT HACK: Change number of timebins for fold mode pulses
+        if subintlen:
+            # Edit sampling rate if subints, assume 2048 bins per subint for now
+            self.f_samp = 2048.0*10e-6
+            # Basically samples per subint now?
+            Nt = int((self.ObsTime*1e-3/self.subintlen)*self.f_samp*1e6)+1
+        else:
+            Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
         if Nt % 2 == 0:  # Make signal even in length (for FFTs)
             self.Nt = Nt  # phase bins
