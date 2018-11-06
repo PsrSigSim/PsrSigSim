@@ -120,6 +120,10 @@ class Telescope(object):
         """observe(signal, system=None, mode='search', noise=False)
         signal -- Signal() instance
         system -- dict key for system to use
+        
+        BRENT HACK: Hopefully the signal class that gets passed here will
+        have the subintlength with it so if it does we will make dt the 
+        subintlength in the radiometer noise, dt will be in ms
         """
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
         #rec = self.systems[system][0]
@@ -156,6 +160,11 @@ class Telescope(object):
         else:
             # input signal has lower samp freq than telescope samp freq
             raise ValueError("Signal sampling freq < Telescope sampling freq")
+        
+        # BRENT HACK: if subintlength exists then we want to call it for dt here
+        if signal.subintlen:
+            dt_tel = signal.subintlen *1000.0 # convert from seconds to ms
+            print("Using subintlength for dt in ms", dt_tel)
 
         if noise:
             out += self.radiometer_noise(signal, out.shape, dt_tel)

@@ -36,7 +36,7 @@ class Signal(object):
     """The signal class
     """
     def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, ObsTime=200,
-                 data_type='float32', SignalType="intensity", mode='explore'):
+                 data_type='float32', SignalType="intensity", mode='explore', subintlen = False):
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity
@@ -50,6 +50,7 @@ class Signal(object):
         SignalType = 'intensity' which carries a Nf x Nt filterbank of pulses
                      or 'voltage' which carries a 2 x Nt array of voltage vs.
                      time pulses representing 4 stokes channels
+        BRENT HACK: added subint parameter
         """
         self.MetaData = MetaData()
         self.f0 = f0  # (MHz)
@@ -59,6 +60,7 @@ class Signal(object):
         self.SignalType = SignalType
         self.SignalDict = {}
         self.ObsTime = ObsTime   # Total time in milliseconds
+        self.subintlen = subintlen
         Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
         if Nt % 2 == 0:  # Make signal even in length (for FFTs)

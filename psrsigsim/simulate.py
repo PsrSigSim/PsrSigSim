@@ -114,11 +114,15 @@ class Simulation(object):
         @param data_type -- 'int8' or 'int16' supported. Automatically changed to 'uint8' or 'uint16' if intensity signal.          
         @param SignalType -- 'intensity' which carries a Nf x Nt filterbank of pulses or 'voltage'
                 which carries a 4 x Nt array of voltage vs. time pulses representing 4 stokes channels
-        @param mode -- 'simulate' beccause this is the simulator mode"""
+        @param mode -- 'simulate' beccause this is the simulator mode
+        
+        BRENT HACK: Added subintlength parameter to initialization dictionary, hopefully it's all been done correctly
+        should run all the way through the simulate make pulses now. Hopefully it won't die
+        """
         
         d = self._check_simul_dict(signal_dict)
         self.signal = PSS.Signal(f0 = d['f0'],bw = d['bw'], Nf = d['Nf'], f_samp = d['f_samp'] , ObsTime = d['ObsTime']\
-                                    ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate')        
+                                    ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate', subintlen = d['subintlen'])        
         
     
     def init_pulsar(self,pulsar_dict = None):
@@ -228,7 +232,7 @@ class Simulation(object):
                 PSS.ism.convolve_with_profile(self.pulsar,exponentials)
 
     
-        self.pulsar.make_pulses()
+        self.pulsar.make_pulses(subintlen = self.signal.subint)
        
         
         try:
