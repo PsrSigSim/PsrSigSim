@@ -64,9 +64,9 @@ class Signal(object):
         # BRENT HACK: Change number of timebins for fold mode pulses
         if subintlen:
             # Edit sampling rate if subints, assume 2048 bins per subint for now
-            self.f_samp = 2048.0*10e-6
+            self.f_samp = 2048.0/self.subintlen
             # Basically samples per subint now?
-            Nt = int((self.ObsTime*1e-3/self.subintlen)*self.f_samp*1e6)+1
+            Nt = int((self.ObsTime*1e-3/self.subintlen)*2048.0)+1
         else:
             Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
