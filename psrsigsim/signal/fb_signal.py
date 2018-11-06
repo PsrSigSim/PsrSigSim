@@ -21,36 +21,38 @@ class FilterBankSignal(Signal):
 
         bandwidth [float]: radio bandwidth of signal (MHz)
 
-        sub_bw [float]: radio bandwidth of subbands (MHz)
-
-        t_obs [float]: observation time (sec)
-
     Optional Args:
+        Nsubband [int]: number of sub-bands, default ``4096``
+
         sample_rate [float]: sample rate of data (MHz), default: ``None``
             If no ``sample_rate`` is given the observation will default to
-            the Nyquist frequency. Sub-Nyquist sampling is allowed, but a
-            warning will be generated.
+            the 20.48 us per sample (about 50 kHz).  This is the sample rate
+            for coherently dedispersed filter banks using XUPPI backends.
+
+        subint [bool]: is this a folded subintegration, default ``False``
 
         dtype [type]: data type of array, default: ``np.float32``
     """
+    #TODO: full stokes.  Currently this is just stokes-I
+    #  add flag `fullstokes=False`
+    #  data -> dict? keyed with "I", "Q", "U", "V"
 
     _sigtype = "FilterBankSignal"
 
     def __init__(self,
                  fcent, bandwidth,
-                 t_obs,
+                 Nsubband=4096,
                  sample_rate=None,
-                 fold=False,
+                 subint=False,
                  dtype=np.float32):
-        raise NotImplementedError()
 
         self._fcent = make_quant(fcent, 'MHz')
         self._bw = make_quant(bandwidth, 'MHz')
-        self._subbw = make_quant(sub_bw, 'MHz')
 
-        f_Nyquist = 2 * (self._fcent + self._bw/2)
+        self._subint = subint
+
         if sample_rate is None:
-            self._samprate = f_Nyquist
+            self._samprate = (1/make_quant(20.48, 'us')).to('MHz')
         else:
             self._samprate = make_quant(sample_rate, 'MHz')
             if self._samprate < f_Nyquist:
@@ -58,11 +60,25 @@ class FilterBankSignal(Signal):
                        .format(self._samprate, f_Nyquist))
                 print("Warning: "+msg)
 
+        self._Nchan = Nsubband
+
         self._dtype = dtype
+        self._set_draw_norm()
+    
+    def _set_draw_norm(self, df=1):
+        if self.dtype is np.float32:
+            self._draw_max = 200
+            self._draw_norm = 1
+        if self.dtype is np.int8:
+            #TODO: fix this!!!!
+            gauss_limit = stats.chi2.ppf(0.999, df)
+            self._draw_max = np.iinfo(np.int8).max
+            self._draw_norm = self._draw_max/gauss_limit
+
 
     @property
-    def subbw(self):
-        return self._subbw
+    def subint(self):
+        return self._subint
 
     def to_RF(self):
         """convert signal to RFSignal

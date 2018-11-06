@@ -28,11 +28,11 @@ class RFSignal(Signal):
     """
 
     _sigtype = "RFSignal"
+    _Nchan = 2
 
     def __init__(self,
                  fcent, bandwidth,
                  sample_rate=None,
-                 fold=False,
                  dtype=np.float32):
 
         self._fcent = make_quant(fcent, 'MHz')
@@ -49,6 +49,7 @@ class RFSignal(Signal):
                 print("Warning: "+msg)
 
         self._dtype = dtype
+        self._set_draw_max()
 
     def to_RF(self):
         """convert signal to RFSignal
