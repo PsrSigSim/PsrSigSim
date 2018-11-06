@@ -24,10 +24,14 @@ class Backend(object):
         return self._samprate
 
     def fold(self, signal, psr):
-        """fold data a pulsar period
-        signal -- array to fold
-        pulsar -- Pulsar instance
+        """fold data using pulsar ephemeris
+        currently only uses pulsar period
+
+        Args:
+            signal (array): data to fold
+            psr (:class:`Pulsar`): observed pulsar
         """
+        #TODO: use .par file if available
         period = psr.T
         Nf, Nt = signal.shape
         Npbins = int(period * 2*self.samprate)  # number of phase bins
