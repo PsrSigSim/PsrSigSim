@@ -295,7 +295,7 @@ class Pulsar(object):
         
         # BRENT HACK: Created a version for intensity vs. voltage, don't need voltage subints
         
-        if pulseTypeMethod == "draw_voltage_pulse":
+        if self.SignalType == "voltage":
             if self.Nt * self.NRows > self.mem_size_limit and self.ChunkSize != 0 : #Limits the array size to 2.048 GB
                 """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
                 of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
@@ -323,7 +323,7 @@ class Pulsar(object):
             else:
                 self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make) #Can be put into main flow for large RAM computers.
         # This is the important one
-        elif pulseTypeMethod == "draw_intensity_pulse":
+        elif self.SignalType == "intensity":
             if self.Nt * self.NRows > self.mem_size_limit and self.ChunkSize != 0 : #Limits the array size to 2.048 GB
                 """The following limits the length of the arrays that we call from pulseTypeMethod(), by limiting the number
                 of periods we pull from the distribution at one time. This is for machines with small amounts of memory, and
@@ -351,6 +351,7 @@ class Pulsar(object):
             else:
                 self.signal[:,start_bin:N_periods_to_make * self.nBinsPeriod] = pulseTypeMethod(N_periods_to_make, pulses_per_subint = pulses_per_subint) #Can be put into main flow for large RAM computers.
         else:
+            print(self.SignalType)
             print("Dammit I fucked up somewhere in the make_pulses function...")
         self.LastPeriod = pulseTypeMethod(1)[:,0:self.NLastPeriodBins]
         self.signal[:,start_bin + N_periods_to_make * self.nBinsPeriod:start_bin + N_periods_to_make * self.nBinsPeriod + self.NLastPeriodBins] = self.LastPeriod
