@@ -117,7 +117,8 @@ class Pulsar(object):
             signal._set_draw_norm(df=Nperiod)
 
             signal.init_data(Nph)
-            signal._data = sngl_prof * distr.rvs(size=signal.data.shape)
+            signal._data = (sngl_prof * distr.rvs(size=signal.data.shape)
+                            * signal._draw_norm)
         else:
             # generate several pulses in time
             distr = stats.chi2(df=1)

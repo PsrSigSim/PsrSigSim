@@ -8,7 +8,7 @@ from ..utils.utils import make_quant
 
 __all__ = ["Signal"]
 
-class Signal(object):
+class BaseSignal(object):
     """base class for signals, subclass from this
 
     Required Args:
@@ -121,3 +121,6 @@ class Signal(object):
     def dtype(self):
         return self._dtype
 
+def Signal():
+    """helper function to instantiate signals
+    """
