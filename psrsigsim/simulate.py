@@ -232,7 +232,7 @@ class Simulation(object):
                 PSS.ism.convolve_with_profile(self.pulsar,exponentials)
 
     
-        self.pulsar.make_pulses(subintlen = self.signal.subint)
+        self.pulsar.make_pulses(subintlen = self.signal.subintlen)
        
         
         try:
