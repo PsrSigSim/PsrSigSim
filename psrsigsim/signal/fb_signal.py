@@ -71,9 +71,9 @@ class FilterBankSignal(BaseSignal):
             self._draw_norm = 1
         if self.dtype is np.int8:
             #TODO: fix this!!!!
-            gauss_limit = stats.chi2.ppf(0.999, df)
+            limit = stats.chi2.ppf(0.999, df)
             self._draw_max = np.iinfo(np.int8).max
-            self._draw_norm = self._draw_max/gauss_limit
+            self._draw_norm = self._draw_max/limit
 
 
     @property

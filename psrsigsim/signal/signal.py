@@ -60,9 +60,9 @@ class BaseSignal(object):
             self._draw_max = 200
             self._draw_norm = 1
         if self.dtype is np.int8:
-            gauss_limit = stats.norm.ppf(0.999)
+            limit = stats.norm.ppf(0.999)
             self._draw_max = np.iinfo(np.int8).max
-            self._draw_norm = self._draw_max/gauss_limit
+            self._draw_norm = self._draw_max/limit
 
     def init_data(self, Nsamp):
         """initialize a data array to store the signal
