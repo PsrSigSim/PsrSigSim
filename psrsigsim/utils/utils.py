@@ -327,15 +327,16 @@ def make_quant(param, default_unit):
     example:
         self.f0 = make_quant(f0,'MHz')
     """
+    default_unit = u.core.Unit(default_unit)
     if hasattr(param, 'unit'):
         try:
-            param.to(getattr(u, default_unit))
+            param.to(default_unit)
         except u.UnitConversionError:
-            raise ValueError("Frequency for {0} with incompatible unit {1}"
+            raise ValueError("Quantity {0} with incompatible unit {1}"
                              .format(param, default_unit))
         quantity = param
     else:
-        quantity = param * getattr(u, default_unit)
+        quantity = param * default_unit
 
     return quantity
 
