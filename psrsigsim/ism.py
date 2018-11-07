@@ -73,7 +73,20 @@ class ISM(object):
                 self.time_delays = np.rint(self.time_delays//self.TimeBinSize) #Convert to number of bins
             elif self.MD.mode == 'simulate':
                 pass
-
+            
+            """
+            BRENT HACK: Need to adjust the time bin size that's used for
+            shifting the pulses in time. Even though we're integrating over
+            15 seconds, each 15 second subintegration should still be dispersed
+            as if we had just 2048 bins across a single profile.
+            """
+            if self.Signal_in.subintlen:
+                pulse_period = self.MD.pulsar_period # ms
+                bins_per_pulse = self.MD.nBins_per_period
+                dm_timebin = pulse_period / bins_per_pulse # ms
+            else:
+                dm_timebin = self.TimeBinSize
+            
             #if use_pyfftw:
                 #dummy_array = pyfftw.empty_aligned(self.Nt, dtype=self.MD.data_type)
                 #Could test putting in data type float32 and seeing if that is faster.
@@ -83,7 +96,8 @@ class ISM(object):
                 if self.to_DM_Broaden and self.MD.mode=='explore':
                     raise ValueError('Dispersion broadening not currently supported in explore mode.')
                 #dummy_array[:] = self.signal[ii,:]
-                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii], use_pyfftw=use_pyfftw, dt=self.TimeBinSize)
+                # BRENT HACK: changed the dt to be the dm_timebin variable defined above
+                self.signal[ii,:] = utils.shift_t(self.signal[ii,:], self.time_delays[ii], use_pyfftw=use_pyfftw, dt=dm_timebin)
                 if (ii+1) % int(self.Nf//20) ==0:
                     shift_check = time.time()
                     try: #Python 2 workaround. Python 2 __future__ does not have 'flush' kwarg.
