@@ -3,10 +3,10 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 
-from .signal import Signal
+from .signal import BaseSignal
 from ..utils.utils import make_quant
 
-class BasebandSignal(Signal):
+class BasebandSignal(BaseSignal):
     """a time domain base-banded signal
 
     A :class:`BasebandSignal` covers frequencies from 0 Hz to its bandwidth,
@@ -48,7 +48,7 @@ class BasebandSignal(Signal):
                 print("Warning: "+msg)
 
         self._dtype = dtype
-        self._set_draw_max()
+        self._set_draw_norm()
 
     def to_RF(self):
         """convert signal to RFSignal

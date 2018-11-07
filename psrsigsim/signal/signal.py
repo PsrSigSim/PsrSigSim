@@ -6,7 +6,7 @@ from scipy import stats
 
 from ..utils.utils import make_quant
 
-__all__ = ["Signal"]
+__all__ = ["Signal", "BaseSignal"]
 
 class BaseSignal(object):
     """base class for signals, subclass from this
@@ -124,3 +124,4 @@ class BaseSignal(object):
 def Signal():
     """helper function to instantiate signals
     """
+    pass

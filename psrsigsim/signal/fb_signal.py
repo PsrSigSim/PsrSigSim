@@ -3,10 +3,10 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 
-from .signal import Signal
+from .signal import BaseSignal
 from ..utils.utils import make_quant
 
-class FilterBankSignal(Signal):
+class FilterBankSignal(BaseSignal):
     """a filter bank signal, breaking the time domain signal into RF bins
 
     Unlike purely time domain signals, :class:`FilterBankSingnal`s are 2-D
@@ -22,7 +22,7 @@ class FilterBankSignal(Signal):
         bandwidth [float]: radio bandwidth of signal (MHz)
 
     Optional Args:
-        Nsubband [int]: number of sub-bands, default ``4096``
+        Nsubband [int]: number of sub-bands, default ``2048``
 
         sample_rate [float]: sample rate of data (MHz), default: ``None``
             If no ``sample_rate`` is given the observation will default to
@@ -41,7 +41,7 @@ class FilterBankSignal(Signal):
 
     def __init__(self,
                  fcent, bandwidth,
-                 Nsubband=4096,
+                 Nsubband=2048,
                  sample_rate=None,
                  subint=False,
                  dtype=np.float32):

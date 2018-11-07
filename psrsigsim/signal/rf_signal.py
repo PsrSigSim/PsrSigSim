@@ -3,10 +3,10 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 
-from .signal import Signal
+from .signal import BaseSignal
 from ..utils.utils import make_quant
 
-class RFSignal(Signal):
+class RFSignal(BaseSignal):
     """a time domain signal at true radio frequency sampling
 
     RFSignals must be sampled at twice the maximum resolved frequency, i.e.
@@ -49,7 +49,7 @@ class RFSignal(Signal):
                 print("Warning: "+msg)
 
         self._dtype = dtype
-        self._set_draw_max()
+        self._set_draw_norm()
 
     def to_RF(self):
         """convert signal to RFSignal
