@@ -5,29 +5,30 @@ import numpy as np
 
 from .receiver import Receiver, flat_bandpass, bandpass_from_data
 from .backend import Backend
-from ..utils.utils import down_sample, rebin
+from ..utils.utils import make_quant, down_sample, rebin
 
 __all__ = ['Telescope', 'GBT', 'Arecibo']
-_kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K
+
+_kB = make_quant(1.38064852e+03, "Jy*m^2/K")  # Boltzmann const in radio units
 
 class Telescope(object):
     """contains: observe(), noise(), rfi() methods"""
-    def __init__(self, aperture, area=None, Tsys=None, name=None):
+    def __init__(self, aperture, area=None, name=None):
         """initalize telescope object
         aperture: aperture (m)
         area: collecting area (m^2) (if omitted, assume circular single dish)
-        Tsys: system temp (K), total of receiver, sky, spillover, etc. (only needed for noise)
         name: string
         """ # noqa E501
         #TODO: specify Trec in Receiver and compute others from pointing
         self._name = name
-        self._area = area
-        self._Tsys = Tsys
-        self._aperture = aperture
+        self._aperture = make_quant(aperture, "m")
         self._systems = {}
-        if self._area is None:
+        if area is None:
             # assume circular single dish
             self._area = np.pi * (aperture/2)**2
+        else:
+            self._area = make_quant(area, "m^2")
+        self._gain = self.area / (2*_kB)  # 2 polarizations
 
     def __repr__(self):
         return "Telescope({:s}, {:f}m)".format(self._name, self._aperture)
@@ -41,8 +42,8 @@ class Telescope(object):
         return self._area
 
     @property
-    def Tsys(self):
-        return self._Tsys
+    def gain(self):
+        return self._gain
 
     @property
     def aperture(self):

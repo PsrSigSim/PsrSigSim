@@ -11,14 +11,20 @@ class Receiver(object):
     """telescope reciever
 
     A :class:`Receiver` must be instatiated with either a callable response
-    function or ``fcent`` and ``bandwidth`` to use a flat response
+    function or ``fcent`` and ``bandwidth`` to use a flat response.
+
     Optional Args:
         response (callable): frequency response function ("bandpass") of
-            receiver. If 
+            receiver.
+        fcent (float): center frequency of reciever with flat response (MHz)
+        bandwidth (float): bandwidth of reciever with flat response (MHz)
+        Trec (float): reciever temperature (K) for radiometer noise level,
+            default: ``35``
     """
     def __init__(self,
                  response=None, 
-                 fcent=None, bandwidth=None, 
+                 fcent=None, bandwidth=None,
+                 Trec=35,
                  name=None):
         if response is None: 
             if fcent is None or bandwidth is None:
@@ -32,7 +38,8 @@ class Receiver(object):
                 raise ValueError(msg)
             else:
                 self._response = response
-            
+
+        self._Trec = make_quant(Trec, "K")
         self._name = name
 
     def __repr__(self):
@@ -41,6 +48,10 @@ class Receiver(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def Trec(self):
+        return self._Trec
 
     @property
     def response(self):
