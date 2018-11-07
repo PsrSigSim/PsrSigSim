@@ -32,7 +32,7 @@ class Pulsar(object):
             self._Profile = profile
 
     def __repr__(self):
-        namestr = "" if self._name is None else name+", "
+        namestr = "" if self.name is None else self.name+", "
         return "Pulsar("+namestr+"{})".format(self.period.to('ms'))
 
     @property
