@@ -28,6 +28,7 @@ class BaseSignal(object):
 
     _sigtype = "Signal"
     _Nchan = None
+    _tobs = None  # set by Pulsar.make_pulses()
     
     _draw_max = None
     _draw_norm = 1
@@ -108,10 +109,7 @@ class BaseSignal(object):
 
     @property
     def tobs(self):
-        if hasattr(self, '_tobs'):
             return self._tobs
-        else:
-            return None
 
     @property
     def samprate(self):

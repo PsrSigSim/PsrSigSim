@@ -58,18 +58,26 @@ class Pulsar(object):
             signal (:class:`Signal`-like): signal object to store pulses
             tobs (float): observation time (sec)
         """
-        tobs = make_quant(tobs, 's')
+        signal._tobs = make_quant(tobs, 's')
 
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
-            self._make_amp_pulses(signal, tobs)
+            self._make_amp_pulses(signal)
+            Smean = np.sqrt(self.intensity)
         elif signal.sigtype is "FilterBankSignal":
-            self._make_pow_pulses(signal, tobs)
+            self._make_pow_pulses(signal)
+            Smean = self.intensity
         else:
             msg = "no pulse method for signal: {}".format(signal.sigtype)
             raise NotImplementedError(msg)
 
-    def _make_amp_pulses(self, signal, tobs):
+        # compute Smax (needed for radiometer noise level)
+        pr = self.Profile()
+        dph = 1 / len(self.Profile())
+        norm = 1 / signal.Nchan
+        signal._Smax = Smean / (np.sum(pr) * dph * norm)
+
+    def _make_amp_pulses(self, signal):
         """generate amplitude pulses
 
         This method should be used for radio frequency and basebanded
@@ -77,13 +85,12 @@ class Pulsar(object):
 
         Args:
             signal (:class:`Signal`-like): signal object to store pulses
-            tobs (float): observation time (sec)
         """
         # loop over tobs generating single pulses
         # TODO: if using a pulsar ephemeris adjust the single pulse spacing!
 
         # N samples in observation
-        Nsamp_obs = int((tobs * signal.samprate).decompose())
+        Nsamp_obs = int((signal.tobs * signal.samprate).decompose())
         signal.init_data(Nsamp_obs)
         # N samples per pulse period
         Nsamp_period = int((self.period * signal.samprate).decompose())
@@ -97,22 +104,22 @@ class Pulsar(object):
         Np_chunk = Nsamp_chunk // Nsamp_period
 
 
-    def _make_pow_pulses(self, signal, tobs):
+    def _make_pow_pulses(self, signal):
         """generate a power pulse
 
         This method should be used for filter bank pulses
 
         Args:
             signal (:class:`Signal`-like): signal object to store pulses
-            tobs (float): observation time (sec)
         """
         #TODO this works for float32 ONLY, fix for int8
         # i.e. use _draw_norm...
-        Nperiod = (tobs / self.period).decompose()
+        Nperiod = (signal.tobs / self.period).decompose()
         Nph = int((signal.samprate * self.period).decompose())
         sngl_prof = self.Profile(Nph)
         if signal.subint:
             # generate one pulse in phase
+            signal._Nfold = Nperiod
             distr = stats.chi2(df=Nperiod)
             signal._set_draw_norm(df=Nperiod)
 
@@ -122,6 +129,6 @@ class Pulsar(object):
         else:
             # generate several pulses in time
             distr = stats.chi2(df=1)
-            Nsamp = int((tobs / signal.samprate).decompose())
+            Nsamp = int((signal.tobs / signal.samprate).decompose())
             signal.init_data(Nsamp)
 

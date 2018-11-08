@@ -2,10 +2,12 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
+from scipy import stats
 
 from ..utils.utils import make_quant
 
 __all__ = ['Receiver']
+
 
 class Receiver(object):
     """telescope reciever
@@ -56,6 +58,63 @@ class Receiver(object):
     @property
     def response(self):
         return self._response
+
+    def radiometer_noise(self, signal, gain=1, Tsys=None, Tenv=None):
+        """add radiometer noise to a signal
+
+        Tsys = Tenv + Trec, unless Tsys is given (just Trec if no Tenv)
+        
+        flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
+        """
+        if Tsys is None and Tenv is None:
+            Tsys = self.Trec
+        elif Tenv is not None:
+            if Tsys is not None:
+                msg = "specify EITHER Tsys OR Tenv, not both"
+                raise ValueError(msg)
+            else:
+                Tsys = Tenv + self.Trec
+        # else: Tsys given as input!
+
+        # select noise generation method
+        if signal.sigtype in ["RFSignal", "BasebandSignal"]:
+            noise = self._make_amp_noise(signal, Tsys, gain)
+        elif signal.sigtype is "FilterBankSignal":
+            noise = self._make_pow_noise(signal, Tsys, gain)
+        else:
+            msg = "no pulse method for signal: {}".format(signal.sigtype)
+            raise NotImplementedError(msg)
+        signal._data += noise
+
+    def _make_amp_noise(self, signal, Tsys, gain):
+        """radiometer noise for amplitude signals
+        """
+        dt = 1 / signal.samprate
+        raise NotImplementedError()
+        if signal.SignalType == 'voltage':
+            norm = np.sqrt(sigS) \
+                   * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
+            noise = norm * np.random.normal(0, 1, shape)
+        return noise.value  # drop units!
+
+    def _make_pow_noise(self, signal, Tsys, gain):
+        """radiometer noise for power signals
+        """
+        dt = 1 / signal.samprate
+        bw_per_chan = signal.bw / signal.Nchan
+
+        # noise variance
+        sigS = Tsys / gain / np.sqrt(dt * bw_per_chan)
+
+        df = signal.Nfold if signal.subint else 1
+        distr = stats.chi2(df)
+
+        norm = (sigS * signal._draw_norm / signal._Smax).decompose()
+        noise = norm * distr.rvs(size=signal.data.shape)
+
+        return noise.value  # drop units!
+
+
 
 def response_from_data(fs, values):
     """generate a callable response function from discrete data

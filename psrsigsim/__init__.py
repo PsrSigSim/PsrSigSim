@@ -9,8 +9,10 @@ __version__ = '0.1.0'
 
 from . import signal
 from . import pulsar
+from . import telescope
 
 __all__ = [
     "signal",
     "pulsar",
+    "telescope",
 ]

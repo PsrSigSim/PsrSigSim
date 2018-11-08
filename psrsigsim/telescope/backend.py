@@ -23,6 +23,13 @@ class Backend(object):
     def samprate(self):
         return self._samprate
 
+    def adc(self, signal):
+        """analog-digital-converter
+
+        convert "analog" float Signal to "digital" 8-bit int
+        """
+
+
     def fold(self, signal, psr):
         """fold data using pulsar ephemeris
         currently only uses pulsar period

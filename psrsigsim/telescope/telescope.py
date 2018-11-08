@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 
-from .receiver import Receiver, flat_bandpass, bandpass_from_data
+from .receiver import Receiver, _flat_response, response_from_data
 from .backend import Backend
 from ..utils.utils import make_quant, down_sample, rebin
 
@@ -115,33 +115,8 @@ class Telescope(object):
 
         return out
 
-    def radiometer_noise(self, signal, shape, dt):
-        """compute radiometer white noise
-        signal -- signal object (needed for BW & Npol... should use telescope properties)
-        shape -- shape of output noise array (could probably be determined from telescope properties)
-        dt -- telescope sample rate in msec
-
-        flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
-        """ # noqa E501
-        #TODO replace A with Aeff, depends on pointing for some telescopes
-        #TODO Tsys -> Trec, compute Tsky, Tspill, Tatm from pointing
-        dt *= 1.0e-3  # convert to sec
-        BW = signal.bw  # MHz
-        Np = signal.Npols
-        G = self.area / (Np*_kB)  # K/Jy (gain)
-
-        # noise variance
-        sigS = self.Tsys / G / np.sqrt(Np * dt * BW)  # mJy
-
-        if signal.SignalType == 'voltage':
-            norm = np.sqrt(sigS) \
-                   * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
-            noise = norm * np.random.normal(0, 1, shape)
-        else:
-            norm = sigS * signal.MetaData.gamma_draw_norm/signal.MetaData.Smax
-            noise = norm * np.random.chisquare(1, shape)
-
-        return noise
+    def apply_response(self, signal):
+        pass
 
     def rfi(self):
         pass

@@ -22,7 +22,9 @@ class FilterBankSignal(BaseSignal):
         bandwidth [float]: radio bandwidth of signal (MHz)
 
     Optional Args:
-        Nsubband [int]: number of sub-bands, default ``2048``
+        Nsubband [int]: number of sub-bands, default ``512``
+            XUPPI backends use 2048 frequency channels divided between the
+            four Stokes parameters, so 512 per Stokes parameter.
 
         sample_rate [float]: sample rate of data (MHz), default: ``None``
             If no ``sample_rate`` is given the observation will default to
@@ -35,13 +37,16 @@ class FilterBankSignal(BaseSignal):
     """
     #TODO: full stokes.  Currently this is just stokes-I
     #  add flag `fullstokes=False`
+    #    How do you simulate other stokes params without some bigger
+    #    assumption on polarization?
     #  data -> dict? keyed with "I", "Q", "U", "V"
 
     _sigtype = "FilterBankSignal"
+    _Nfold = None
 
     def __init__(self,
                  fcent, bandwidth,
-                 Nsubband=2048,
+                 Nsubband=512,
                  sample_rate=None,
                  subint=False,
                  dtype=np.float32):
@@ -70,15 +75,17 @@ class FilterBankSignal(BaseSignal):
             self._draw_max = 200
             self._draw_norm = 1
         if self.dtype is np.int8:
-            #TODO: fix this!!!!
             limit = stats.chi2.ppf(0.999, df)
             self._draw_max = np.iinfo(np.int8).max
             self._draw_norm = self._draw_max/limit
 
-
     @property
     def subint(self):
         return self._subint
+
+    @property
+    def Nfold(self):
+        return self._Nfold
 
     def to_RF(self):
         """convert signal to RFSignal
