@@ -98,7 +98,7 @@ class GaussProfile(PulseProfile):
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
 
         self._peak = peak
-        self._width =width
+        self._width = width
         self._amp = amp
 
     def gen_profile(self, Nphase):
