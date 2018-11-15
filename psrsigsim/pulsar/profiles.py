@@ -108,15 +108,14 @@ class GaussProfile(PulseProfile):
         """
         profile = np.zeros(Nphase)
         ph = np.arange(Nphase)/Nphase
-        Amax = np.max(self.amp)
         try:
             for p, wid, A in zip(self.peak, self.width, self.amp):
-                profile += A/Amax * np.exp(-0.5 * ((ph-p)/wid)**2)
+                profile += A * np.exp(-0.5 * ((ph-p)/wid)**2)
         except TypeError:
-            profile += (self.amp/Amax * 
+            profile += (self.amp * 
                         np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
 
-        self._profile = profile
+        self._profile = profile / np.max(profile)
 
     @property 
     def profile(self):
