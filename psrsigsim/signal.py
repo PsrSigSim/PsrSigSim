@@ -5,7 +5,7 @@ a starting point for the Signal class.
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import h5py
+import h5py, os
 # from astropy import units as u
 from . import PSS_plot
 
@@ -36,7 +36,8 @@ class Signal(object):
     """The signal class
     """
     def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, ObsTime=200,
-                 data_type='float32', SignalType="intensity", mode='explore'):
+                 data_type='float32', SignalType="intensity",
+                 mode='explore',clean_mode=True):
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity
@@ -129,9 +130,19 @@ class Signal(object):
                                       self.Nf, endpoint=False)
 
         if self.Nt*self.Nf > 500000:  # Limits the array size to 2.048 GB
-            SignalPath = "signal.hdf5"
+            SignalPath = 'signal0.hdf5'
             if SignalType=='burst':  # Use a different file name for a burst
                 SignalPath = "burst_signal.hdf5"
+
+            if os.path.exists(SignalPath):
+                if clean_mode:
+                    os.remove(SignalPath)
+                else:
+                    ii = 1
+                    while os.path.exists('signal{0}.hdf5'.format(ii)):
+                        ii += 1
+                    SignalPath = 'signal{0}.hdf5'.format(ii)
+                    
             SignalFile = h5py.File(SignalPath, 'a')
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt),
                                                     dtype=self.data_type)
