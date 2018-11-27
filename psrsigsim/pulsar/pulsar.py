@@ -90,7 +90,6 @@ class Pulsar(object):
         """
         # generate several pulses in time
         distr = stats.norm()
-        signal._set_draw_norm()
 
         Nsamp = int((signal.tobs * signal.samprate).decompose())
         signal.init_data(Nsamp)
@@ -105,8 +104,7 @@ class Pulsar(object):
         # convert intensity profile to amplitude!
         full_prof = np.sqrt(self.Profile.calc_profile(phs))
 
-        signal._data = (full_prof * distr.rvs(size=signal.data.shape)
-                        * signal._draw_norm)
+        signal._data = full_prof * distr.rvs(size=signal.data.shape)
 
     def _make_pow_pulses(self, signal):
         """generate a power pulse

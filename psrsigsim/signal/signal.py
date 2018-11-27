@@ -55,18 +55,11 @@ class BaseSignal(object):
         raise NotImplementedError()
 
     def _set_draw_norm(self):
-        """set distribution to correct dynamic range
+        """set distribution to correct dynamic range for int8
 
-        this only works for amplitude signals, intensity signals
-        (like FilterBank) need to redefine this method explicitly
+        This is only implemented for `numpy.int8` :class:`FilterBankSignals`.
         """
-        if self.dtype is np.float32:
-            self._draw_max = 200
-            self._draw_norm = 1
-        if self.dtype is np.int8:
-            limit = stats.norm.ppf(0.999)
-            self._draw_max = np.iinfo(np.int8).max
-            self._draw_norm = self._draw_max/limit
+        raise NotImplementedError()
 
     def init_data(self, Nsamp):
         """initialize a data array to store the signal

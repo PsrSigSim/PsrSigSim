@@ -24,6 +24,7 @@ class BasebandSignal(BaseSignal):
             warning will be generated.
 
         dtype [type]: data type of array, default: ``np.float32``
+            any numpy compatible floating point type will work
     """
 
     _sigtype = "BasebandSignal"
@@ -48,7 +49,6 @@ class BasebandSignal(BaseSignal):
                 print("Warning: "+msg)
 
         self._dtype = dtype
-        self._set_draw_norm()
 
     def to_RF(self):
         """convert signal to RFSignal
