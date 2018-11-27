@@ -55,8 +55,11 @@ class BaseSignal(object):
         raise NotImplementedError()
 
     def _set_draw_norm(self):
-        """this only works for amplitude signals, intensity signals
-        (like FilterBank) need to redefine this explicitly"""
+        """set distribution to correct dynamic range
+
+        this only works for amplitude signals, intensity signals
+        (like FilterBank) need to redefine this method explicitly
+        """
         if self.dtype is np.float32:
             self._draw_max = 200
             self._draw_norm = 1
