@@ -34,6 +34,7 @@ class FilterBankSignal(BaseSignal):
         subint [bool]: is this a folded subintegration, default ``False``
 
         dtype [type]: data type of array, default: ``np.float32``
+            supported types are: ``np.float32`` and ``np.int8``
     """
     #TODO: full stokes.  Currently this is just stokes-I
     #  add flag `fullstokes=False`
