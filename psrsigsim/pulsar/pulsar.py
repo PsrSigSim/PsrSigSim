@@ -67,10 +67,8 @@ class Pulsar(object):
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
             self._make_amp_pulses(signal)
-            Smean = np.sqrt(self.intensity)
         elif signal.sigtype is "FilterBankSignal":
             self._make_pow_pulses(signal)
-            Smean = self.intensity
         else:
             msg = "no pulse method for signal: {}".format(signal.sigtype)
             raise NotImplementedError(msg)
@@ -79,7 +77,7 @@ class Pulsar(object):
         pr = self.Profile()
         dph = 1 / len(self.Profile())
         norm = 1 / signal.Nchan
-        signal._Smax = Smean / (np.sum(pr) * dph * norm)
+        signal._Smax = self.intensity / (np.sum(pr) * dph * norm)
 
     def _make_amp_pulses(self, signal):
         """generate amplitude pulses
@@ -90,23 +88,25 @@ class Pulsar(object):
         Args:
             signal (:class:`Signal`-like): signal object to store pulses
         """
-        # loop over tobs generating single pulses
-        # TODO: if using a pulsar ephemeris adjust the single pulse spacing!
+        # generate several pulses in time
+        distr = stats.norm()
+        signal._set_draw_norm()
 
-        # N samples in observation
-        Nsamp_obs = int((signal.tobs * signal.samprate).decompose())
-        signal.init_data(Nsamp_obs)
-        # N samples per pulse period
-        Nsamp_period = int((self.period * signal.samprate).decompose())
-        # N samples per memory chunk
-        Nsamp_chunk = int(__MAX_AR_SIZE__ // self.Nchan)
+        Nsamp = int((signal.tobs * signal.samprate).decompose())
+        signal.init_data(Nsamp)
 
-        # break calculation into N chunks
-        Nchunk = Nsamp_obs // Nsamp_chunk +1
+        # TODO break into blocks
+        # TODO phase from .par file
+        # calc profile at phases
+        phs = (np.arange(Nsamp) /
+                (signal.samprate * self.period).decompose().value)
+        phs %= 1  # clip integer part
 
-        # number of pulse periods per memory chunk
-        Np_chunk = Nsamp_chunk // Nsamp_period
+        # convert intensity profile to amplitude!
+        full_prof = np.sqrt(self.Profile.calc_profile(phs))
 
+        signal._data = (full_prof * distr.rvs(size=signal.data.shape)
+                        * signal._draw_norm)
 
     def _make_pow_pulses(self, signal):
         """generate a power pulse
