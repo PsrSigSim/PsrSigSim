@@ -91,14 +91,18 @@ class FilterBankSignal(BaseSignal):
     def to_RF(self):
         """convert signal to RFSignal
         """
+        # BB = self.to_Baseband()
+        # return BB.to_RF()
         raise NotImplementedError()
 
     def to_Baseband(self):
         """convert signal to BasebandSignal
         """
+        # so many ffts!!... I think it only works if FB is full-Stokes
         raise NotImplementedError()
 
-    def to_FilterBank(self):
+    def to_FilterBank(self, Nsubband=512):
         """convert signal to FilterBankSignal
         """
+        #TODO allow for scrunching? (i.e. reducing Nchan)
         return self

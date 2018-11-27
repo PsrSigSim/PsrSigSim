@@ -53,6 +53,10 @@ class BasebandSignal(BaseSignal):
     def to_RF(self):
         """convert signal to RFSignal
         """
+        # rfft this signal
+        # generate zero freq domain array for RFSignal
+        # put this signal into correct span of RFSignal
+        # irfft RFSignal
         raise NotImplementedError()
 
     def to_Baseband(self):
@@ -60,7 +64,8 @@ class BasebandSignal(BaseSignal):
         """
         return self
 
-    def to_FilterBank(self, subbw):
+    def to_FilterBank(self, Nsubband=512):
         """convert signal to FilterBankSignal
         """
+        # TODO
         raise NotImplementedError()

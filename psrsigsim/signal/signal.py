@@ -85,7 +85,7 @@ class BaseSignal(object):
         must be implemented in subclass!"""
         raise NotImplementedError()
 
-    def to_FilterBank(self, subbw):
+    def to_FilterBank(self, Nsubband=512):
         """convert signal to FilterBankSignal
         must be implemented in subclass!"""
         raise NotImplementedError()
