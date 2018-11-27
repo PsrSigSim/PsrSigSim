@@ -60,6 +60,10 @@ class Pulsar(object):
         """
         signal._tobs = make_quant(tobs, 's')
 
+        # init base profile at correct sample rate
+        Nph = int((signal.samprate * self.period).decompose())
+        self.Profile.init_profile(Nph)
+
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
             self._make_amp_pulses(signal)
@@ -112,23 +116,33 @@ class Pulsar(object):
         Args:
             signal (:class:`Signal`-like): signal object to store pulses
         """
-        #TODO this works for float32 ONLY, fix for int8
-        # i.e. use _draw_norm...
-        Nperiod = (signal.tobs / self.period).decompose()
-        Nph = int((signal.samprate * self.period).decompose())
-        sngl_prof = self.Profile(Nph)
         if signal.subint:
             # generate one pulse in phase
-            signal._Nfold = Nperiod
-            distr = stats.chi2(df=Nperiod)
-            signal._set_draw_norm(df=Nperiod)
+            sngl_prof = self.Profile()
+            
+            signal._Nfold = (signal.tobs / self.period).decompose()
+            distr = stats.chi2(df=signal.Nfold)
+            signal._set_draw_norm(df=signal.Nfold)
 
-            signal.init_data(Nph)
+            signal.init_data(len(sngl_prof))
             signal._data = (sngl_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)
         else:
             # generate several pulses in time
             distr = stats.chi2(df=1)
-            Nsamp = int((signal.tobs / signal.samprate).decompose())
+            signal._set_draw_norm(df=1)
+
+            Nsamp = int((signal.tobs * signal.samprate).decompose())
             signal.init_data(Nsamp)
+
+            # TODO break into blocks
+            # TODO phase from .par file
+            # calc profile at phases
+            phs = (np.arange(Nsamp) /
+                   (signal.samprate * self.period).decompose().value)
+            phs %= 1  # clip integer part
+            full_prof = self.Profile.calc_profile(phs)
+
+            signal._data = (full_prof * distr.rvs(size=signal.data.shape)
+                            * signal._draw_norm)
 
