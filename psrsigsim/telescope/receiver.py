@@ -90,11 +90,15 @@ class Receiver(object):
         """radiometer noise for amplitude signals
         """
         dt = 1 / signal.samprate
-        raise NotImplementedError()
-        if signal.SignalType == 'voltage':
-            norm = np.sqrt(sigS) \
-                   * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
-            noise = norm * np.random.normal(0, 1, shape)
+
+        # noise variance
+        sigS = Tsys / gain / np.sqrt(dt * signal.bw)
+
+        distr = stats.norm()
+
+        norm = np.sqrt((sigS / signal._Smax).decompose())
+        noise = norm * distr.rvs(size=signal.data.shape)
+        
         return noise.value  # drop units!
 
     def _make_pow_noise(self, signal, Tsys, gain):
