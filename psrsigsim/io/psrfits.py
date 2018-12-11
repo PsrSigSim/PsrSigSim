@@ -14,7 +14,7 @@ class PSRFITS(BaseFile):
     """
 
     def __init__(self, path=None, obs_mode=None, template=None,
-                 copy_template=False):
+                 copy_template=False,fits_mode='copy'):
 
         self._tbin = None
         self._nbin = None
@@ -26,6 +26,8 @@ class PSRFITS(BaseFile):
         self._chan_bw = None
         self._obsbw = None
         self._obsfreq = None
+
+        self._fits_mode = fits_mode
 
         if template is None:
             template_path = False
@@ -71,9 +73,11 @@ class PSRFITS(BaseFile):
     def save(self, signal):
         """Save PSS signal file to disk.
         """
-        if self._fits_mode = 'copy':
+        if self._fits_mode == 'copy':
             pass
-        elif self._fits_mode = 'manual':
+        elif self._fits_mode == 'manual':
+            pass
+        elif self._fits_mode == 'auto':
             pass
 
         raise NotImplementedError()
@@ -107,6 +111,7 @@ class PSRFITS(BaseFile):
         ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
 
         #TODO Delete calls to .value when integrated with new API.
+        #TODO Change call to FilterBank for new API.
         S = Signal(f0=self.obsfreq.value,
                    bw=self.obsbw.value,
                    Nf=self.nchan,
@@ -134,10 +139,10 @@ class PSRFITS(BaseFile):
         copy_SUBINT_nonDATA : bool, optional
             If True all of the contents of the `SUBINT` BinTable will be copied
             except for the DATA array. This includes the single floats as well
-            as DAT_FREQ, DAT_SCL, DAT_WTS, DAT_OFFS, TSUBINT, OFFS_SUB, LST_SUB,
-            RA_SUB, DEC_SUB, GLON_SUB, GLAT_SUB, FD_ANG, POS_ANG, PAR_ANG,
-            TEL_AZ, TEL_ZEN and others. Set to False if ext_names does not
-            include 'SUBINT' or not equal to 'all'.
+            as TSUBINT, OFFS_SUB, LST_SUB, RA_SUB, DEC_SUB, GLON_SUB, GLAT_SUB,
+            FD_ANG, POS_ANG, PAR_ANG, TEL_AZ, TEL_ZEN and others. Is set to
+            False if ext_names does not include 'SUBINT' or not equal to 'all'.
+            Does not set DAT_FREQ, DAT_SCL, DAT_WTS, DAT_OFFS.
         """
         if ext_names == 'all':
             ext_names = self.file.draft_hdr_keys[1:]
@@ -175,9 +180,10 @@ class PSRFITS(BaseFile):
 
     def _calc_psrfits_dims(self, signal):
         """
-        Calculate the dimensions of the PSRFITS file from a PSS.signal object.
+        Calculate the needed dimensions of a PSRFITS file from a PSS.signal
+        object.
         """
-        self.nchan(signal.Nf)
+        self.nchan = signal.Nf
         Nt = signal.Nt
 
     def _get_signal_params(self):
