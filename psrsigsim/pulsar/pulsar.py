@@ -117,7 +117,7 @@ class Pulsar(object):
         if signal.subint:
             # generate one pulse in phase
             sngl_prof = self.Profile()
-            
+
             signal._Nfold = (signal.tobs / self.period).decompose()
             distr = stats.chi2(df=signal.Nfold)
             signal._set_draw_norm(df=signal.Nfold)
