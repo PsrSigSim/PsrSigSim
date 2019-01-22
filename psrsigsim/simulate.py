@@ -11,7 +11,7 @@ import psrsigsim as PSS
 from psrsigsim import Telescope
 import sys 
 import pint 
-from pint.models import polycos
+# from pint.models import polycos
 from pint import models
 from pint import utils
 import os.path
