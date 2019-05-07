@@ -67,10 +67,12 @@ class FilterBankSignal(BaseSignal):
                 print("Warning: "+msg)
 
         self._Nchan = Nsubband
-
+        self._dat_freq = np.arange(self._bw - self._fcent/2,
+                                   self._bw - self._fcent/2,
+                                   self._bw / self._Nchan)
         self._dtype = dtype
         self._set_draw_norm()
-    
+
     def _set_draw_norm(self, df=1):
         if self.dtype is np.float32:
             self._draw_max = 200
