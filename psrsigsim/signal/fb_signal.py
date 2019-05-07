@@ -68,9 +68,11 @@ class FilterBankSignal(BaseSignal):
                 print("Warning: "+msg)
 
         self._Nchan = Nsubband
-        self._dat_freq = np.arange(self._bw - self._fcent/2,
-                                   self._bw - self._fcent/2,
-                                   self._bw / self._Nchan) * u.MHz
+        first = (self._fcent - self._bw/2).to('MHz').value
+        last = (self._fcent + self._bw/2).to('MHz').value
+        step = (self._bw / self._Nchan).to('MHz').value
+        self._dat_freq = np.arange(first, last, step) * u.MHz
+
         self._dtype = dtype
         self._set_draw_norm()
 
