@@ -2,9 +2,9 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from scipy import stats
-from .profiles import GaussProfile
+import time
 from ..utils.utils import make_quant, shift_t
-from ..utils.constant import DM_K
+from ..utils.constants import DM_K
 
 class ISM(object):
     '''
@@ -21,7 +21,7 @@ class ISM(object):
         """
         signal._dm = make_quant(dm,'pc/cm^3')
 
-        if signal._dispersed == True:
+        if hasattr(signal,'_dispersed'):
             raise ValueError('Signal has already been dispersed!')
 
         if signal.sigtype=='FilterBankSignal':
@@ -29,22 +29,21 @@ class ISM(object):
         elif signal.sigtype=='BasebandSignal':
             self._disperse_baseband(signal, signal._dm)
 
-        self.signal._dispersed = True
-        self.Signal_in.MetaData.AddInfo(self.ISM_Dict)
+        signal._dispersed = True
 
     def _disperse_filterbank(self, signal, dm):
         #freq in MHz, delays in milliseconds
         freq_array = signal._dat_freq
-        time_delays = (DM_K * dm * np.power(freq_array,-2)).to('us')
+        time_delays = (DM_K * dm * np.power(freq_array,-2)).to('ms')
         #Dispersion as compared to infinite frequency
-        shift_dt = (1/signal._samprate).to('us')
+        shift_dt = (1/signal._samprate).to('ms')
         shift_start = time.time()
 
         for ii, freq in enumerate(freq_array):
             signal._data[ii,:] = shift_t(signal._data[ii,:],
                                          time_delays[ii].value,
                                          dt=shift_dt.value)
-            if (ii+1) % int(self.Nf//20) ==0:
+            if (ii+1) % int(signal.Nchan//20) ==0:
                 shift_check = time.time()
                 percent = round((ii + 1)*100/self.Nf)
                 elapsed = shift_check-shift_start
