@@ -1,92 +1,34 @@
-"""telescope.py
-telescopes for observing signals, includes radiometer noise and RFI
-"""
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-from . import PSS_utils as utils
 
-__all__ = ['Receiver', 'Backend', 'Telescope', 'GBT', 'Arecibo']
-_kB = 1.38064852e+03  # Boltzmann const in radio units: Jy m^2 / K
+from .receiver import Receiver, _flat_response, response_from_data
+from .backend import Backend
+from ..utils.utils import make_quant, down_sample, rebin
 
+__all__ = ['Telescope', 'GBT', 'Arecibo']
 
-class Receiver(object):
-    def __init__(self, centfreq, bandwidth, response=None, name=None):
-        """Telescope Reciever"""
-        self._name = name
-        self._centfreq = centfreq
-        self._bandwidth = bandwidth
-        self._response = response
-
-    def __repr__(self):
-        return "Receiver({:s})".format(self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def centfreq(self):
-        return self._centfreq
-
-    @property
-    def bandwidth(self):
-        return self._bandwidth
-
-    @property
-    def response(self):
-        return self._response
-
-
-class Backend(object):
-    def __init__(self, samprate=None, name=None):
-        self._name = name
-        self._samprate = samprate
-
-    def __repr__(self):
-        return "Backend({:s})".format(self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def samprate(self):
-        return self._samprate
-
-    def fold(self, signal, psr):
-        """fold data a pulsar period
-        signal -- array to fold
-        pulsar -- Pulsar instance
-        """
-        period = psr.T
-        Nf, Nt = signal.shape
-        Npbins = int(period * 2*self.samprate)  # number of phase bins
-        N_fold = Nt // Npbins  # number of folds
-        fold_sig = signal[:, Npbins:Npbins*(N_fold+1)].reshape(
-                                                         Nf, N_fold, Npbins)
-        return np.sum(fold_sig, axis=1)
-
+_kB = make_quant(1.38064852e+03, "Jy*m^2/K")  # Boltzmann const in radio units
 
 class Telescope(object):
     """contains: observe(), noise(), rfi() methods"""
-    def __init__(self, aperture, area=None, Tsys=None, name=None):
+    def __init__(self, aperture, area=None, name=None):
         """initalize telescope object
         aperture: aperture (m)
         area: collecting area (m^2) (if omitted, assume circular single dish)
-        Tsys: system temp (K), total of receiver, sky, spillover, etc. (only needed for noise)
         name: string
         """ # noqa E501
         #TODO: specify Trec in Receiver and compute others from pointing
         self._name = name
-        self._area = area
-        self._Tsys = Tsys
-        self._aperture = aperture
+        self._aperture = make_quant(aperture, "m")
         self._systems = {}
-        if self._area is None:
+        if area is None:
             # assume circular single dish
             self._area = np.pi * (aperture/2)**2
+        else:
+            self._area = make_quant(area, "m^2")
+        self._gain = self.area / (2*_kB)  # 2 polarizations
 
     def __repr__(self):
         return "Telescope({:s}, {:f}m)".format(self._name, self._aperture)
@@ -100,8 +42,8 @@ class Telescope(object):
         return self._area
 
     @property
-    def Tsys(self):
-        return self._Tsys
+    def gain(self):
+        return self._gain
 
     @property
     def aperture(self):
@@ -173,33 +115,8 @@ class Telescope(object):
 
         return out
 
-    def radiometer_noise(self, signal, shape, dt):
-        """compute radiometer white noise
-        signal -- signal object (needed for BW & Npol... should use telescope properties)
-        shape -- shape of output noise array (could probably be determined from telescope properties)
-        dt -- telescope sample rate in msec
-
-        flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
-        """ # noqa E501
-        #TODO replace A with Aeff, depends on pointing for some telescopes
-        #TODO Tsys -> Trec, compute Tsky, Tspill, Tatm from pointing
-        dt *= 1.0e-3  # convert to sec
-        BW = signal.bw  # MHz
-        Np = signal.Npols
-        G = self.area / (Np*_kB)  # K/Jy (gain)
-
-        # noise variance
-        sigS = self.Tsys / G / np.sqrt(Np * dt * BW)  # mJy
-
-        if signal.SignalType == 'voltage':
-            norm = np.sqrt(sigS) \
-                   * signal.MetaData.gauss_draw_norm/signal.MetaData.Smax
-            noise = norm * np.random.normal(0, 1, shape)
-        else:
-            norm = sigS * signal.MetaData.gamma_draw_norm/signal.MetaData.Smax
-            noise = norm * np.random.chisquare(1, shape)
-
-        return noise
+    def apply_response(self, signal):
+        pass
 
     def rfi(self):
         pass

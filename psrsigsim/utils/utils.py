@@ -7,6 +7,11 @@ import numpy as np
 import scipy as sp
 from astropy import units as u
 from pint import models
+#try:
+#    import pyfftw
+#    use_pyfftw = True
+#except:
+#    use_pyfftw = False
 
 
 def shift_t(y, shift, dt=1):
@@ -312,7 +317,7 @@ def make_quant(param, default_unit):
         try:
             param.to(default_unit)
         except u.UnitConversionError:
-            raise ValueError("Frequency for {0} with incompatible unit {1}"
+            raise ValueError("Quantity {0} with incompatible unit {1}"
                              .format(param, default_unit))
         quantity = param
     else:
