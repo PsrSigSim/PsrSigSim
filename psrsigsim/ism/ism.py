@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from scipy import stats
-import time
+import sys, time
 from ..utils.utils import make_quant, shift_t
 from ..utils.constants import DM_K
 
@@ -45,7 +45,7 @@ class ISM(object):
                                          dt=shift_dt.value)
             if (ii+1) % int(signal.Nchan//20) ==0:
                 shift_check = time.time()
-                percent = round((ii + 1)*100/self.Nf)
+                percent = round((ii + 1)*100/signal.Nchan)
                 elapsed = shift_check-shift_start
                 chk_str = '\r{0:2.0f}% dispersed'.format(percent)
                 chk_str += ' in {0:4.3f} seconds.'.format(elapsed)
