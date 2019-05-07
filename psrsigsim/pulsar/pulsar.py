@@ -143,4 +143,3 @@ class Pulsar(object):
 
             signal._data = (full_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)
-
