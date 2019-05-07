@@ -10,4 +10,4 @@ from astropy import constants as c
 from .utils import make_quant
 
 #constant used to be more consistent with PSRCHIVE
-DM_K =  make_quant(1.0/2.41e-4, 'MHz^-2 pc cm^-3 s^-1')
+DM_K =  1.0/2.41e-4 * u.MHz**2 / u.pc * u.cm**3 * u.s
