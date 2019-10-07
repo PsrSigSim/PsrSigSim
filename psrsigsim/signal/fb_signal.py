@@ -5,6 +5,7 @@ import numpy as np
 
 from .signal import BaseSignal
 from ..utils.utils import make_quant
+import astropy.units as u
 
 class FilterBankSignal(BaseSignal):
     """a filter bank signal, breaking the time domain signal into RF bins
@@ -67,10 +68,14 @@ class FilterBankSignal(BaseSignal):
                 print("Warning: "+msg)
 
         self._Nchan = Nsubband
+        first = (self._fcent - self._bw/2).to('MHz').value
+        last = (self._fcent + self._bw/2).to('MHz').value
+        step = (self._bw / self._Nchan).to('MHz').value
+        self._dat_freq = np.arange(first, last, step) * u.MHz
 
         self._dtype = dtype
         self._set_draw_norm()
-    
+
     def _set_draw_norm(self, df=1):
         if self.dtype is np.float32:
             self._draw_max = 200

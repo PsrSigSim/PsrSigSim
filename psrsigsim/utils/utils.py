@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 import scipy as sp
 from astropy import units as u
-#from pint import models
+from pint import models
 #try:
 #    import pyfftw
 #    use_pyfftw = True
@@ -14,7 +14,7 @@ from astropy import units as u
 #    use_pyfftw = False
 
 
-def shift_t(y, shift, use_pyfftw=False, PE='FFTW_EXHAUSTIVE', dt=1):
+def shift_t(y, shift, dt=1):
     """Shift timeseries data in time.
     Shift array, y, in time by amount, shift. For dt=1 units of samples
     (including fractional samples) are used. Otherwise, shift and dt are
@@ -44,29 +44,14 @@ def shift_t(y, shift, use_pyfftw=False, PE='FFTW_EXHAUSTIVE', dt=1):
     """
     if isinstance(shift, int) and dt is 1:
         out = np.roll(y, shift)
+
     else:
-        if use_pyfftw:
-            pass
-            # #print('Starting rfft')
-            # #dummy_array = pyfftw.empty_aligned
-            # (self.Nt, dtype=self.MD.data_type)
-            # rfftw_Object = pyfftw.builders.rfft(y, planner_effort=PE)
-            # 'FFTW_EXHAUSTIVE'
-            # #print('Past rfft intialization')
-            # yfft = rfftw_Object(y) # hermicity implicitely enforced by rfft
-            # #print('Past rfft')
-            # fs = np.fft.rfftfreq(len(y), d=dt)
-            # phase = 1j*2*np.pi*fs*shift
-            # yfft_sh = yfft * np.exp(phase)
-            # irfftw_Object = pyfftw.builders.irfft(yfft_sh, planner_effort=PE)
-            #'FFTW_EXHAUSTIVE'
-            # out = irfftw_Object(yfft_sh)
-        else:
-            yfft = np.fft.rfft(y)  # hermicity implicitely enforced by rfft
-            fs = np.fft.rfftfreq(len(y), d=dt)
-            phase = 1j*2*np.pi*fs*shift
-            yfft_sh = yfft * np.exp(phase)
-            out = np.fft.irfft(yfft_sh)
+        yfft = np.fft.rfft(y)  # hermicity implicitely enforced by rfft
+        fs = np.fft.rfftfreq(len(y), d=dt)
+        phase = -1j*2*np.pi*fs*shift
+        yfft_sh = yfft * np.exp(phase)
+        out = np.fft.irfft(yfft_sh)
+
     return out
 
 
@@ -340,11 +325,10 @@ def make_quant(param, default_unit):
 
     return quantity
 
-# no PINT in my virtual env...
-#def get_pint_models(psr_name, psr_file_path):
-#        """Function that returns pint model given a specific pulsar"""
-#        # will need to add section for J1713 T2 file. gls is not file wanted for this specfic pulsar.
-#        model_name = "{0}{1}_NANOGrav_11yv1.gls.par".format(psr_file_path,psr_name)
-#        par_model = models.get_model(model_name)
-#
-#        return par_model
+def get_pint_models(psr_name, psr_file_path):
+        """Function that returns pint model given a specific pulsar"""
+        # will need to add section for J1713 T2 file. gls is not file wanted for this specfic pulsar.
+        model_name = "{0}{1}_NANOGrav_11yv1.gls.par".format(psr_file_path,psr_name)
+        par_model = models.get_model(model_name)
+
+        return par_model

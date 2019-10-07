@@ -11,8 +11,7 @@ from . import signal
 from . import pulsar
 from . import telescope
 
-__all__ = [
-    "signal",
-    "pulsar",
-    "telescope",
-]
+__all__ = ["signal",
+           "pulsar",
+           "telescope",
+           ]
