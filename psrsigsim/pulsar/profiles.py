@@ -23,16 +23,39 @@ class PulseProfile(object):
             return self._profile
         else:
             return self.calc_profile(phases)
+    
+    def init_profile(self, Nphase):
+        """generate the profile, evenly sampled
+        
+        Args:
+            Nphase (int): number of phase bins
+        """
+        ph = np.arange(Nphase)/Nphase
+        self._profile = self.calc_profile(ph)
+        self._Amax = self._profile.max()
+        self._profile /= self.Amax
 
     def calc_profile(self, phases):
         """calculate the profile at specified phase(s)
         Args:
             phases (array-like): phases to calc profile
+        Note:
+            The normalization can be wrong, if you have not run
+            ``init_profile`` AND you are generating less than one
+            rotation.
 
         This is implemented by the subclasses!
         """
         raise NotImplementedError()
     
+    @property 
+    def profile(self):
+        return self._profile
+
+    @property
+    def Amax(self):
+        return self._Amax
+
 
 class GaussProfile(PulseProfile):
     """sum of guassian components
@@ -53,25 +76,15 @@ class GaussProfile(PulseProfile):
             default: ``1``
 
     Pulses are normalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for more details.
+    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
+    more details.
     """
     def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
-
         self._peak = peak
         self._width = width
         self._amp = amp
-
-    def init_profile(self, Nphase):
-        """generate the profile
-        Args:
-            Nphase (int): number of phase bins
-        """
-        ph = np.arange(Nphase)/Nphase
-        self._profile = self.calc_profile(ph)
-        self._Amax = self._profile.max()
-        self._profile /= self.Amax
 
     def calc_profile(self, phases):
         """calculate the profile at specified phase(s)
@@ -96,10 +109,6 @@ class GaussProfile(PulseProfile):
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
 
-    @property 
-    def profile(self):
-        return self._profile
-
     @property
     def peak(self):
         return self._peak
@@ -112,12 +121,36 @@ class GaussProfile(PulseProfile):
     def amp(self):
         return self._amp
 
-    @property
-    def Amax(self):
-        return self._Amax
-
 
 class UserProfile(PulseProfile):
-    """user specified pulse profile"""
-    def __init__(self):
-        raise NotImplementedError()
+    """user specified pulse profile
+
+    :class:`UserProfile`s are specified by a function used to compute the
+    profile at arbitrary pulse phase. If you want ot generate a profile
+    from empirical data, use :class:`DataProfile`.
+
+    Required Args:
+        profile_func (callable): a callable function to generate the profile 
+            as a function of pulse phase. This function takes a single, 
+            array-like input, a phase or list of phases.
+
+    Profile is renormalized so that maximum is 1.
+    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
+    more details.
+    """
+    def __init__(self, profile_func):
+        # _generator is not a property, it has no setter or getter
+        self._generator = profile_func
+    
+    def calc_profile(self, phases):
+        """calculate the profile at specified phase(s)
+        Args:
+            phases (array-like): phases to calc profile
+        Note:
+            The normalization can be wrong, if you have not run
+            ``init_profile`` AND you are generating less than one
+            rotation.
+        """
+        profile = self._generator(phases)
+        Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
+        return profile / Amax
