@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from astropy import log
 
-# from .profiles import PulseProfile
+from .profiles import PulseProfile
 
 class PulsePortrait(object):
     """base class for pulse portraits
@@ -119,12 +119,6 @@ class GaussPortrait(PulsePortrait):
     @property
     def Amax(self):
         return self._Amax
-
-
-class UserProfile(PulseProfile):
-    """user specified pulse profile"""
-    def __init__(self):
-        raise NotImplementedError()
 
 
 class GaussPortrait(PulseProfile):
