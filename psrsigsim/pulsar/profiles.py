@@ -4,6 +4,8 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from ..utils.utils import make_quant
 
+from scipy.interpolate import CubicSpline as _cubeSpline
+
 class PulseProfile(object):
     """base class for pulse profiles
 
@@ -154,3 +156,54 @@ class UserProfile(PulseProfile):
         profile = self._generator(phases)
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
+    
+class DataProfile(PulseProfile):
+    """a pulse profile generated from data
+
+    The data are samples of the profile at specified phases. If you have a
+    functional form for the profile use :class:`UserProfile` instead.
+
+    Required Args:
+        profile (array-like): profile data
+
+    Optional Args:
+        phases (array-like): list of sampled phases. If phases are omitted
+            profile is assumed to be evenly sampmled and cover one whole
+            rotation period.
+
+    Profile is renormalized so that maximum is 1.
+    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
+    more details.
+    """
+    def __init__(self, profile, phases=None):
+        if phases is None:
+            # infer phases
+            N = len(profile)
+            if profile[0] != profile[-1]:
+                # enforce periodicity!
+                phases = np.arange(N+1)/N
+                profile = np.append(profile, profile[0])
+        else:
+            if phases[-1] != 1:
+                # enforce periodicity!
+                phases = np.append(phases, 1)
+                profile = np.append(profile, profile[0])
+            elif profile[0] != profile[-1]:
+                # enforce periodicity!
+                profile[-1] = profile[0]
+
+        self._generator = _cubeSpline(phases, profile, bc_type='periodic')
+    
+    def calc_profile(self, phases):
+        """calculate the profile at specified phase(s)
+        Args:
+            phases (array-like): phases to calc profile
+        Note:
+            The normalization can be wrong, if you have not run
+            ``init_profile`` AND you are generating less than one
+            rotation.
+        """
+        profile = self._generator(phases)
+        Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
+        return profile / Amax
+    
