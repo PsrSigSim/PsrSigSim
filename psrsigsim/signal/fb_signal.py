@@ -64,7 +64,10 @@ class FilterBankSignal(BaseSignal):
         self._bw = make_quant(bandwidth, 'MHz')
 
         self._subint = subint
-        self._sublen = make_quant(sublen, 's')
+        if self.subint:
+            self._sublen = make_quant(sublen, 's')
+        else:
+            self._sublen = sublen
         
         f_Nyquist = 2 * self._bw # Not sure if we need this for subintegrated data
         if sample_rate is None:

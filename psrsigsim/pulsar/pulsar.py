@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from scipy import stats
 from .profiles import GaussProfile
+from .profiles import UserProfile
 from ..utils.utils import make_quant
 
 class Pulsar(object):
@@ -29,7 +30,7 @@ class Pulsar(object):
         if profile is None:
             self._Profile = GaussProfile()
         else:
-            self._Profile = profile
+            self._Profile = UserProfile(profile)
 
     def __repr__(self):
         namestr = "" if self.name is None else self.name+", "
