@@ -5,6 +5,7 @@ import numpy as np
 from scipy import stats
 from .profiles import GaussProfile
 from .profiles import UserProfile
+from .profiles import DataProfile
 from ..utils.utils import make_quant
 
 class Pulsar(object):
@@ -26,11 +27,12 @@ class Pulsar(object):
         self._intensity = make_quant(intensity, 'Jy')
 
         self._name = name
-
+        
+        # Assign profile class; default to GaussProfile if nothing is specified
         if profile is None:
             self._Profile = GaussProfile()
         else:
-            self._Profile = UserProfile(profile)
+            self._Profile = profile
 
     def __repr__(self):
         namestr = "" if self.name is None else self.name+", "
