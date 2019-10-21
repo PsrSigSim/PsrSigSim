@@ -36,8 +36,12 @@ class Signal(object):
     """The signal class
     """
     def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, ObsTime=200,
+<<<<<<< HEAD:psrsigsim/signal/signal_old.py
                  data_type='float32', SignalType="intensity",
                  mode='explore',clean_mode=True):
+=======
+                 data_type='float32', SignalType="intensity", mode='explore', subintlen = False):
+>>>>>>> c1804aeeb348731577c16ee58815a427c2cf8c62:psrsigsim/signal.py
         """initialize Signal(), executed at assignment of new instance
         data_type = 'int8' or 'int16' supported.
                     Automatically changed to 'uint8' or 'uint16' if intensity
@@ -51,6 +55,7 @@ class Signal(object):
         SignalType = 'intensity' which carries a Nf x Nt filterbank of pulses
                      or 'voltage' which carries a 2 x Nt array of voltage vs.
                      time pulses representing 4 stokes channels
+        BRENT HACK: added subint parameter
         """
         self.MetaData = MetaData()
         self.f0 = f0  # (MHz)
@@ -60,7 +65,15 @@ class Signal(object):
         self.SignalType = SignalType
         self.SignalDict = {}
         self.ObsTime = ObsTime   # Total time in milliseconds
-        Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
+        self.subintlen = subintlen # time in seconds
+        # BRENT HACK: Change number of timebins for fold mode pulses
+        if subintlen:
+            # Edit sampling rate if subints, assume 2048 bins per subint for now
+            self.f_samp = 2048.0/self.subintlen
+            # Basically samples per subint now?
+            Nt = int((self.ObsTime*1e-3/self.subintlen)*2048.0)+1
+        else:
+            Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
         if Nt % 2 == 0:  # Make signal even in length (for FFTs)
             self.Nt = Nt  # phase bins
