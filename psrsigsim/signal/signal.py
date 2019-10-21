@@ -24,6 +24,7 @@ class BaseSignal(object):
 
         dtype [type]: data type of array, default: ``np.float32``
             supported types are: ``np.float32`` and ``np.int8``
+
     """
 
     _sigtype = "Signal"
@@ -41,7 +42,7 @@ class BaseSignal(object):
         self._fcent = fcent
         self._bw = bandwidth
         self._samprate = sample_rate
-        if dype is np.float32 or np.int8:
+        if dtype is np.float32 or np.int8:
             self._dtype = dtype
         else:
             msg = "data type {} not supported".format(dtype)
@@ -114,6 +115,7 @@ class BaseSignal(object):
     @property
     def dtype(self):
         return self._dtype
+
 
 def Signal():
     """helper function to instantiate signals
