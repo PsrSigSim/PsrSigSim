@@ -43,6 +43,8 @@ class Receiver(object):
 
         self._Trec = make_quant(Trec, "K")
         self._name = name
+        self._fcent = make_quant(fcent, "MHz")
+        self._bandwidth = make_quant(bandwidth, "MHz")
 
     def __repr__(self):
         return "Receiver({:s})".format(self._name)
@@ -58,6 +60,14 @@ class Receiver(object):
     @property
     def response(self):
         return self._response
+    
+    @property
+    def fcent(self):
+        return self._fcent
+    
+    @property
+    def bandwidth(self):
+        return self._bandwidth
 
     def radiometer_noise(self, signal, gain=1, Tsys=None, Tenv=None):
         """add radiometer noise to a signal

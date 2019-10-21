@@ -13,22 +13,29 @@ _kB = make_quant(1.38064852e+03, "Jy*m^2/K")  # Boltzmann const in radio units
 
 class Telescope(object):
     """contains: observe(), noise(), rfi() methods"""
-    def __init__(self, aperture, area=None, name=None):
+    def __init__(self, aperture, area=None, Tsys=None, name=None):
         """initalize telescope object
         aperture: aperture (m)
         area: collecting area (m^2) (if omitted, assume circular single dish)
+        Tsys: System temperature (K) of the telescope (if omitted use Trec)
         name: string
         """ # noqa E501
         #TODO: specify Trec in Receiver and compute others from pointing
         self._name = name
         self._aperture = make_quant(aperture, "m")
         self._systems = {}
+
         if area is None:
             # assume circular single dish
             self._area = np.pi * (aperture/2)**2
         else:
             self._area = make_quant(area, "m^2")
         self._gain = self.area / (2*_kB)  # 2 polarizations
+        
+        if Tsys == None:
+            self._Tsys = Tsys
+        else:
+            self._Tsys = make_quant(Tsys, "K")
 
     def __repr__(self):
         return "Telescope({:s}, {:f}m)".format(self._name, self._aperture)
@@ -52,6 +59,10 @@ class Telescope(object):
     @property
     def systems(self):
         return self._systems
+    
+    @property
+    def Tsys(self):
+        return self._Tsys
 
     def add_system(self, name=None, receiver=None, backend=None):
         """add_system(name=None, receiver=None, backend=None)
@@ -86,7 +97,7 @@ class Telescope(object):
             else:
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
-                out[ii, :] = utils.down_sample(row, SampFactor)
+                out[ii, :] = down_sample(row, SampFactor)
             print(msg.format(1/dt_sig, 1/dt_tel))
 
         elif dt_tel > dt_sig:
@@ -96,7 +107,7 @@ class Telescope(object):
             else:
                 out = np.zeros((signal.Nf, new_Nt))
             for ii, row in enumerate(sig_in):
-                out[ii, :] = utils.rebin(row, new_Nt)
+                out[ii, :] = rebin(row, new_Nt)
             print(msg.format(1/dt_sig, 1/dt_tel))
 
         else:
@@ -148,10 +159,10 @@ def GBT():
     """ # noqa E501
     g = Telescope(100.0, area=5500.0, Tsys=35.0, name="GBT")
     g.add_system(name="820_GUPPI",
-                 receiver=Receiver(820, 180, name="820"),  # check me
+                 receiver=Receiver(fcent=820, bandwidth=180, name="820"),  # check me
                  backend=Backend(samprate=3.125, name="GUPPI"))
     g.add_system(name="Lband_GUPPI",
-                 receiver=Receiver(1400, 400, name="Lband"),  # check me
+                 receiver=Receiver(fcent=1400, bandwidth=800, name="Lband"),  # check me
                  backend=Backend(samprate=12.5, name="GUPPI"))
     return g
 
@@ -164,12 +175,12 @@ def Arecibo():
     """
     a = Telescope(300.0, area=22000.0, Tsys=35.0, name="Arecibo")
     a.add_system(name="430_PUPPI",
-                 receiver=Receiver(430, 100, name="430"),  # check me
+                 receiver=Receiver(fcent=430, bandwidth=100, name="430"),  # check me
                  backend=Backend(samprate=1.5625, name="PUPPI"))
     a.add_system(name="Lband_PUPPI",
-                 receiver=Receiver(1410, 400, name="Lband"),  # check me
+                 receiver=Receiver(fcent=1410, bandwidth=800, name="Lband"),  # check me
                  backend=Backend(samprate=12.5, name="PUPPI"))
     a.add_system(name="Sband_PUPPI",
-                 receiver=Receiver(2030, 400, name="Sband"),  # check me
+                 receiver=Receiver(fcent=2030, bandwidth=400, name="Sband"),  # check me
                  backend=Backend(samprate=12.5, name="PUPPI"))
     return a
