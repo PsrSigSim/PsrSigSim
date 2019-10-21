@@ -18,7 +18,6 @@ class Pulsar(object):
         intensity (float): mean pulse intensity (Jy)
         profile (:class:`PulseProfile`): pulse profile or 2-D pulse portrait
         name (string): name of pulsar
-        TESTING MERGE TESTING MERGE
     """
     #TODO Other data could be supplied via a `.par` file.
     def __init__(self, period, intensity, profile=None, name=None):
