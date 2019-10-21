@@ -24,6 +24,7 @@ class BaseSignal(object):
 
         dtype [type]: data type of array, default: ``np.float32``
             supported types are: ``np.float32`` and ``np.int8``
+
     """
 
     _sigtype = "Signal"
@@ -114,6 +115,7 @@ class BaseSignal(object):
     @property
     def dtype(self):
         return self._dtype
+
 
 def Signal():
     """helper function to instantiate signals
