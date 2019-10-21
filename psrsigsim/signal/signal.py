@@ -41,7 +41,7 @@ class BaseSignal(object):
         self._fcent = fcent
         self._bw = bandwidth
         self._samprate = sample_rate
-        if dype is np.float32 or np.int8:
+        if dtype is np.float32 or np.int8:
             self._dtype = dtype
         else:
             msg = "data type {} not supported".format(dtype)
