@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from astropy import log
 
-# from .profiles import PulseProfile
+from .profiles import PulseProfile
 
 class PulsePortrait(object):
     """base class for pulse portraits
