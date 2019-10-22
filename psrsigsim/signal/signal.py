@@ -24,6 +24,9 @@ class BaseSignal(object):
 
         dtype [type]: data type of array, default: ``np.float32``
             supported types are: ``np.float32`` and ``np.int8``
+        
+        Npols [int]: number of polarizations, 1-4. Currently only values of 
+                    1 for total intensity are supported.
 
     """
 
@@ -37,7 +40,8 @@ class BaseSignal(object):
     def __init__(self,
                  fcent, bandwidth,
                  sample_rate=None,
-                 dtype=np.float32):
+                 dtype=np.float32,
+                 Npols=1):
 
         self._fcent = fcent
         self._bw = bandwidth
@@ -46,6 +50,12 @@ class BaseSignal(object):
             self._dtype = dtype
         else:
             msg = "data type {} not supported".format(dtype)
+            raise ValueError(msg)
+        # TODO: This will be changed eventually to support multiple polarizations
+        if Npols == 1:
+            self._Npols = 1
+        else:
+            msg = "Only total intensity polarization is currently supported"
             raise ValueError(msg)
 
     def __repr__(self):
@@ -115,6 +125,10 @@ class BaseSignal(object):
     @property
     def dtype(self):
         return self._dtype
+    
+    @property
+    def Npols(self):
+        return self._Npols
 
 
 def Signal():

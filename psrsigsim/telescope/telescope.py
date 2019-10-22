@@ -73,66 +73,82 @@ class Telescope(object):
         """observe(signal, system=None, mode='search', noise=False)
         signal -- Signal() instance
         system -- dict key for system to use
-        
-        BRENT HACK: Hopefully the signal class that gets passed here will
-        have the subintlength with it so if it does we will make dt the 
-        subintlength in the radiometer noise, dt will be in ms
         """
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
-        #rec = self.systems[system][0]
+        rcvr = self.systems[system][0]
         bak = self.systems[system][1]
 
-        sig_in = signal.signal
+        sig_in = signal.data
         dt_tel = 1/(2*bak.samprate)
-        dt_sig = signal.ObsTime / signal.Nt
-
+        # if we have subintegrations, need to get new dt_sig
+        if signal.sublen:
+            dt_sig = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
+        else:
+            dt_sig = signal.tobs / signal.nsamp # unit: s
+        
+        # QUESTION: out should be the resampled signal now right? So we 
+        # should be editing the signal object directly here.
+        
         if dt_sig == dt_tel:
             out = np.array(sig_in, dtype=float)
 
         elif dt_tel % dt_sig == 0:
             SampFactor = int(dt_tel // dt_sig)
-            new_Nt = int(signal.Nt//SampFactor)
-            if signal.SignalType == 'voltage':
+            new_Nt = int(signal.nsamp//SampFactor)
+            if signal.sigtype == 'voltage':
                 out = np.zeros((signal.Npols, new_Nt))
             else:
-                out = np.zeros((signal.Nf, new_Nt))
+                out = np.zeros((signal.Nchan, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii, :] = down_sample(row, SampFactor)
-            print(msg.format(1/dt_sig, 1/dt_tel))
+            print(msg.format((1/dt_sig).to("kHz").value, (1/dt_tel).to("kHz").value))
 
         elif dt_tel > dt_sig:
-            new_Nt = int(signal.ObsTime // dt_tel)
-            if signal.SignalType == 'voltage':
+            new_Nt = int(signal.tobs // dt_tel)
+            if signal.sigtype == 'voltage':
                 out = np.zeros((signal.Npols, new_Nt))
             else:
-                out = np.zeros((signal.Nf, new_Nt))
+                out = np.zeros((signal.Nchan, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii, :] = rebin(row, new_Nt)
-            print(msg.format(1/dt_sig, 1/dt_tel))
+            print(msg.format((1/dt_sig).to("kHz").value, (1/dt_tel).to("kHz").value))
 
         else:
             # input signal has lower samp freq than telescope samp freq
-            raise ValueError("Signal sampling freq < Telescope sampling freq")
-        
-        # BRENT HACK: if subintlength exists then we want to call it for dt here
-        if signal.subintlen:
-            dt_tel = signal.subintlen *1000.0 # convert from seconds to ms
-            print("Using subintlength for dt in ms", dt_tel)
+            #raise ValueError("Signal sampling freq < Telescope sampling freq")
+            
+            # circumvent this issue for subintegrated data for now...
+            if signal.subint:
+                out = np.array(sig_in, dtype=float)
+            else:
+                raise ValueError("Signal sampling freq < Telescope sampling freq")
 
         if noise:
-            out += self.radiometer_noise(signal, out.shape, dt_tel)
+            # The noise is getting added to the data in the radiometer noise function; this function as no output
+            # Need to look into this resampling as well
+            #out += rcvr.radiometer_noise(signal, gain=1) 
+            rcvr.radiometer_noise(signal, gain=self.gain)
+            
 
-        if signal.SignalType == 'voltage':
-            clip = signal.MetaData.gauss_draw_max
+        if signal.sigtype == 'voltage':
+            #clip = signal.MetaData.gauss_draw_max 
+            # Difference between gauss and gamma draw here?
+            clip = signal._draw_max
 
             out[out>clip] = clip
             out[out<-clip] = -clip
         else:
-            clip = signal.MetaData.gamma_draw_max
+            #clip = signal.MetaData.gamma_draw_max
+            # Difference between gauss and gamma draw here?
+            clip = signal._draw_max
             out[out>clip] = clip
 
-        out = np.array(out, dtype=signal.MetaData.data_type)
-
+        out = np.array(out, dtype=signal.dtype)
+        
+        """
+        What should out be? What is it taking the place of? How should we add noise to it?
+        Currently appears to just be downsampled signal (which is fine but we need to know this)
+        """
         return out
 
     def apply_response(self, signal):

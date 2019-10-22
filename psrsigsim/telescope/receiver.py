@@ -85,6 +85,9 @@ class Receiver(object):
             else:
                 Tsys = Tenv + self.Trec
         # else: Tsys given as input!
+        
+        # gain by this equation should have units of K/Jy
+        gain = make_quant(gain, "K/Jy")
 
         # select noise generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
@@ -114,7 +117,10 @@ class Receiver(object):
     def _make_pow_noise(self, signal, Tsys, gain):
         """radiometer noise for power signals
         """
-        dt = 1 / signal.samprate
+        if signal.subint:
+            dt = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
+        else:
+            dt = 1 / signal.samprate
         bw_per_chan = signal.bw / signal.Nchan
 
         # noise variance
