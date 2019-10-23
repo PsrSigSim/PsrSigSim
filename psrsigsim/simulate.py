@@ -9,8 +9,8 @@ Units for V_ISS etc.?
 import psrsigsim as PSS
 import psrsigsim as PSS
 from psrsigsim import Telescope
-import sys 
-import pint 
+import sys
+import pint
 # from pint.models import polycos
 from pint import models
 from pint import utils
@@ -128,8 +128,8 @@ class Simulation(object):
         self.sim_scint = sim_scint
         self.sim_dict = sim_dict
         self.sim_file_path = sim_file_path
-        
-        
+
+
 
         if isinstance(psr, str):
             self.param_dict = self._set_pulsar_dict()
@@ -137,30 +137,30 @@ class Simulation(object):
             if 'F0' in self.param_dict.keys() and 'F0' in self.sim_dict.keys():
                 print( "Two 'F0' values input. Simulator will default to input dictionary value.")
             if 'dm' in self.param_dict.keys() and 'dm' in self.sim_dict.keys():
-                print( "Two 'dm' values input. Simulator will default to input dictionary value.")    
+                print( "Two 'dm' values input. Simulator will default to input dictionary value.")
 
             self.param_dict.update(self.sim_dict)
             self.sim_dict = self.param_dict
-            
-            
+
+
             self.init_signal()
             self.init_pulsar()
             if sim_ism:
                 self.init_ism()
-                
+
             if sim_scint:
                 self.init_scint()
-                
+
             if sim_telescope:
                 self.init_telescope()
-               
-            
-        
-            
-        
-        
-        
-    def init_signal(self,signal_dict = None): 
+
+
+
+
+
+
+
+    def init_signal(self,signal_dict = None):
         """This is a function that initializes a signal class using a dictionary
          of parameters.
 
@@ -193,7 +193,7 @@ class Simulation(object):
         """
         d = self._check_simul_dict(signal_dict)
         self.signal = PSS.Signal(f0 = d['f0'],bw = d['bw'], Nf = d['Nf'], f_samp = d['f_samp'] , ObsTime = d['ObsTime']\
-                                    ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate')        
+                                    ,data_type = d['data_type'],SignalType = d['SignalType'], mode = 'simulate')
 
 
     def init_pulsar(self,pulsar_dict = None):
@@ -217,8 +217,8 @@ class Simulation(object):
         """
         d =  self._check_simul_dict(pulsar_dict)
         self.pulsar = PSS.Pulsar(self.signal, period = 1000/float(d['F0']) , flux = d['flux']) # in units of milliseconds
-        
-        
+
+
     def init_ism(self,ism_dict = None):
         """This is a function that initializes the ism class using a dictionary
         of parameters.
@@ -237,12 +237,12 @@ class Simulation(object):
             Dispersion measure.
         """
         d = self._check_simul_dict(ism_dict)
-        self.ISM = PSS.ISM(self.signal, DM = d['dm']) 
-        
-        
-        
-        
-    
+        self.ISM = PSS.ISM(self.signal, DM = d['dm'])
+
+
+
+
+
     def init_scint(self,scint_dict = None):
         """This is a function that initializes the scintillate class using a dictionary
         of parameters.
@@ -273,22 +273,22 @@ class Simulation(object):
                 Frequency band.
         """
         d = self._check_simul_dict(scint_dict)
-        
+
         try:
             self.Scint = PSS.scintillate(self.signal, V_ISS=d['V_ISS'], scint_bw=d['scint_bw'], scint_timescale=d['scint_timescale'],\
                 pulsar=None, to_use_NG_pulsar=False, telescope=None, freq_band=None)
-                                
+
         except KeyError:
             #self.Scint = PSS.scintillate(self.signal,  V_ISS=None, scint_bw=None, scint_timescale=None,\
                         #pulsar=d['pulsar'], to_use_NG_pulsar=True, telescope=d['telescope'], freq_band=d['freq_band'])
-            
+
             self.Scint = PSS.scintillate(self.signal,  V_ISS=None, scint_bw=None, scint_timescale=None,\
                         pulsar=self.psr, to_use_NG_pulsar=True, telescope=self.sim_telescope, freq_band=d['freq_band'])
-            
-        
-        
-    
-    
+
+
+
+
+
     def init_telescope(self,telescope_dict = None):
         """This is a function that initializes the telescope class using a dictionary
         of parameters.
@@ -317,21 +317,21 @@ class Simulation(object):
         """
         if self.sim_telescope == 'GBT':
             self.telescope = PSS.GBT()
-            
+
         elif self.sim_telescope == 'Arecibo':
             self.telescope = PSS.Arecibo()
-            
-        elif self.sim_telescope == None: 
-            
+
+        elif self.sim_telescope == None:
+
             d = self._check_simul_dict(telescope_dict)
             self.telescope = PSS.Telescope(d['aperture'],area = d['area'], Tsys = d['Tsys'], name = d['telescope'])
-            
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
     def simulate(self):
         """This is the function that runs the simulation once the desired classes
         are initialized.
@@ -340,15 +340,15 @@ class Simulation(object):
             if 'tau_scatter' in self.sim_dict.keys():
                 self.ISM.to_Scatter_Broaden_exp = True
                 self.ISM.tau_scatter = self.sim_dict['tau_scatter']
-               
+
             if 'DM' and 'to_DM_Broaden' in self.sim_dict.keys():
                 self.ISM.to_DM_Broaden = self.sim_dict['to_DM_Broaden']
-                
 
-                
-            
+
+
+
             self.ISM.finalize_ism()
-           
+
             if self.signal.MetaData.to_DM_Broaden:
                 tophats = PSS.ism.make_dm_broaden_tophat(self.pulsar,self.signal)
                 PSS.ism.convolve_with_profile(self.pulsar,tophats)
@@ -357,34 +357,34 @@ class Simulation(object):
                 exponentials = PSS.ism.make_scatter_broaden_exp(self.pulsar,self.signal,self.sim_dict['tau_scatter'])
                 PSS.ism.convolve_with_profile(self.pulsar,exponentials)
 
-    
-        self.pulsar.make_pulses()
-       
-        
+
+        self.pulsar.make_pulses(subintlen = self.signal.subintlen)
+
+
         try:
             self.ISM.disperse()
-            
+
         except AttributeError:
             pass
-        
+
 #         try:
 #             self.Scintillate = self.Scint.() # Add command once it exists
 #         except AttributeError:
 #             pass
-        
+
         if hasattr(self,'telescope'): # if sim_telescope is not true it skips
-            if self.sim_dict['radiometer_noise']: 
+            if self.sim_dict['radiometer_noise']:
                 self.obs_signal = self.telescope.radiometer_noise(self.signal,[self.signal.Nf, self.signal.Nt],self.signal.TimeBinSize)
-              
-        
-    
-    
-    
-                
-        
-                                    
+
+
+
+
+
+
+
+
 ####Convenience Methods
-                                    
+
     def _check_simul_dict(self,d):
         """Checks for input dictionary in init method and sets it as a dictionary
         to be used in the initialization of the class.
@@ -408,22 +408,22 @@ class Simulation(object):
             TypeError message if input dictionary is not a dictionary.
         """
         if not d:
-            if self.sim_dict:  
+            if self.sim_dict:
                 d = self.sim_dict
             else:
-                raise ValueError('Parameter dictionary needed.')           
+                raise ValueError('Parameter dictionary needed.')
         elif isinstance(d,dict):
             pass
         else:
             raise TypeError('Input not a dictionary')
-                                    
-                                    
+
+
         return d
-    
-    
+
+
     def _set_pulsar_dict(self):
         """Takes Pulsar name, retrieves the following parameters:
-             
+
         F0 : float
             Pulsar Spin Frequency (Hz)
         dm : float
@@ -440,14 +440,14 @@ class Simulation(object):
         param_dict : dict
             Dictionary containing parameters to be added to sim_dict in Simulation().
         """
-    
-        p = PSS.PSS_utils.get_pint_models(self.psr, self.sim_file_path) 
-        param_dict = {'F0': p.F0.value, 'dm':p.DM.value} 
-        [scint_bw, scint_timescale] = PSS.ism.NG_scint_param(self.psr, self.sim_telescope , self.sim_dict['freq_band']) 
+
+        p = PSS.PSS_utils.get_pint_models(self.psr, self.sim_file_path)
+        param_dict = {'F0': p.F0.value, 'dm':p.DM.value}
+        [scint_bw, scint_timescale] = PSS.ism.NG_scint_param(self.psr, self.sim_telescope , self.sim_dict['freq_band'])
         param_dict['scint_bw'] = scint_bw
-        param_dict['scint_timescale'] = scint_timescale 
-        
-        
+        param_dict['scint_timescale'] = scint_timescale
+
+
         return param_dict
 
 
