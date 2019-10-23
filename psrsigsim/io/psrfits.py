@@ -75,7 +75,8 @@ class PSRFITS(BaseFile):
                                     'NSBLK',
                                     'DAT_SCL',
                                     'DAT_OFFS',
-                                    'DAT_WTS',]
+                                    'DAT_WTS',
+                                    "TSUBINT",] # TTYPE2 is the subint length
                            }
 
         #Might not need this, since we can calculate from other terms.
@@ -127,8 +128,11 @@ class PSRFITS(BaseFile):
         """
         self._fits_mode = 'copy'
         self._get_signal_params()
-
-        ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
+        
+        if self.obs_mode == 'PSR':
+            ObsTime = self.tsubint*self.nrows
+        else:
+            ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
 
         #TODO Delete calls to .value when integrated with new API.
         #TODO Change call to FilterBank for new API.
@@ -148,7 +152,8 @@ class PSRFITS(BaseFile):
                    sample_rate=(1/self.tbin).to('MHz').value,
                    #ObsTime=ObsTime.to('ms').value,
                    dtype=np.float32,
-                   subint=True)
+                   subint=True,
+                   sublen=self.tsubint)
 
         S.freq_Array = self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ')
 
@@ -235,6 +240,7 @@ class PSRFITS(BaseFile):
         self.chan_bw = self.pfit_dict['CHAN_BW']
         self.stt_imjd = self.pfit_dict['STT_IMJD'] # start MJD of obs
         self.stt_smjd = self.pfit_dict['STT_SMJD'] # start second of obs
+        self.tsubint = self.pfit_dict['TSUBINT'] # length of subint in seconds
         
         if self.obs_mode=='PSR':
             self.nsubint = self.nrows
@@ -252,7 +258,9 @@ class PSRFITS(BaseFile):
         for extname in self.pfit_pars.keys():
             for ky in self.pfit_pars[extname]:
                 if 'DAT' in ky:
-                   val = self._get_pfit_bin_table_entry('SUBINT', ky)
+                    val = self._get_pfit_bin_table_entry('SUBINT', ky)
+                elif 'TSUBINT' in ky:
+                    val = self._get_pfit_bin_entry('SUBINT', ky)
                 else:
                     val = self._get_pfit_hdr_entry(extname,ky)
                 if isinstance(val,str) or isinstance(val,bytes):
@@ -275,6 +283,14 @@ class PSRFITS(BaseFile):
         """Retrieve a single header entry from PSRFITS file."""
         idx = self.file.draft_hdr_keys.index(extname)
         return self.file.fits_template[idx][key][row][0]
+    
+    def _get_pfit_bin_entry(self, extname, key, row=0):
+        """Retrieve a single header entry from PSRFITS file.
+        Different from get_pfit_bin_table_entry, this gets just
+        single value parameters (e.g. TSUBINT), not arrays or list values.
+        """
+        idx = self.file.draft_hdr_keys.index(extname)
+        return self.file.fits_template[idx][key][row]
 
     #### Define various PSRFITS parameters
     @property
@@ -364,3 +380,11 @@ class PSRFITS(BaseFile):
     @stt_smjd.setter
     def stt_smjd(self, value):
         self._stt_smjd = make_quant(value, 'second')
+        
+    @property
+    def tsubint(self):
+        return self._tsubint
+    
+    @tsubint.setter
+    def tsubint(self, value):
+        self._tsubint = make_quant(value, 'second')
