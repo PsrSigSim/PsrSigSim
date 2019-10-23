@@ -10,8 +10,8 @@ __all__ = ['Backend']
 class Backend(object):
     def __init__(self, samprate=None, name=None):
         self._name = name
-        # Entered sample rate appears to be in kHz -> CHECK THIS
-        self._samprate = make_quant(samprate, "kHz")
+        # Should be in MHz
+        self._samprate = make_quant(samprate, "MHz")
 
     def __repr__(self):
         return "Backend({:s})".format(self._name)
