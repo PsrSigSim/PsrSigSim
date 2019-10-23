@@ -1,6 +1,9 @@
 # editor temp files
 .*.swp
 
+# jupyter output
+.ipynb_checkpoints/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -63,3 +66,8 @@ target/
 
 # pyenv python configuration file
 .python-version
+
+#miscellaneous
+.DS_store
+.ipynb_checkpoints/
+
