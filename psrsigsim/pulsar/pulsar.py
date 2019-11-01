@@ -119,12 +119,12 @@ class Pulsar(object):
         """
         if signal.subint:
             # Determine how many subints to make
-            if signal.sublen != None:
+            if signal.sublen is None:
+                signal._sublen = signal.tobs
+                signal._nsub = 1
+            else:
                 # This should be an integer, if not, will round
                 signal._nsub = int(np.round(signal.tobs / signal.sublen))
-            else:
-                signal.sublen = signal.tobs
-                signal._nsub = 1
             
             # determine the number of data samples necessary
             signal._nsamp = int((signal.nsub*(self.period*signal.samprate)).decompose())

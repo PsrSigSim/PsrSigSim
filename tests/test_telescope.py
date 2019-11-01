@@ -69,18 +69,37 @@ def backend():
     
 def test_obs(tscope, receiver, backend, signal, pulsar):
     """
-    Test adding a system to the telescope
+    Test adding a system to the telescope and observing
     """
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
-    tobs = make_quant(1,'s')
+    tobs = make_quant(0.02,'s')
     pulsar.make_pulses(signal,tobs)
     tscope.observe(signal, system="Twnty_M", noise=False)
 
 def test_noise(tscope, receiver, backend, signal, pulsar):
     """
-    Test adding a system to the telescope
+    Test adding a system to the telescope and observing with noise
     """
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
-    tobs = make_quant(1,'s')
+    tobs = make_quant(0.02,'s')
     pulsar.make_pulses(signal,tobs)
     tscope.observe(signal, system="Twnty_M", noise=True)
+    
+def test_subint_obs(tscope, receiver, backend, subint_signal, pulsar):
+    """
+    Test adding a system to the telescope and observing with subint signal
+    """
+    tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
+    tobs = make_quant(0.02,'s')
+    pulsar.make_pulses(subint_signal,tobs)
+    tscope.observe(subint_signal, system="Twnty_M", noise=False)
+
+def test_subint_noise(tscope, receiver, backend, subint_signal, pulsar):
+    """
+    Test adding a system to the telescope and observing with noise and subint
+    signal
+    """
+    tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
+    tobs = make_quant(0.02,'s')
+    pulsar.make_pulses(subint_signal,tobs)
+    tscope.observe(subint_signal, system="Twnty_M", noise=True)
