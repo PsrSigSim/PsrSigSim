@@ -49,6 +49,8 @@ class PSRFITS(BaseFile):
                                  obs_mode=obs_mode, verbose=False)
         if obs_mode is None:
             self.obs_mode = self.file.obs_mode
+        else:
+            self.obs_mode = obs_mode
 
         #Lists of needed parameters from the PSRFITS file.
         self.pfit_pars = {'PRIMARY':['TELESCOP',
@@ -76,7 +78,9 @@ class PSRFITS(BaseFile):
                                     'DAT_SCL',
                                     'DAT_OFFS',
                                     'DAT_WTS',
-                                    "TSUBINT",] # TTYPE2 is the subint length
+                                    "TSUBINT",], # TTYPE2 is the subint length
+                            'PSRPARAM':[
+                                    ]
                            }
 
         #Might not need this, since we can calculate from other terms.
@@ -84,6 +88,9 @@ class PSRFITS(BaseFile):
             self.pfit_pars['SUBINT'].append('TDIM17')
         elif self.obs_mode=='PSR':
             self.pfit_pars['SUBINT'].append('TDIM20')
+            self.pfit_pars['PSRPARAM'].append('F')
+            # Need both there depending on the template file. Only one will work.
+            self.pfit_pars['PSRPARAM'].append('F0')
 
     def save(self, signal):
         """Save PSS signal file to disk.
@@ -98,7 +105,7 @@ class PSRFITS(BaseFile):
             pass
         """
         # We can only save single polarization
-        self.file.set_draft_header('SUBNT',{'POL_TYPE':'AA+BB'})
+        self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
         
 
         raise NotImplementedError()
@@ -117,6 +124,8 @@ class PSRFITS(BaseFile):
 
     def make_signal_from_psrfits(self):
         """Method to make a signal from the PSRFITS file given as the template.
+        For subintegrated data will assume the initial period is the pulsar 
+        period given in the PSRPARAM header.
 
         Parameters
         ----------
@@ -131,8 +140,19 @@ class PSRFITS(BaseFile):
         
         if self.obs_mode == 'PSR':
             ObsTime = self.tsubint*self.nrows
+            # Get correct period value from template fits options
+            if self.pfit_dict['F'] is None and self.pfit_dict['F0'] is not None:
+                s_rate = self.pfit_dict['F0']*self.nbin*10**-6 # in MHz
+            elif self.pfit_dict['F'] is not None and self.pfit_dict['F0'] is None:
+                s_rate = self.pfit_dict['F']*self.nbin*10**-6 # in MHz
+            elif self.pfit_dict['F'] is not None and self.pfit_dict['F0'] is not None:
+                s_rate = self.pfit_dict['F0']*self.nbin*10**-6 # in MHz
+            else:
+                msg = "No pulsar frequency defined in input fits file."
+                raise ValueError(msg)        
         else:
             ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
+            s_rate = (1/self.tbin).to('MHz').value
 
         #TODO Delete calls to .value when integrated with new API.
         #TODO Change call to FilterBank for new API.
@@ -149,8 +169,7 @@ class PSRFITS(BaseFile):
         S = FilterBankSignal(fcent=self.obsfreq.value,
                    bandwidth=self.obsbw.value,
                    Nsubband=self.nchan,
-                   sample_rate=(1/self.tbin).to('MHz').value,
-                   #ObsTime=ObsTime.to('ms').value,
+                   sample_rate=s_rate,
                    dtype=np.float32,
                    subint=True,
                    sublen=self.tsubint)
@@ -261,6 +280,8 @@ class PSRFITS(BaseFile):
                     val = self._get_pfit_bin_table_entry('SUBINT', ky)
                 elif 'TSUBINT' in ky:
                     val = self._get_pfit_bin_entry('SUBINT', ky)
+                elif extname == "PSRPARAM":
+                    val = self._get_pfit_psrparam(extname, ky)
                 else:
                     val = self._get_pfit_hdr_entry(extname,ky)
                 if isinstance(val,str) or isinstance(val,bytes):
@@ -282,7 +303,10 @@ class PSRFITS(BaseFile):
     def _get_pfit_bin_table_entry(self, extname, key, row=0):
         """Retrieve a single header entry from PSRFITS file."""
         idx = self.file.draft_hdr_keys.index(extname)
-        return self.file.fits_template[idx][key][row][0]
+        try:
+            return self.file.fits_template[idx][key][row][0]
+        except:
+            return self.file.fits_template[idx][key][row]
     
     def _get_pfit_bin_entry(self, extname, key, row=0):
         """Retrieve a single header entry from PSRFITS file.
@@ -291,6 +315,15 @@ class PSRFITS(BaseFile):
         """
         idx = self.file.draft_hdr_keys.index(extname)
         return self.file.fits_template[idx][key][row]
+    
+    def _get_pfit_psrparam(self, extname, param):
+        """Retrieve a single value from the PSRPARAM header. This 
+        has a different format than the SUBINT or PRIMARY headers.
+        """
+        idx = self.file.draft_hdr_keys.index(extname)
+        for val in self.file.fits_template[idx][:]:
+            if param == val[0].split()[0]:
+                return np.float64(val[0].split()[1].replace("D","E"))
 
     #### Define various PSRFITS parameters
     @property
