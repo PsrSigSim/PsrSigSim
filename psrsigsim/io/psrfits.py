@@ -89,6 +89,8 @@ class PSRFITS(BaseFile):
         elif self.obs_mode=='PSR':
             self.pfit_pars['SUBINT'].append('TDIM20')
             self.pfit_pars['PSRPARAM'].append('F')
+            # Need both there depending on the template file. Only one will work.
+            self.pfit_pars['PSRPARAM'].append('F0')
 
     def save(self, signal):
         """Save PSS signal file to disk.
@@ -138,7 +140,16 @@ class PSRFITS(BaseFile):
         
         if self.obs_mode == 'PSR':
             ObsTime = self.tsubint*self.nrows
-            s_rate = self.pfit_dict['F']*self.nbin*10**-6 # in MHz
+            # Get correct period value from template fits options
+            if self.pfit_dict['F'] is None and self.pfit_dict['F0'] is not None:
+                s_rate = self.pfit_dict['F0']*self.nbin*10**-6 # in MHz
+            elif self.pfit_dict['F'] is not None and self.pfit_dict['F0'] is None:
+                s_rate = self.pfit_dict['F']*self.nbin*10**-6 # in MHz
+            elif self.pfit_dict['F'] is not None and self.pfit_dict['F0'] is not None:
+                s_rate = self.pfit_dict['F0']*self.nbin*10**-6 # in MHz
+            else:
+                msg = "No pulsar frequency defined in input fits file."
+                raise ValueError(msg)        
         else:
             ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
             s_rate = (1/self.tbin).to('MHz').value
@@ -292,7 +303,10 @@ class PSRFITS(BaseFile):
     def _get_pfit_bin_table_entry(self, extname, key, row=0):
         """Retrieve a single header entry from PSRFITS file."""
         idx = self.file.draft_hdr_keys.index(extname)
-        return self.file.fits_template[idx][key][row][0]
+        try:
+            return self.file.fits_template[idx][key][row][0]
+        except:
+            return self.file.fits_template[idx][key][row]
     
     def _get_pfit_bin_entry(self, extname, key, row=0):
         """Retrieve a single header entry from PSRFITS file.
@@ -309,7 +323,7 @@ class PSRFITS(BaseFile):
         idx = self.file.draft_hdr_keys.index(extname)
         for val in self.file.fits_template[idx][:]:
             if param == val[0].split()[0]:
-                return np.float64(val[0].split()[-1].replace("D","E"))
+                return np.float64(val[0].split()[1].replace("D","E"))
 
     #### Define various PSRFITS parameters
     @property
