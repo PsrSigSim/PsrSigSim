@@ -64,7 +64,7 @@ class FilterBankSignal(BaseSignal):
         self._bw = make_quant(bandwidth, 'MHz')
 
         self._subint = subint
-        if self.subint:
+        if self.subint and sublen != None:
             self._sublen = make_quant(sublen, 's')
         else:
             self._sublen = sublen
