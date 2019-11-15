@@ -44,7 +44,11 @@ class BaseSignal(object):
                  Npols=1):
 
         self._fcent = fcent
-        self._bw = bandwidth
+        # Check if bandwidth is negative; only an issue when making signal from fitsfile
+        if bandwidth < 0:
+            self._bw = np.abs(bandwidth)
+        else:
+            self._bw = bandwidth
         self._samprate = sample_rate
         if dtype is np.float32 or np.int8:
             self._dtype = dtype
@@ -129,6 +133,10 @@ class BaseSignal(object):
     @property
     def Npols(self):
         return self._Npols
+    
+    @property
+    def dat_freq(self):
+        return self._dat_freq
 
 
 def Signal():
