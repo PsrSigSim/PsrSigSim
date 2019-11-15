@@ -69,9 +69,10 @@ class Telescope(object):
         append new system to dict systems"""
         self._systems[name] = (receiver, backend)
 
-    def observe(self, signal, system=None, mode='search', noise=False):
+    def observe(self, signal, pulsar, system=None, mode='search', noise=False):
         """observe(signal, system=None, mode='search', noise=False)
         signal -- Signal() instance
+        pulsar -- Pulsar() object, necessary for radiometer noise scaling
         system -- dict key for system to use
         """
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
@@ -127,7 +128,7 @@ class Telescope(object):
             # The noise is getting added to the data in the radiometer noise function; this function as no output
             # Need to look into this resampling as well
             #out += rcvr.radiometer_noise(signal, gain=1) 
-            rcvr.radiometer_noise(signal, gain=self.gain)
+            rcvr.radiometer_noise(signal, pulsar, gain=self.gain)
             
 
         if signal.sigtype == 'voltage':

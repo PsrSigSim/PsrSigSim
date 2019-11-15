@@ -74,7 +74,7 @@ def test_obs(tscope, receiver, backend, signal, pulsar):
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
     tobs = make_quant(0.02,'s')
     pulsar.make_pulses(signal,tobs)
-    tscope.observe(signal, system="Twnty_M", noise=False)
+    tscope.observe(signal, pulsar, system="Twnty_M", noise=False)
 
 def test_noise(tscope, receiver, backend, signal, pulsar):
     """
@@ -83,7 +83,7 @@ def test_noise(tscope, receiver, backend, signal, pulsar):
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
     tobs = make_quant(0.02,'s')
     pulsar.make_pulses(signal,tobs)
-    tscope.observe(signal, system="Twnty_M", noise=True)
+    tscope.observe(signal, pulsar, system="Twnty_M", noise=True)
     
 def test_subint_obs(tscope, receiver, backend, subint_signal, pulsar):
     """
@@ -92,7 +92,7 @@ def test_subint_obs(tscope, receiver, backend, subint_signal, pulsar):
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
     tobs = make_quant(0.02,'s')
     pulsar.make_pulses(subint_signal,tobs)
-    tscope.observe(subint_signal, system="Twnty_M", noise=False)
+    tscope.observe(subint_signal, pulsar, system="Twnty_M", noise=False)
 
 def test_subint_noise(tscope, receiver, backend, subint_signal, pulsar):
     """
@@ -102,4 +102,4 @@ def test_subint_noise(tscope, receiver, backend, subint_signal, pulsar):
     tscope.add_system(name="Twnty_M", receiver=receiver, backend=backend)
     tobs = make_quant(0.02,'s')
     pulsar.make_pulses(subint_signal,tobs)
-    tscope.observe(subint_signal, system="Twnty_M", noise=True)
+    tscope.observe(subint_signal, pulsar, system="Twnty_M", noise=True)
