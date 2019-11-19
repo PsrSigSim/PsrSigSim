@@ -4,6 +4,8 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
+from packaging import version
+import fitsio
 import pdat
 from .file import BaseFile
 from ..utils import make_quant
@@ -104,11 +106,45 @@ class PSRFITS(BaseFile):
         elif self._fits_mode == 'auto':
             pass
         """
-        # We can only save single polarization
-        self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
+        # We need to appropriatly shape the signal for the fits file
+        stop = self.nbin*self.nsubint
+        sim_sig = signal.data[:,:stop].astype('>i2')
+        # out arrays
+        Out = np.zeros((self.nsubint, self.npol, self.nchan, self.nbin))
+        print(np.shape(Out))
+        # We assign the data in the appropriate shape
+        for ii in range(self.nsubint):
+            idx0 = 0 + ii*2048
+            idxF = idx0 + 2048
+            Out[ii,0,:,:] = sim_sig[:,idx0:idxF]
         
-
-        raise NotImplementedError()
+        self.copy_psrfit_BinTables()
+        # We can currently only make total intensity data
+        self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
+        """IMPORTANT NOTE: Currently phase connection is not implimented here! Still need to do this."""
+        for ii in range(self.nsubint):
+            self.file.HDU_drafts['SUBINT'][ii]['DATA'] = Out[ii,0,:,:]
+            self.file.HDU_drafts['SUBINT'][ii]['DAT_FREQ'] = signal.dat_freq.value
+            # Get the shapes of the wieghts, scales, and offs arrays, assumes we want to reset these to all be equal
+            if len(np.shape(self.file.fits_template[4][0]['DAT_SCL'])) != 1:
+                scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol])
+                offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol])
+                weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+            else:
+                scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:])
+                offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:])
+                weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+            # Now assign the values
+            #print(scale_shape, offs_shape, weight_shape)
+            self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = np.ones(scale_shape)
+            self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = np.zeros(offs_shape)
+            self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = np.ones(weight_shape)
+        # Now we actually write out the files
+        self.file.write_psrfits(hdr_from_draft=True)
+        # Close the file so it doesn't take up memory or get confused with another file. 
+        self.file.close()
+        print("Finished writing and saving the file")
+        
 
     def append(self, signal):
         """Method for appending data to an already existing PSS signal file.
@@ -174,8 +210,8 @@ class PSRFITS(BaseFile):
                    subint=True,
                    sublen=self.tsubint)
 
-        S.freq_Array = self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ')
-
+        S._dat_freq = make_quant(self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ'), 'MHz')
+        
         return S
 
     def copy_psrfit_BinTables(self, ext_names='all', copy_SUBINT_nonDATA=True):
@@ -238,33 +274,55 @@ class PSRFITS(BaseFile):
         self.nchan = signal.Nf
         Nt = signal.Nt
 
-    def _get_signal_params(self):
+    def _get_signal_params(self, signal = None):
         """
         Calculate/retrieve the various parameters to make a PSS signal object
         from a given PSRFITS file.
-
-        Returns
-        -------
-        NChan, Nt
-        """
-        self._make_psrfits_pars_dict()
-        self.nchan = self.pfit_dict['NCHAN']
-        self.tbin = self.pfit_dict['TBIN']
-        self.nbin = self.pfit_dict['NBIN']
-        self.npol = self.pfit_dict['NPOL']
-        self.nrows = self.pfit_dict['NAXIS2']
-        self.nsblk = self.pfit_dict['NSBLK']
-        self.obsfreq = self.pfit_dict['OBSFREQ']
-        self.obsbw = self.pfit_dict['OBSBW']
-        self.chan_bw = self.pfit_dict['CHAN_BW']
-        self.stt_imjd = self.pfit_dict['STT_IMJD'] # start MJD of obs
-        self.stt_smjd = self.pfit_dict['STT_SMJD'] # start second of obs
-        self.tsubint = self.pfit_dict['TSUBINT'] # length of subint in seconds
         
-        if self.obs_mode=='PSR':
-            self.nsubint = self.nrows
+        if signal is given as a Signal() class object, then the values
+        will be taken from the signal class instead of a given PSRFITS
+        file.
+        """
+        # get paramters from fits file
+        if signal == None:
+            self._make_psrfits_pars_dict()
+            self.nchan = self.pfit_dict['NCHAN']
+            self.tbin = self.pfit_dict['TBIN']
+            self.nbin = self.pfit_dict['NBIN']
+            self.npol = self.pfit_dict['NPOL']
+            self.nrows = self.pfit_dict['NAXIS2']
+            self.nsblk = self.pfit_dict['NSBLK']
+            self.obsfreq = self.pfit_dict['OBSFREQ']
+            self.obsbw = self.pfit_dict['OBSBW']
+            self.chan_bw = self.pfit_dict['CHAN_BW']
+            self.stt_imjd = self.pfit_dict['STT_IMJD'] # start MJD of obs
+            self.stt_smjd = self.pfit_dict['STT_SMJD'] # start second of obs
+            self.tsubint = self.pfit_dict['TSUBINT'] # length of subint in seconds
+            
+            if self.obs_mode=='PSR':
+                self.nsubint = self.nrows
+            else:
+                self.nsubint = None
+        # get parameters from signal class
         else:
-            self.nsubint = None
+            self._make_psrfits_pars_dict()
+            self.nchan = signal.Nchan
+            self.tbin = 1.0/signal.samprate
+            self.nbin = int(signal.nsamp/signal.nsub)
+            self.npol = self.pfit_dict['NPOL']#signal.Npols
+            self.nrows = signal.nsub
+            self.nsblk = self.pfit_dict['NSBLK']
+            self.obsfreq = signal.fcent
+            self.obsbw = signal.bw
+            self.chan_bw = signal.bw / signal.Nchan
+            #self.stt_imjd = self.pfit_dict['STT_IMJD'] # start MJD of obs
+            #self.stt_smjd = self.pfit_dict['STT_SMJD'] # start second of obs
+            self.tsubint = signal.sublen # length of subint in seconds
+            
+            if self.obs_mode=='PSR':
+                self.nsubint = self.nrows
+            else:
+                self.nsubint = None
 
 
     def _make_psrfits_pars_dict(self):
@@ -322,8 +380,13 @@ class PSRFITS(BaseFile):
         """
         idx = self.file.draft_hdr_keys.index(extname)
         for val in self.file.fits_template[idx][:]:
-            if param == val[0].split()[0]:
-                return np.float64(val[0].split()[1].replace("D","E"))
+            # Have correction based on version of fitsio being used
+            if version.parse(fitsio.__version__) >= version.parse('1.0.1'):
+                if param == val[0].split()[0]:
+                    return np.float64(val[0].split()[1].replace("D","E"))
+            else:
+                if param == val[0].split()[0].decode("utf-8"):
+                    return np.float64(val[0].split()[1].decode("utf-8").replace("D","E"))
 
     #### Define various PSRFITS parameters
     @property

@@ -19,7 +19,8 @@ def pulsar():
     """
     Fixture pulsar class
     """
-    period = make_quant(5,'ms')
+    F0 = 186.49408124993144
+    period = make_quant(1.0/F0,'s')
     return Pulsar(period,10,name='J1746-0118')
 
 @pytest.fixture
@@ -31,11 +32,19 @@ def PSRfits():
     tempfits = "data/B1855+09.L-wide.PUPPI.11y.x.sum.sm"
     return PSRFITS(path=fitspath, template=tempfits, fits_mode='copy')
 
-def test_fitssig(PSRfits, pulsar):
+def test_fitssig(PSRfits):
     """
-    Test getting a signal from a fits file and making pulses with it.
+    Test getting a signal from a fits file.
+    """
+    S = PSRfits.make_signal_from_psrfits()
+    os.remove("data/test.fits")
+    
+def test_savesig(PSRfits, pulsar):
+    """
+    Test getting a signal from a fits file, making pulses with it, and save it.
     """
     S = PSRfits.make_signal_from_psrfits()
     obslen = PSRfits.tsubint.value*PSRfits.nsubint
-    pulsar.make_pulses(S, tobs = obslen )
+    pulsar.make_pulses(S, tobs = obslen)
+    PSRfits.save(S)
     os.remove("data/test.fits")

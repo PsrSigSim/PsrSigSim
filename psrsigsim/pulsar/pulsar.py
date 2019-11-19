@@ -11,20 +11,20 @@ from ..utils.utils import make_quant
 class Pulsar(object):
     """class for pulsars
 
-    The minimal data to instatiate a pulsar is the period, intensity, and
+    The minimal data to instatiate a pulsar is the period, Smean, and
     pulse profile. The Profile is supplied via a :class:`PulseProfile`-like
     object.
 
     Args:
         period (float): pulse period (sec)
-        intensity (float): mean pulse intensity (Jy)
+        Smean (float): mean pulse flux density (Jy)
         profile (:class:`PulseProfile`): pulse profile or 2-D pulse portrait
         name (string): name of pulsar
     """
     #TODO Other data could be supplied via a `.par` file.
-    def __init__(self, period, intensity, profile=None, name=None):
+    def __init__(self, period, Smean, profile=None, name=None):
         self._period = make_quant(period, 's')
-        self._intensity = make_quant(intensity, 'Jy')
+        self._Smean = make_quant(Smean, 'Jy')
 
         self._name = name
         
@@ -51,8 +51,8 @@ class Pulsar(object):
         return self._period
 
     @property
-    def intensity(self):
-        return self._intensity
+    def Smean(self):
+        return self._Smean
 
     def make_pulses(self, signal, tobs):
         """generate pulses from Profile, :class:`PulseProfile` object
@@ -78,9 +78,8 @@ class Pulsar(object):
 
         # compute Smax (needed for radiometer noise level)
         pr = self.Profile()
-        dph = 1 / len(self.Profile())
-        norm = 1 / signal.Nchan
-        signal._Smax = self.intensity / (np.sum(pr) * dph * norm)
+        nbins = len(self.Profile()) # Think this assumes a single profile for now...
+        signal._Smax = self.Smean * nbins / np.sum(pr)
 
     def _make_amp_pulses(self, signal):
         """generate amplitude pulses

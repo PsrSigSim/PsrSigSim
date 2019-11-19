@@ -69,7 +69,7 @@ class Receiver(object):
     def bandwidth(self):
         return self._bandwidth
 
-    def radiometer_noise(self, signal, gain=1, Tsys=None, Tenv=None):
+    def radiometer_noise(self, signal, pulsar, gain=1, Tsys=None, Tenv=None):
         """add radiometer noise to a signal
 
         Tsys = Tenv + Trec, unless Tsys is given (just Trec if no Tenv)
@@ -91,15 +91,15 @@ class Receiver(object):
 
         # select noise generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
-            noise = self._make_amp_noise(signal, Tsys, gain)
+            noise = self._make_amp_noise(signal, Tsys, gain, pulsar)
         elif signal.sigtype is "FilterBankSignal":
-            noise = self._make_pow_noise(signal, Tsys, gain)
+            noise = self._make_pow_noise(signal, Tsys, gain, pulsar)
         else:
             msg = "no pulse method for signal: {}".format(signal.sigtype)
             raise NotImplementedError(msg)
         signal._data += noise
 
-    def _make_amp_noise(self, signal, Tsys, gain):
+    def _make_amp_noise(self, signal, Tsys, gain, pulsar):
         """radiometer noise for amplitude signals
         """
         dt = 1 / signal.samprate
@@ -108,28 +108,42 @@ class Receiver(object):
         sigS = Tsys / gain / np.sqrt(dt * signal.bw)
 
         distr = stats.norm()
+        
+        U_scale = 1.0 / (np.sum(pulsar.Profile())/signal.samprate)
 
-        norm = np.sqrt((sigS / signal._Smax).decompose())
+        norm = np.sqrt((sigS / signal._Smax).decompose())*U_scale
         noise = norm * distr.rvs(size=signal.data.shape)
         
         return noise.value  # drop units!
 
-    def _make_pow_noise(self, signal, Tsys, gain):
+    def _make_pow_noise(self, signal, Tsys, gain, pulsar):
         """radiometer noise for power signals
         """
+        print(Tsys, gain)
         if signal.subint:
-            dt = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
+            # number of bins per subint
+            nbins = signal.nsamp/signal.nsub
+            dt = signal.sublen / nbins # bins per subint; s
         else:
-            dt = 1 / signal.samprate
+            nbins = signal.samprate
+            dt = 1 / nbins
         bw_per_chan = signal.bw / signal.Nchan
+        print(dt, bw_per_chan)
 
         # noise variance
         sigS = Tsys / gain / np.sqrt(dt * bw_per_chan)
+        print(sigS)
 
         df = signal.Nfold if signal.subint else 1
         distr = stats.chi2(df)
+        print(df)
+        
+        # scaling factor due to profile normalization (see Lam et al. 2018a)
+        U_scale = 1.0 / (np.sum(pulsar.Profile())/nbins)
+        print(U_scale)
 
-        norm = (sigS * signal._draw_norm / signal._Smax).decompose()
+        norm = (sigS * signal._draw_norm / signal._Smax).decompose() * U_scale
+        print(norm)
         noise = norm * distr.rvs(size=signal.data.shape)
 
         return noise.value  # drop units!
