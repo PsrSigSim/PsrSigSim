@@ -42,3 +42,9 @@ def test_disperse(signal,pulsar,ism):
     tobs = make_quant(5,'s')
     pulsar.make_pulses(signal,tobs)
     ism.disperse(signal,10)
+
+def test_FDshift(signal,pulsar,ism):
+    """"""
+    tobs = make_quant(5,'s')
+    pulsar.make_pulses(signal,tobs)
+    ism.FD_shift(signal,[2e-4, -3e-4,7e-5])
