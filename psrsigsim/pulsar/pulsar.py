@@ -11,7 +11,7 @@ from ..utils.utils import make_quant
 class Pulsar(object):
     """class for pulsars
 
-    The minimal data to instatiate a pulsar is the period, Smean, and
+    The minimal data to instantiate a pulsar is the period, Smean, and
     pulse profile. The Profile is supplied via a :class:`PulseProfile`-like
     object.
 
@@ -27,7 +27,7 @@ class Pulsar(object):
         self._Smean = make_quant(Smean, 'Jy')
 
         self._name = name
-        
+
         # Assign profile class; default to GaussProfile if nothing is specified
         if profile is None:
             self._Profile = GaussProfile()
@@ -124,12 +124,12 @@ class Pulsar(object):
             else:
                 # This should be an integer, if not, will round
                 signal._nsub = int(np.round(signal.tobs / signal.sublen))
-            
+
             # determine the number of data samples necessary
             signal._nsamp = int((signal.nsub*(self.period*signal.samprate)).decompose())
             # Need to make an initial empty data array
             signal.init_data(signal.nsamp)
-            
+
             # Tile the profiles to number of desired subints
             sngl_prof = np.tile(self.Profile(), signal.nsub)
             # changed to number of subints
