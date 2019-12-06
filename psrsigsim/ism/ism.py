@@ -72,8 +72,8 @@ class ISM(object):
             dt = (1/signal._samprate).to('us')
 
             fourier = np.fft.rfft(sig)
-            u = np.fft.rfftfreq(2 * len(fourier) - 1,
-                                d=dt.to('s').value) * u.us
+            u = make_quant(np.fft.rfftfreq(2 * len(fourier) - 1,
+                                d=dt.to('s').value), 'us')
             f = u-signal.bw/2. # u in [0,bw], f in [-bw/2, bw/2]
 
             # Lorimer & Kramer 2006, eqn. 5.21
@@ -85,3 +85,52 @@ class ISM(object):
             if self.MD.mode == 'explore':
                 self.Signal_in.undispersedsig[x] = sig
             signal._data[x] = Dispersed
+    
+    def FD_shift(self, signal, FD_params):
+        """
+        This calculates the delay that will be added due to an arbitrary number 
+        of input FD parameters following the NANOGrav standard as defined in 
+        Arzoumanian et al. 2016. It will then shift the pulse profiles by the 
+        appropriate amount based on these parameters.
+        
+        FD values should be input in units of seconds, frequency array in MHz
+        FD values can be a list or an array
+        """
+        #freq in MHz, delays in milliseconds
+        freq_array = signal._dat_freq
+        # define the reference frequency
+        ref_freq = make_quant(1000.0, 'MHz')
+        # calculate the delay added in for the parameters
+        time_delays = make_quant(np.zeros(len(freq_array)), 'ms') # will be in seconds
+        for ii in range(len(FD_params)):
+            time_delays += np.double(-1.0*make_quant(FD_params[ii], 's').to('ms') * \
+                    np.power(np.log(freq_array/ref_freq),ii+1)) # will be in seconds
+        
+        # convert to ms
+        time_delays.to('ms')
+        # get time shift based on the sample rate
+        shift_dt = (1/signal._samprate).to('ms')
+        shift_start = time.time()
+
+        for ii, freq in enumerate(freq_array):
+            signal._data[ii,:] = shift_t(signal._data[ii,:],
+                                         time_delays[ii].value,
+                                         dt=shift_dt.value)
+            if (ii+1) % int(signal.Nchan//20) ==0:
+                shift_check = time.time()
+                percent = round((ii + 1)*100/signal.Nchan)
+                elapsed = shift_check-shift_start
+                chk_str = '\r{0:2.0f}% shifted'.format(percent)
+                chk_str += ' in {0:4.3f} seconds.'.format(elapsed)
+
+                try:
+                    print(chk_str , end='', flush=True)
+                #This is the Python 2 version
+                #__future__ does not have 'flush' kwarg.
+                except:
+                    print(chk_str , end='')
+                sys.stdout.flush()
+        
+        # May need to add tihs parameter to signal
+        signal._FDshifted = True
+

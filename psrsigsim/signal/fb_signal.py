@@ -59,12 +59,19 @@ class FilterBankSignal(BaseSignal):
                  subint=False,
                  sublen=None,
                  dtype=np.float32):
+        
+        # Currently only simulate total intensity
+        self._Npols = 1
 
         self._fcent = make_quant(fcent, 'MHz')
-        self._bw = make_quant(bandwidth, 'MHz')
+        # Check if bandwidth is negative; only an issue when making signal from fitsfile
+        if bandwidth < 0:
+            self._bw = make_quant(np.abs(bandwidth), 'MHz')
+        else:
+            self._bw = make_quant(bandwidth, 'MHz')
 
         self._subint = subint
-        if self.subint:
+        if self.subint and sublen != None:
             self._sublen = make_quant(sublen, 's')
         else:
             self._sublen = sublen
