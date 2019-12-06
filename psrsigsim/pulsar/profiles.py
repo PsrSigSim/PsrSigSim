@@ -186,7 +186,7 @@ class DataProfile(PulseProfile):
                 phases = np.arange(N+1)/N
             else:
                 phases = np.arange(N)/N
-                
+
         else:
             if phases[-1] != 1:
                 # enforce periodicity!
@@ -195,8 +195,7 @@ class DataProfile(PulseProfile):
             elif profile[0] != profile[-1]:
                 # enforce periodicity!
                 profile[-1] = profile[0]
-        print(phases.size)
-        print(profile.size)
+
         self._generator = _cubeSpline(phases, profile, bc_type='periodic')
 
     def calc_profile(self, phases):
