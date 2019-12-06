@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from ..utils.utils import make_quant
+from .portraits import PulsePortrait
 
 from scipy.interpolate import CubicSpline as _cubeSpline
 
@@ -25,10 +26,10 @@ class PulseProfile(object):
             return self._profile
         else:
             return self.calc_profile(phases)
-    
+
     def init_profile(self, Nphase):
         """generate the profile, evenly sampled
-        
+
         Args:
             Nphase (int): number of phase bins
         """
@@ -49,8 +50,8 @@ class PulseProfile(object):
         This is implemented by the subclasses!
         """
         raise NotImplementedError()
-    
-    @property 
+
+    @property
     def profile(self):
         return self._profile
 
@@ -105,9 +106,9 @@ class GaussProfile(PulseProfile):
                 profile += A * np.exp(-0.5 * ((ph-p)/wid)**2)
         except TypeError:
             # single Gaussian component
-            profile += (self.amp * 
+            profile += (self.amp *
                         np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
-        
+
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
 
@@ -129,11 +130,11 @@ class UserProfile(PulseProfile):
 
     :class:`UserProfile`s are specified by a function used to compute the
     profile at arbitrary pulse phase. If you want to generate a profile
-    from empirical data, use :class:`DataProfile`.
+    from empirical data, i.e. a Numpy array, use :class:`DataProfile`.
 
     Required Args:
-        profile_func (callable): a callable function to generate the profile 
-            as a function of pulse phase. This function takes a single, 
+        profile_func (callable): a callable function to generate the profile
+            as a function of pulse phase. This function takes a single,
             array-like input, a phase or list of phases.
 
     Profile is renormalized so that maximum is 1.
@@ -143,7 +144,7 @@ class UserProfile(PulseProfile):
     def __init__(self, profile_func):
         # _generator is not a property, it has no setter or getter
         self._generator = profile_func
-    
+
     def calc_profile(self, phases):
         """calculate the profile at specified phase(s)
         Args:
@@ -156,7 +157,7 @@ class UserProfile(PulseProfile):
         profile = self._generator(phases)
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
-    
+
 class DataProfile(PulseProfile):
     """a pulse profile generated from data
 
@@ -168,7 +169,7 @@ class DataProfile(PulseProfile):
 
     Optional Args:
         phases (array-like): list of sampled phases. If phases are omitted
-            profile is assumed to be evenly sampmled and cover one whole
+            profile is assumed to be evenly sampled and cover one whole
             rotation period.
 
     Profile is renormalized so that maximum is 1.
@@ -179,9 +180,9 @@ class DataProfile(PulseProfile):
         if phases is None:
             # infer phases
             N = len(profile)
+            phases = np.arange(N+1)/N
             if profile[0] != profile[-1]:
                 # enforce periodicity!
-                phases = np.arange(N+1)/N
                 profile = np.append(profile, profile[0])
         else:
             if phases[-1] != 1:
@@ -191,9 +192,9 @@ class DataProfile(PulseProfile):
             elif profile[0] != profile[-1]:
                 # enforce periodicity!
                 profile[-1] = profile[0]
-
+        print(phases.ndim)
         self._generator = _cubeSpline(phases, profile, bc_type='periodic')
-    
+
     def calc_profile(self, phases):
         """calculate the profile at specified phase(s)
         Args:
@@ -206,4 +207,3 @@ class DataProfile(PulseProfile):
         profile = self._generator(phases)
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
-    
