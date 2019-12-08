@@ -190,18 +190,6 @@ class PSRFITS(BaseFile):
             ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
             s_rate = (1/self.tbin).to('MHz').value
 
-        #TODO Delete calls to .value when integrated with new API.
-        #TODO Change call to FilterBank for new API.
-        """S = Signal(f0=self.obsfreq.value,
-                   bw=self.obsbw.value,
-                   Nf=self.nchan,
-                   f_samp=(1/self.tbin).to('MHz').value,
-                   ObsTime=ObsTime.to('ms').value,
-                   data_type='float32',
-                   SignalType='intensity',
-                   mode='simulate',
-                   clean_mode=True)
-        """
         S = FilterBankSignal(fcent=self.obsfreq.value,
                    bandwidth=self.obsbw.value,
                    Nsubband=self.nchan,
