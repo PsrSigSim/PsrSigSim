@@ -205,7 +205,7 @@ class ISM(object):
     TODO: Should units be assigned here, or earlier?
     '''
     
-    def scale_dnu_d(dnu_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    def scale_dnu_d(self,dnu_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
         """
         Scaling law for scintillation bandwidth as a function of frequency.
         dnu_d [float] : scintillation bandwidth [MHz]
@@ -221,7 +221,7 @@ class ISM(object):
             exp = 8.0/(6-beta)
         return dnu_d*(nu_f/nu_i)**exp
     
-    def scale_dt_d(dt_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    def scale_dt_d(self,dt_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
         """
         Scaling law for scintillation timescale as a function of frequency.
         dt_d [float] : scintillation timescale [seconds]
@@ -237,7 +237,7 @@ class ISM(object):
             exp = float(beta-2)/(6-beta)
         return dt_d*(nu_f/nu_i)**exp
     
-    def scale_tau_d(tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
+    def scale_tau_d(self,tau_d,nu_i,nu_f,beta=KOLMOGOROV_BETA):
         """
         Scaling law for the scattering timescale as a function of frequency.
         tau_d [float] : scattering timescale [seconds?]

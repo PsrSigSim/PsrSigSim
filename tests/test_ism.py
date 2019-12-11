@@ -48,3 +48,9 @@ def test_FDshift(signal,pulsar,ism):
     tobs = make_quant(5,'s')
     pulsar.make_pulses(signal,tobs)
     ism.FD_shift(signal,[2e-4, -3e-4,7e-5])
+
+def test_scattershift(signal, pulsar, ism):
+    """"""
+    tobs = make_quant(5,'s')
+    pulsar.make_pulses(signal,tobs)
+    ism.scatter_broaden(signal, 5e-6, 1400.0)
