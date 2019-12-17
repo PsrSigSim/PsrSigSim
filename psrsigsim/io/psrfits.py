@@ -162,6 +162,9 @@ class PSRFITS(BaseFile):
         """Method to make a signal from the PSRFITS file given as the template.
         For subintegrated data will assume the initial period is the pulsar 
         period given in the PSRPARAM header.
+        
+        TODO: Currently does not support generating 'SEARCH' mode data from
+            a psrfits file
 
         Parameters
         ----------
@@ -195,7 +198,8 @@ class PSRFITS(BaseFile):
                    Nsubband=self.nchan,
                    sample_rate=s_rate,
                    dtype=np.float32,
-                   subint=True,
+                   #subint=True,
+                   fold = True,
                    sublen=self.tsubint)
 
         S._dat_freq = make_quant(self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ'), 'MHz')
