@@ -162,6 +162,9 @@ class PSRFITS(BaseFile):
         """Method to make a signal from the PSRFITS file given as the template.
         For subintegrated data will assume the initial period is the pulsar 
         period given in the PSRPARAM header.
+        
+        TODO: Currently does not support generating 'SEARCH' mode data from
+            a psrfits file
 
         Parameters
         ----------
@@ -190,24 +193,13 @@ class PSRFITS(BaseFile):
             ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
             s_rate = (1/self.tbin).to('MHz').value
 
-        #TODO Delete calls to .value when integrated with new API.
-        #TODO Change call to FilterBank for new API.
-        """S = Signal(f0=self.obsfreq.value,
-                   bw=self.obsbw.value,
-                   Nf=self.nchan,
-                   f_samp=(1/self.tbin).to('MHz').value,
-                   ObsTime=ObsTime.to('ms').value,
-                   data_type='float32',
-                   SignalType='intensity',
-                   mode='simulate',
-                   clean_mode=True)
-        """
         S = FilterBankSignal(fcent=self.obsfreq.value,
                    bandwidth=self.obsbw.value,
                    Nsubband=self.nchan,
                    sample_rate=s_rate,
                    dtype=np.float32,
-                   subint=True,
+                   #subint=True,
+                   fold = True,
                    sublen=self.tsubint)
 
         S._dat_freq = make_quant(self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ'), 'MHz')

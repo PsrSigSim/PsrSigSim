@@ -119,31 +119,33 @@ class Receiver(object):
     def _make_pow_noise(self, signal, Tsys, gain, pulsar):
         """radiometer noise for power signals
         """
-        print(Tsys, gain)
-        if signal.subint:
+        # This definition is true regardless of mode for a filterbank signal
+        nbins = signal.nsamp/signal.nsub # number of bins per subint
+        dt = signal.sublen / nbins # bins per subint; s
+        """
+        if signal.fold:
             # number of bins per subint
             nbins = signal.nsamp/signal.nsub
             dt = signal.sublen / nbins # bins per subint; s
         else:
-            nbins = signal.samprate
-            dt = 1 / nbins
+            nbins = signal.nsamp/signal.nsub
+            dt = signal.sublen / nbins # bins per subint; s
+            # Old definitions, depricated
+            #nbins = signal.samprate
+            #dt = 1 / nbins
+        """
         bw_per_chan = signal.bw / signal.Nchan
-        print(dt, bw_per_chan)
 
         # noise variance
         sigS = Tsys / gain / np.sqrt(dt * bw_per_chan)
-        print(sigS)
 
-        df = signal.Nfold if signal.subint else 1
+        df = signal.Nfold if signal.fold else 1
         distr = stats.chi2(df)
-        print(df)
         
         # scaling factor due to profile normalization (see Lam et al. 2018a)
         U_scale = 1.0 / (np.sum(pulsar.Profile())/nbins)
-        print(U_scale)
 
         norm = (sigS * signal._draw_norm / signal._Smax).decompose() * U_scale
-        print(norm)
         noise = norm * distr.rvs(size=signal.data.shape)
 
         return noise.value  # drop units!
