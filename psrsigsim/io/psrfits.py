@@ -11,6 +11,10 @@ from .file import BaseFile
 from ..utils import make_quant
 from ..signal import Signal
 from ..signal import FilterBankSignal
+# Not sure if we can require PINT as a dependency...
+import pint.models as models
+import pint.polycos as polycos
+import pint.toa as toa
 
 __all__ = ["PSRFITS"]
 
@@ -94,9 +98,178 @@ class PSRFITS(BaseFile):
             # Need both there depending on the template file. Only one will work.
             self.pfit_pars['PSRPARAM'].append('F0')
 
-    def save(self, signal):
-        """Save PSS signal file to disk.
+    # We will define a function that will generate a dictionary with the parameters needed to replace POLYCO header params
+    def _gen_polyco(self, parfile, MJD_start, segLength = 60.0, ncoeff = 15, \
+                       maxha=12.0, method="TEMPO", numNodes=20, usePINT = True):
         """
+        This will be a convenience function to generate polycos and subsequent parameters to replace the values in a 
+        PSRFITS file header. The default way to do this will be to use PINT (usePINT = True), with other methods
+        currently unsupported. The input values are:
+        parfile [string] : path to par file used to generate the polycos. The observing frequency, and observatory will 
+                            come from the par file
+        MJD_start [float] : Start MJD of the polyco. Should start no later than the beginning of the observation
+        segLength [float] : Length in minutes of the range covered by the polycos generated. Default is 60 minutes
+        ncoeff [int] : number of polyco coeffeicients to generate. Default is 15, the same as in the PSRFITS file
+        maxha [float] : max hour angle needed by PINT. Default is 12.0
+        method [string] : Method PINT uses to generate the polyco. Currently only TEMPO is supported.
+        numNodes [int] : Number of nodes PINT will use to fit the polycos. Must be larger than ncoeff
+        usePINT [bool] : Method used to generate polycos. Currently only PINT is supported.
+        """
+        if usePINT:
+            # Define dictionary to put parameters into
+            polyco_dict = {'NSPAN' : segLength, 'NCOEF' : ncoeff}
+            # load parfile to PINT model object
+            m = models.get_model(parfile)
+            # Determine MJD_end based on segLength
+            MJD_end = MJD_start + np.double(make_quant(segLength,'min').to('day').value) # MJD
+            # Determine obseratory and observing frequency
+            obsFreq = m.TZRFRQ.value # in MHz
+            polyco_dict['REF_FREQ'] = obsFreq
+            obs = m.TZRSITE.value # string
+            polyco_dict['NSITE'] = obs.encode('utf-8') # observatory code needs to be in binary
+            # Get pulsar frequency
+            polyco_dict['REF_F0'] = m.F0.value
+            # get the polycos
+            pcs = polycos.Polycos()
+            pcs.generate_polycos(m, MJD_start, MJD_end, obs, segLength, ncoeff, obsFreq, maxha=12.0, method="TEMPO", \
+                                     numNodes=20)
+            coeffs = pcs.polycoTable['entry'][-1].coeffs
+            polyco_dict['COEFF'] = coeffs
+            # Now we need to determine the reference MJD, and phase
+            REF_MJD = np.double(pcs.polycoTable['tmid'][-1])
+            polyco_dict['REF_MJD'] = REF_MJD
+            # Now find the phase difference
+            tmid_toa = toa.get_TOAs_list([toa.TOA(REF_MJD, obs=obs, freq=obsFreq)])
+            ref_phase = m.phase(tmid_toa)
+            # Need to force positive value
+            if ref_phase.frac.value[0] < 0.0:
+                ref_frac_phase = 1.0 - abs(ref_phase.frac.value[0])
+            else:
+                ref_frac_phase = ref_phase.frac.value[0]
+            polyco_dict['REF_PHS'] = ref_frac_phase
+            
+            return polyco_dict
+    
+        else:
+            print("Only PINT is currently supported for generating polycos")
+            raise NotImplementedError()
+    
+    # Define a function to collect the metadata necessary for phase connection
+    def _gen_metadata(self, signal, pulsar, ref_MJD = 56000.0, inc_len = 0.0):
+        """
+        Function for determining the remaining numbers necessary to phase connect the TOAs.
+        In particular OFFS_SUB values in the subint header and STT_IMJD/SMJD/OFFS values for
+        files we desire to have some phase connection.
+        
+        signal [class] : signal class object that will contain necessary meta-
+                         data, e.g. nsub, sublen, etc.
+        pulsar [class] : pulsar class object, will contain necessary meta-data, e.g. period
+        ref_MJD [float] : initial time to reference the observations to (MJD). This value 
+                          should be the start MJD (fraction if necessary) of the first file,
+                          default is 56000.0
+        inc_len [float] : time difference (days) between reference MJD and new phase connected
+                          MJD, default is 0 (e.g. no time difference)
+        """
+        # Assign appropriate units
+        inc_len = make_quant(np.double(inc_len), 'day')
+        init_MJD = make_quant(ref_MJD, 'day')
+        # Define the dictionaries
+        subint_dict = {'EPOCHS' : 'MIDTIME'} # I think that's what we want
+        primary_dict = {}
+        
+        # Define the offs_sub values based on nsub and sublen
+        OFF_SUBS = np.zeros(signal.nsub)
+        for ii in range(signal.nsub):
+            OFF_SUBS[ii] = np.double(signal.sublen.value/2.0 + ii*signal.sublen.value)
+        subint_dict['OFFS_SUB'] = OFF_SUBS
+        # if the increment length is 0, then all other values can be zero as well
+        
+        init_fracMJD = make_quant(np.double('0.'+str(init_MJD.value).split('.')[-1]),'day').to('s')
+        init_SMJD = np.double(str(init_fracMJD.value).split('.')[0])
+        init_OFFS = np.double('0.'+str(init_fracMJD.value).split('.')[-1])
+        
+        if inc_len.value == 0.0:
+            next_MJD = init_MJD
+            next_seconds = make_quant(init_SMJD, 's')
+            next_frac_sec = make_quant(init_OFFS, 's')
+            #next_frac_sec = make_quant(0.0, 's')
+        else:
+            # Now determine the next appropriate staring MJD, SMJD, and SOFFS
+            next_MJD = init_MJD+np.floor(inc_len)
+            # Now get the number of seconds (and fractional seconds) leftover
+            leftover_s = (inc_len-np.floor(inc_len)).to('s')
+            next_seconds = make_quant(init_SMJD, 's') + np.floor(leftover_s)
+            next_frac_sec = make_quant(init_OFFS, 's') + (leftover_s - np.floor(leftover_s))
+        
+        # Assign these to dictionary values
+        primary_dict['STT_IMJD'] = int(next_MJD.value)
+        primary_dict['STT_SMJD'] = int(next_seconds.value)
+        primary_dict['STT_OFFS'] = np.double(next_frac_sec.value)
+            
+        return primary_dict, subint_dict
+    
+    def _edit_psrfits_header(self, polyco_dict, subint_dict, primary_dict):
+        """
+        This function is used as a convienience function to edit the header 
+        data of a PSRFITS file, particularly the POLYCO, PRIMARY, and SUBINT
+        headers. Input is:
+        polyco_dict [dictionary] : dictionary of polyco header parameters to be
+                                    to be replaced as generated by _gen_polycos() function
+        subint_dict [dictionary] : dictionary of subint header parameters to be
+                                    to be replaced as generated by _gen_metadata() function
+        primary_dict [dictionary] : dictionary of primary header parameters to be
+                                    to be replaced as generated by _gen_metadata() function
+        """
+        # We go through each dictionary and replace the appropriate values; start with primary
+        self.file.set_draft_header('PRIMARY', primary_dict)
+        # Now do the subint header
+        self.file.set_draft_header('SUBINT', {'EPOCHS' : subint_dict['EPOCHS']})
+        # Now replace the values of the offs_sub subints
+        for ii in range(len(subint_dict['OFFS_SUB'])):
+            self.file.HDU_drafts['SUBINT'][ii]['OFFS_SUB'] = subint_dict['OFFS_SUB'][ii]
+        # And finally the polycos; 
+        for ky in polyco_dict.keys():
+            try:
+                self.file.HDU_drafts['POLYCO'][0][ky] = polyco_dict[ky]
+            except:
+                print(ky)
+        # And we want to get rid of many of the PSRPARAM lines, just in case?
+        # NOTE: THIS IS HARDCODED AND WILL NEED TO BE FIXED EVENTUALLY
+        delete_params = ["BINARY", "A1", "E", "T0", "PB", "OM", "SINI", "M2", "F1", \
+                         "PMDEC", "PMRA", "TZRMJD", "TZRFRQ", "TZRSITE"]
+        for param in self.file.HDU_drafts['PSRPARAM']:
+            for dp in delete_params:
+                if dp.encode('utf-8') == param[0].split()[0]:
+                    idx = np.where(param == self.file.HDU_drafts['PSRPARAM'])[0]
+                    self.file.HDU_drafts['PSRPARAM'] = np.delete(self.file.HDU_drafts['PSRPARAM'], idx)
+
+    
+    # Save the signal
+    def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
+             MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
+             ref_MJD = 56000.0, usePint = True):
+        """Save PSS signal file to disk. Currently only one mode of doing this
+        is supported. Saved data can be phase connected but PSRFITS file metadata must
+        be edited appropriately as well and requires the following input:
+        signal [class] : signal type class (currently only filterbank is supported)
+                        used to get the data array to save and other metadata.
+        pulsar [class] : pulsar type class used to generate the signal, used for
+                        metadata access.
+        phaseconnect [bool] : If `False`, will not attempt to phase connect data
+                        rewrite polycos, etc. If `True`, will attempt to phase 
+                        connect data and all other inputs must be provided.
+        parfile [string] : path to par file used to generate the polycos. The observing frequency, and observatory will 
+                            come from the par file.
+        MJD_start [float] : Start MJD of the polyco. Should start no later than the beginning of the observation.
+        segLength [float] : Length in minutes of the range covered by the polycos generated. Default is 60 minutes.
+        ref_MJD [float] : initial time to reference the observations to (MJD). This value 
+                          should be the start MJD (fraction if necessary) of the first file,
+                          default is 56000.0.
+        inc_len [float] : time difference (days) between reference MJD and new phase connected
+                          MJD, default is 0 (e.g. no time difference).
+        usePINT [bool] : Method used to generate polycos. Currently only PINT is supported.
+        """
+        
         """
         # May come back to this later...
         if self._fits_mode == 'copy':
@@ -121,7 +294,6 @@ class PSRFITS(BaseFile):
         self.copy_psrfit_BinTables()
         # We can currently only make total intensity data
         self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
-        """IMPORTANT NOTE: Currently phase connection is not implimented here! Still need to do this."""
         for ii in range(self.nsubint):
             self.file.HDU_drafts['SUBINT'][ii]['DATA'] = Out[ii,0,:,:]
             self.file.HDU_drafts['SUBINT'][ii]['DAT_FREQ'] = signal.dat_freq.value
@@ -139,6 +311,21 @@ class PSRFITS(BaseFile):
             self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = np.ones(scale_shape)
             self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = np.zeros(offs_shape)
             self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = np.ones(weight_shape)
+        
+        """If we try to phase connect the data we want to do it here. If this is not done and the info not
+        provided, the data saved to the fits file will likely not be appropriate for timing simulations."""
+        if phaseconnect:
+            # generate the polyco parameters
+            polyco_dict = self._gen_polyco(parfile, MJD_start, segLength = segLength, ncoeff = 15, \
+                       maxha=12.0, method="TEMPO", numNodes=20, usePINT = usePint)
+            # generate the primary header and subint header parameters
+            primary_dict, subint_dict = self._gen_metadata(signal, pulsar, ref_MJD = ref_MJD, inc_len = inc_len)
+            # Now edit the header parameters with the new phase connected values
+            self._edit_psrfits_header(polyco_dict, subint_dict, primary_dict)
+        else:
+            print("NOTE: Phase connection is turned off! Simulated data may be inappropriate for timing experiments.")
+            
+        
         # Now we actually write out the files
         self.file.write_psrfits(hdr_from_draft=True)
         # Close the file so it doesn't take up memory or get confused with another file. 
