@@ -46,5 +46,33 @@ def test_savesig(PSRfits, pulsar):
     S = PSRfits.make_signal_from_psrfits()
     obslen = PSRfits.tsubint.value*PSRfits.nsubint
     pulsar.make_pulses(S, tobs = obslen)
-    PSRfits.save(S)
+    PSRfits.save(S, pulsar)
+    os.remove("data/test.fits")
+    
+def test_savephaseconnect(PSRfits, pulsar):
+    """
+    Test getting a signal from a fits file, making pulses with it, and save it,
+    with all the phase connection functions.
+    """
+    S = PSRfits.make_signal_from_psrfits()
+    obslen = PSRfits.tsubint.value*PSRfits.nsubint
+    pulsar.make_pulses(S, tobs = obslen)
+    parfile = "data/test_parfile.par"
+    PSRfits.save(S, pulsar, phaseconnect = True, parfile = parfile, \
+                 MJD_start = 55999.9861, inc_len = 0.0, ref_MJD = 56000.0, \
+                 usePint = True)
+    os.remove("data/test.fits")
+    
+def test_savephaseconnect_inc(PSRfits, pulsar):
+    """
+    Test getting a signal from a fits file, making pulses with it, and save it,
+    with all the phase connection functions with an non-zerio increment length.
+    """
+    S = PSRfits.make_signal_from_psrfits()
+    obslen = PSRfits.tsubint.value*PSRfits.nsubint
+    pulsar.make_pulses(S, tobs = obslen)
+    parfile = "data/test_parfile.par"
+    PSRfits.save(S, pulsar, phaseconnect = True, parfile = parfile, \
+                 MJD_start = 55999.9861+30.0, inc_len = 30.0, ref_MJD = 56000.0, \
+                 usePint = True)
     os.remove("data/test.fits")
