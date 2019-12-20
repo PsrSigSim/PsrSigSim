@@ -36,7 +36,7 @@ class PulsePortrait(object):
         ph = np.arange(Nphase)/Nphase
         self._profiles = self.calc_profiles(ph)
         self._Amax = self._profiles.max()
-        self._profile /= self.Amax
+        self._profiles /= self.Amax
 
     def calc_profiles(self, phases):
         """calculate the profiles at specified phase(s)
@@ -170,7 +170,7 @@ class DataPortrait(PulsePortrait):
         if phases is None:
             # infer phases
             N = profiles.shape[1]
-            if any([ii != jj for ii,jj in zip(profiles[0,:], profiles[-1,:])]):
+            if any([ii != jj for ii,jj in zip(profiles[:,0], profiles[:,-1])]):
                 # enforce periodicity!
                 profiles = np.append(profiles, profiles[:,0][:,np.newaxis],
                                      axis=1)
@@ -183,8 +183,8 @@ class DataPortrait(PulsePortrait):
                 phases = np.append(phases, 1)
                 profiles = np.append(profiles, profiles[:,0][:,np.newaxis],
                                      axis=1)
-            elif any([ii != jj for ii,jj in zip(profiles[0,:],
-                                                profiles[-1,:])]):
+            elif any([ii != jj for ii,jj in zip(profiles[:,0],
+                                                profiles[:,-1])]):
                 # enforce periodicity!
                 profiles[-1,:] = profiles[0,:]
 

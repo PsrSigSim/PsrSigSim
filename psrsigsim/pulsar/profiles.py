@@ -3,11 +3,11 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from ..utils.utils import make_quant
-from .portraits import PulsePortrait
+from .portraits import PulsePortrait, GaussPortrait, DataPortrait, UserPortrait
 
 from scipy.interpolate import CubicSpline as _cubeSpline
 
-class PulseProfile(object):
+class PulseProfile(PulsePortrait):
     """base class for pulse profiles
 
     Pulse profiles are INTENSITY series, even when using amplitude style
@@ -60,7 +60,7 @@ class PulseProfile(object):
         return self._Amax
 
 
-class GaussProfile(PulseProfile):
+class GaussProfile(GaussPortrait):
     """sum of guassian components
 
     The shape of the inputs determine the number of gaussian components
@@ -85,11 +85,11 @@ class GaussProfile(PulseProfile):
     def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
-        self._peak = peak
-        self._width = width
-        self._amp = amp
 
-    def calc_profile(self, phases):
+        super().__init__(peak=peak, width=width, amp=amp)
+
+
+    def calc_profile(self, phases, freq):
         """calculate the profile at specified phase(s)
         Args:
             phases (array-like): phases to calc profile
@@ -98,19 +98,31 @@ class GaussProfile(PulseProfile):
             ``init_profile`` AND you are generating less than one
             rotation.
         """
-        ph = np.array(phases)
-        profile = np.zeros_like(ph)
-        try:
-            # sum of Gaussian components
-            for p, wid, A in zip(self.peak, self.width, self.amp):
-                profile += A * np.exp(-0.5 * ((ph-p)/wid)**2)
-        except TypeError:
-            # single Gaussian component
-            profile += (self.amp *
-                        np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
 
-        Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
+
+    # def calc_profile(self, phases):
+    #     """calculate the profile at specified phase(s)
+    #     Args:
+    #         phases (array-like): phases to calc profile
+    #     Note:
+    #         The normalization can be wrong, if you have not run
+    #         ``init_profile`` AND you are generating less than one
+    #         rotation.
+    #     """
+    #     ph = np.array(phases)
+    #     profile = np.zeros_like(ph)
+    #     try:
+    #         # sum of Gaussian components
+    #         for p, wid, A in zip(self.peak, self.width, self.amp):
+    #             profile += A * np.exp(-0.5 * ((ph-p)/wid)**2)
+    #     except TypeError:
+    #         # single Gaussian component
+    #         profile += (self.amp *
+    #                     np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
+    #
+    #     Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
+    #     return profile / Amax
 
     @property
     def peak(self):
@@ -158,8 +170,8 @@ class UserProfile(PulseProfile):
         Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
         return profile / Amax
 
-class DataProfile(PulseProfile):
-    """a pulse profile generated from data
+class DataProfile(DataPortrait):
+    """a set of pulse profiles generated from data
 
     The data are samples of the profile at specified phases. If you have a
     functional form for the profile use :class:`UserProfile` instead.
@@ -176,37 +188,32 @@ class DataProfile(PulseProfile):
     See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
     more details.
     """
-    def __init__(self, profile, phases=None):
-        if phases is None:
-            # infer phases
-            N = len(profile)
-            if profile[0] != profile[-1]:
-                # enforce periodicity!
-                profile = np.append(profile, profile[0])
-                phases = np.arange(N+1)/N
-            else:
-                phases = np.arange(N)/N
+    def __init__(self, profiles, phases=None, Nchan=None):
+        self._phases = phases
+        if profiles.ndim == 1:
+            if Nchan is None:
+                Nchan = 1
 
-        else:
-            if phases[-1] != 1:
-                # enforce periodicity!
-                phases = np.append(phases, 1)
-                profile = np.append(profile, profile[0])
-            elif profile[0] != profile[-1]:
-                # enforce periodicity!
-                profile[-1] = profile[0]
+            profiles = np.tile(profiles,(Nchan,1))
 
-        self._generator = _cubeSpline(phases, profile, bc_type='periodic')
+        super().__init__(profiles=profiles, phases=phases)
 
-    def calc_profile(self, phases):
-        """calculate the profile at specified phase(s)
-        Args:
-            phases (array-like): phases to calc profile
-        Note:
-            The normalization can be wrong, if you have not run
-            ``init_profile`` AND you are generating less than one
-            rotation.
+    def set_Nchan(self, Nchan):
         """
-        profile = self._generator(phases)
-        Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
-        return profile / Amax
+        Method to reintialize the portraits with the correct number of frequency
+        channels. Once must run `init_profiles` or `calc_profiles` to remake
+        the `profiles` property.
+        """
+        self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
+    # def calc_profile(self, phases):
+    #     """calculate the profile at specified phase(s)
+    #     Args:
+    #         phases (array-like): phases to calc profile
+    #     Note:
+    #         The normalization can be wrong, if you have not run
+    #         ``init_profile`` AND you are generating less than one
+    #         rotation.
+    #     """
+    #     profile = self._generator(phases)
+    #     Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
+    #     return profile / Amax
