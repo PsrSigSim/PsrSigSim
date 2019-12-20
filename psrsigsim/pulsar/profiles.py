@@ -203,6 +203,12 @@ class DataProfile(DataPortrait):
         Method to reintialize the portraits with the correct number of frequency
         channels. Once must run `init_profiles` or `calc_profiles` to remake
         the `profiles` property.
+
+        Parameters
+        ----------
+
+        Nchan : int
+            Number of frequency channels.
         """
         self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
     # def calc_profile(self, phases):

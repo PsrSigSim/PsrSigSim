@@ -15,11 +15,20 @@ class Pulsar(object):
     pulse profile. The Profile is supplied via a :class:`PulseProfile`-like
     object.
 
-    Args:
-        period (float): pulse period (sec)
-        Smean (float): mean pulse flux density (Jy)
-        profile (:class:`PulseProfile`): pulse profile or 2-D pulse portrait
-        name (string): name of pulsar
+    Parameters
+    ----------
+
+    period : float
+        Pulse period (sec)
+
+    Smean : float
+        Mean pulse flux density (Jy)
+
+    profile : :class:`PulseProfile`
+        Pulse profile or 2-D pulse portrait
+
+    name : str
+        Name of pulsar
     """
     #TODO Other data could be supplied via a `.par` file.
     def __init__(self, period, Smean, profiles=None, name=None):
@@ -93,8 +102,11 @@ class Pulsar(object):
         This method should be used for radio frequency and basebanded
         pulses.
 
-        Args:
-            signal (:class:`Signal`-like): signal object to store pulses
+        Parameters
+        ----------
+
+        signal : :class:`Signal`-like
+            Signal object to store pulses.
         """
         # generate several pulses in time
         distr = stats.norm()
@@ -119,8 +131,11 @@ class Pulsar(object):
 
         This method should be used for filter bank pulses
 
-        Args:
-            signal (:class:`Signal`-like): signal object to store pulses
+        Parameters
+        ----------
+
+        signal : :class:`Signal`-like
+            Signal object to store pulses.
         """
         if signal.subint:
             # Determine how many subints to make
