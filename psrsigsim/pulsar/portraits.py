@@ -233,9 +233,9 @@ def _gaussian_mult_1d(phases, peaks, widths, amps):
     if any(phases>1) or any(phases<0):
         raise ValueError('Phase values must all lie within [0,1].')
 
-    prof = (amps[:,np.newaxis] * np.exp(-0.5 * ((phases[np.newaxis,:]
-                                        -peaks[:,np.newaxis])
-                                        /widths[:,np.newaxis])**2))
+    prof = (amps[:, np.newaxis] * np.exp(-0.5 * ((phases[np.newaxis,:]
+                                         -peaks[:,np.newaxis])
+                                         /widths[:,np.newaxis])**2))
     return np.sum(prof, axis=0)
 
 def _gaussian_mult_2d(phases, peaks, widths, amps, nchan):

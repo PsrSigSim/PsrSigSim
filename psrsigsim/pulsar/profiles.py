@@ -82,59 +82,25 @@ class GaussProfile(GaussPortrait):
     See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
     more details.
     """
-    def __init__(self, peak=0.5, width=0.05, amp=1):
+    def __init__(self, peak=0.5, width=0.05, amp=1, Nchan=1):
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
 
         super().__init__(peak=peak, width=width, amp=amp)
 
-
-    def calc_profile(self, phases, freq):
-        """calculate the profile at specified phase(s)
-        Args:
-            phases (array-like): phases to calc profile
-        Note:
-            The normalization can be wrong, if you have not run
-            ``init_profile`` AND you are generating less than one
-            rotation.
+    def set_Nchan(self, Nchan):
         """
+        Method to reintialize the portraits with the correct number of frequency
+        channels. Once must run `init_profiles` or `calc_profiles` to remake
+        the `profiles` property.
 
-        return profile / Amax
+        Parameters
+        ----------
 
-    # def calc_profile(self, phases):
-    #     """calculate the profile at specified phase(s)
-    #     Args:
-    #         phases (array-like): phases to calc profile
-    #     Note:
-    #         The normalization can be wrong, if you have not run
-    #         ``init_profile`` AND you are generating less than one
-    #         rotation.
-    #     """
-    #     ph = np.array(phases)
-    #     profile = np.zeros_like(ph)
-    #     try:
-    #         # sum of Gaussian components
-    #         for p, wid, A in zip(self.peak, self.width, self.amp):
-    #             profile += A * np.exp(-0.5 * ((ph-p)/wid)**2)
-    #     except TypeError:
-    #         # single Gaussian component
-    #         profile += (self.amp *
-    #                     np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
-    #
-    #     Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
-    #     return profile / Amax
-
-    @property
-    def peak(self):
-        return self._peak
-
-    @property
-    def width(self):
-        return self._width
-
-    @property
-    def amp(self):
-        return self._amp
+        Nchan : int
+            Number of frequency channels.
+        """
+        self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
 
 
 class UserProfile(PulseProfile):
