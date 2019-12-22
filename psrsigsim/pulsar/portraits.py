@@ -70,17 +70,21 @@ class GaussPortrait(PulsePortrait):
         1-d array     : Single pulse profile made up of multiple gaussians
     where 'n' is the number of Gaussian components in the profile.
 
-    Required Args:
-        N/A
+    Parameters:
+    -----------
 
-    Optional Args:
-        peak (float): center of gaussian in pulse phase, default: ``0.5``
-        width (float): stdev of pulse in pulse phase, default: ``0.1``
-        amp (float): amplitude of pulse relative to other pulses,
-            default: ``1``
+    peak : float)
+        Center of gaussian in pulse phase.
 
-    Pulses are normalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for more details.
+    width : float
+        Stdev of pulse in pulse phase, default: ``0.1``
+
+    amp : float
+        Amplitude of pulse relative to other pulses, `default: ``1``
+
+    Profile is renormalized so that maximum is 1.
+    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
+    more details.
     """
     def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
@@ -90,18 +94,18 @@ class GaussPortrait(PulsePortrait):
         self._width = width
         self._amp = amp
 
-    def init_profile(self, Nphase):
+    def init_profiles(self, Nphase):
         """generate the profile
         Args:
             Nphase (int): number of phase bins
         """
         ph = np.arange(Nphase)/Nphase
-        self._profile = self.calc_profile(ph)
-        self._Amax = self._profile.max()
-        self._profile /= self.Amax
+        self._profiles = self.calc_profiles(ph)
+        # self._Amax = self._profiles.max()
+        self._profiles #/= self.Amax
 
-    def calc_profile(self, phases):
-        """calculate the profile at specified phase(s)
+    def calc_profiles(self, phases, Nchan=None):
+        """calculate the profiles at specified phase(s)
         Args:
             phases (array-like): phases to calc profile
         Note:
@@ -111,19 +115,27 @@ class GaussPortrait(PulsePortrait):
         """
         ph = np.array(phases)
         # profile = np.zeros_like(ph)
-        try:
-            # sum of Gaussian components
-            profile = (self.amp[:,np.newaxis] *
-                       np.exp(-0.5 * ((ph[np.newaxis,:]
-                                       -self.peak[:,np.newaxis])
-                                       /self.width[:,np.newaxis])**2))
-        except TypeError:
-            # single Gaussian component
-            profile += (self.amp *
-                        np.exp(-0.5 * ((ph-self.peak)/self.width)**2))
 
-        Amax = self.Amax if hasattr(self, '_Amax') else np.amax(profile)
-        return profile / Amax
+        if hasattr(peak,'ndim'):
+            if peak.ndim == 1:
+                if Nchan is None:
+                    err_msg = 'Nchan must be provided if only 1-dim profile '
+                    err_msg += 'information provided.'
+                    raise ValueError(err_msg)
+                profile = _gaussian_mult_1d(ph, peak, width, amp)
+                profiles = np.tile(profile,(Nchan,1))
+            elif peak.ndim == 2:
+                Nchan = peak.shape[0]
+                profiles = _gaussian_mult_2d(ph, peak, width, amp, Nchan)
+        else:
+            if Nchan is None:
+                err_msg = 'Nchan must be provided if only 1-dim profile '
+                err_msg += 'information provided.'
+            profile = _gaussian_sing_1d(phases, peak, width, amp)
+            profiles = np.tile(profile,(Nchan,1))
+
+        Amax = self.Amax if hasattr(self, '_Amax') else np.amax(profiles)
+        return profiles / Amax
 
     @property
     def profile(self):
@@ -209,3 +221,24 @@ class UserPortrait(PulsePortrait):
     """user specified 2-D pulse portrait"""
     def __init__(self):
         raise NotImplementedError()
+
+def _gaussian_sing_1d(phases, peak, width, amp):
+    """Plot a single 1-dim gaussian."""
+    if any(phases>1) or any(phases<0):
+        raise ValueError('Phase values must all lie within [0,1].')
+    return (amp * np.exp(-0.5 * ((phases-peak)/width)**2))
+
+def _gaussian_mult_1d(phases, peaks, widths, amps):
+    """Plot a 1-dim sum of multiple gaussians."""
+    if any(phases>1) or any(phases<0):
+        raise ValueError('Phase values must all lie within [0,1].')
+
+    prof = (amps[:,np.newaxis] * np.exp(-0.5 * ((phases[np.newaxis,:]
+                                        -peaks[:,np.newaxis])
+                                        /widths[:,np.newaxis])**2))
+    return np.sum(prof, axis=0)
+
+def _gaussian_mult_2d(phases, peaks, widths, amps, nchan):
+    return np.array([_gaussian_mult_1d(phases, peaks[ii,:],
+                                       widths[ii,:], amps[ii,:])
+                                       for ii in range(nchan)])
