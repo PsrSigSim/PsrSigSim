@@ -86,6 +86,7 @@ class GaussPortrait(PulsePortrait):
     See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
     more details.
     """
+
     def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
@@ -93,7 +94,8 @@ class GaussPortrait(PulsePortrait):
         self._peak = peak
         self._width = width
         self._amp = amp
-
+        self._profiles = None
+        
     def init_profiles(self, Nphase):
         """generate the profile
         Args:
