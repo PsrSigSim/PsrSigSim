@@ -15,7 +15,8 @@ requirements = [
     'numpy',
     'scipy',
     'matplotlib>=2.0.0',
-    'h5py'
+    'h5py',
+    'pdat'
     # TODO: put package requirements here
 ]
 
@@ -37,7 +38,13 @@ setup(
     author="Jeffrey S. Hazboun",
     author_email='jeffrey.hazboun@nanograv.org',
     url='https://github.com/PsrSigSim/VersionZeroPointZero',
-    packages=find_packages(include=['psrsigsim']),
+    packages=find_packages(include=['psrsigsim',
+                                    'psrsigsim.signal',
+                                    'psrsigsim.pulsar',
+                                    'psrsigsim.telescope',
+                                    'psrsigsim.ism',
+                                    'psrsigsim.utils',
+                                    'psrsigsim.io']),
     include_package_data=True,
     package_data={'psrsigsim': ['PTA_pulsar_nb_data.txt', 'data/*.par']},
     install_requires=requirements,

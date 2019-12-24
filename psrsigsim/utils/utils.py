@@ -7,6 +7,11 @@ import numpy as np
 import scipy as sp
 from astropy import units as u
 from pint import models
+#try:
+#    import pyfftw
+#    use_pyfftw = True
+#except:
+#    use_pyfftw = False
 
 
 def shift_t(y, shift, dt=1):
@@ -73,6 +78,9 @@ def rebin(ar, newlen):
 
     for ii, lbin in enumerate(newBins):
         rbin = int(np.ceil(lbin + stride))
+        # fix for potential last bin rounding error
+        if rbin > ar.size:
+            rbin = ar.size
         lbin = int(np.ceil(lbin))
         ar_new[ii, 0:rbin-lbin] = ar[lbin:rbin]
 
@@ -307,15 +315,16 @@ def make_quant(param, default_unit):
     example:
         self.f0 = make_quant(f0,'MHz')
     """
+    default_unit = u.core.Unit(default_unit)
     if hasattr(param, 'unit'):
         try:
-            param.to(getattr(u, default_unit))
+            param.to(default_unit)
         except u.UnitConversionError:
-            raise ValueError("Frequency for {0} with incompatible unit {1}"
+            raise ValueError("Quantity {0} with incompatible unit {1}"
                              .format(param, default_unit))
         quantity = param
     else:
-        quantity = param * getattr(u, default_unit)
+        quantity = param * default_unit
 
     return quantity
 

@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
-import h5py
+import h5py, os
 # from astropy import units as u
 from . import PSS_plot
 
@@ -94,7 +94,25 @@ class Signal(object):
         If data size exceeds 2.048GB, data is stored as HDF5 file.
     """
     def __init__(self, f0=1400, bw=400, Nf=20, f_samp=1, ObsTime=200,
-                 data_type='float32', SignalType="intensity", mode='explore'):
+                 data_type='float32', SignalType="intensity",
+                 mode='explore', subintlen = False):
+
+        """initialize Signal(), executed at assignment of new instance
+        data_type = 'int8' or 'int16' supported.
+                    Automatically changed to 'uint8' or 'uint16' if intensity
+                    signal.
+        @param f0 -- central frequency (MHz)
+        @param bw -- bandwidth (MHz)
+        @param f_samp -- sampling frequency (MHz)
+        @param Nf -- number of freq. bins
+        @param Nt -- number of phase bins
+        Totime = total time of the observation in milliseconds
+        SignalType = 'intensity' which carries a Nf x Nt filterbank of pulses
+                     or 'voltage' which carries a 2 x Nt array of voltage vs.
+                     time pulses representing 4 stokes channels
+        BRENT HACK: added subint parameter
+        """
+
         self.MetaData = MetaData()
         self.f0 = f0  # (MHz)
         self.bw = bw  # (MHz)
@@ -103,7 +121,15 @@ class Signal(object):
         self.SignalType = SignalType
         self.SignalDict = {}
         self.ObsTime = ObsTime   # Total time in milliseconds
-        Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
+        self.subintlen = subintlen # time in seconds
+        # BRENT HACK: Change number of timebins for fold mode pulses
+        if subintlen:
+            # Edit sampling rate if subints, assume 2048 bins per subint for now
+            self.f_samp = 2048.0/self.subintlen
+            # Basically samples per subint now?
+            Nt = int((self.ObsTime*1e-3/self.subintlen)*2048.0)+1
+        else:
+            Nt = int(self.ObsTime*1e-3 * self.f_samp*1e6)+1
 
         if Nt % 2 == 0:  # Make signal even in length (for FFTs)
             self.Nt = Nt  # phase bins
@@ -173,9 +199,19 @@ class Signal(object):
                                       self.Nf, endpoint=False)
 
         if self.Nt*self.Nf > 500000:  # Limits the array size to 2.048 GB
-            SignalPath = "signal.hdf5"
+            SignalPath = 'signal0.hdf5'
             if SignalType=='burst':  # Use a different file name for a burst
                 SignalPath = "burst_signal.hdf5"
+
+            if os.path.exists(SignalPath):
+                if clean_mode:
+                    os.remove(SignalPath)
+                else:
+                    ii = 1
+                    while os.path.exists('signal{0}.hdf5'.format(ii)):
+                        ii += 1
+                    SignalPath = 'signal{0}.hdf5'.format(ii)
+
             SignalFile = h5py.File(SignalPath, 'a')
             self.signal = SignalFile.create_dataset(None, (rows, self.Nt),
                                                     dtype=self.data_type)
