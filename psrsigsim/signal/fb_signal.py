@@ -34,10 +34,10 @@ class FilterBankSignal(BaseSignal):
             for coherently dedispersed filter banks using XUPPI backends.
 
         subint [bool]: is this a folded subintegration, default ``False``
-        
+
         sublen [float]: desired length of data subintegration (sec) if subint
-            is ``True``, default: ``tobs``. If left as none but subint is 
-            ``True``, then when pulses are made, the sublen will default to 
+            is ``True``, default: ``tobs``. If left as none but subint is
+            ``True``, then when pulses are made, the sublen will default to
             the input observation length, ``tobs``
 
         dtype [type]: data type of array, default: ``np.float32``
@@ -59,7 +59,7 @@ class FilterBankSignal(BaseSignal):
                  subint=False,
                  sublen=None,
                  dtype=np.float32):
-        
+
         # Currently only simulate total intensity
         self._Npols = 1
 
@@ -75,7 +75,7 @@ class FilterBankSignal(BaseSignal):
             self._sublen = make_quant(sublen, 's')
         else:
             self._sublen = sublen
-        
+
         f_Nyquist = 2 * self._bw # Not sure if we need this for subintegrated data
         if sample_rate is None:
             self._samprate = (1/make_quant(20.48, 'us')).to('MHz')
@@ -86,7 +86,7 @@ class FilterBankSignal(BaseSignal):
                 msg = ("specified sample rate {} < Nyquist frequency {}"
                        .format(self._samprate, f_Nyquist))
                 print("Warning: "+msg)
-                
+
         # Determine frequency array if not loaded from fitsfile
         self._Nchan = Nsubband
         first = (self._fcent - self._bw/2).to('MHz').value
@@ -109,7 +109,7 @@ class FilterBankSignal(BaseSignal):
     @property
     def subint(self):
         return self._subint
-    
+
     @property
     def sublen(self):
         return self._sublen
@@ -117,11 +117,11 @@ class FilterBankSignal(BaseSignal):
     @property
     def Nfold(self):
         return self._Nfold
-    
+
     @property
     def nsub(self):
         return self._nsub
-    
+
     @property
     def nsamp(self):
         return self._nsamp
