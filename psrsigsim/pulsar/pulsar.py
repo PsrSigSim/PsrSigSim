@@ -75,12 +75,14 @@ class Pulsar(object):
         # init base profile at correct sample rate
         Nph = int((signal.samprate * self.period).decompose())
 
-        #If there isn't enough frequencies in the profiles
+        # If there isn't enough frequencies in the profiles
         # And if it is a :class:`Profile` instance, reshape.
-        if (signal.Nchan != self.Profiles.profiles.shape[0]
-            and hasattr(self.Profiles, 'set_Nchan')):
-            self.Profiles.set_Nchan(signal.Nchan)
-        self.Profiles.init_profiles(Nph)
+        self.Profiles.init_profiles(Nph, signal.Nchan)
+
+        # if (signal.Nchan != self.Profiles.profiles.shape[0]
+        #     and hasattr(self.Profiles, 'set_Nchan')):
+        #     self.Profiles.set_Nchan(signal.Nchan)
+
 
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
@@ -177,7 +179,7 @@ class Pulsar(object):
             phs = (np.arange(signal.nsamp) /
                    (signal.samprate * self.period).decompose().value)
             phs %= 1  # clip integer part
-            full_prof = self.Profiles.calc_profiles(phs)
+            full_prof = self.Profiles.calc_profiles(phs,signal.Nchan)
 
             signal._data = (full_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)

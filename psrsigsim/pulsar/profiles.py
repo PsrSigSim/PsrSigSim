@@ -82,11 +82,12 @@ class GaussProfile(GaussPortrait):
     See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
     more details.
     """
-    def __init__(self, peak=0.5, width=0.05, amp=1, Nchan=1):
+    def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
         #TODO: if any param is a not array, then broadcast to all entries of other arrays?
 
         super().__init__(peak=peak, width=width, amp=amp)
+
 
     def set_Nchan(self, Nchan):
         """

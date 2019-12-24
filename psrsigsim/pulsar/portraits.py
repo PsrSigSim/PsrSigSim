@@ -27,18 +27,18 @@ class PulsePortrait(object):
         else:
             return self.calc_profiles(phases)
 
-    def init_profiles(self, Nphase):
+    def init_profiles(self, Nphase, Nchan=None):
         """generate the profile, evenly sampled
 
         Args:
             Nphase (int): number of phase bins
         """
         ph = np.arange(Nphase)/Nphase
-        self._profiles = self.calc_profiles(ph)
+        self._profiles = self.calc_profiles(ph, Nchan=Nchan)
         self._Amax = self._profiles.max()
         self._profiles /= self.Amax
 
-    def calc_profiles(self, phases):
+    def calc_profiles(self, phases, Nchan=None):
         """calculate the profiles at specified phase(s)
         Args:
             phases (array-like): phases to calc profile
@@ -95,16 +95,14 @@ class GaussPortrait(PulsePortrait):
         self._width = width
         self._amp = amp
         self._profiles = None
-        
-    def init_profiles(self, Nphase):
+
+    def init_profiles(self, Nphase, Nchan=None):
         """generate the profile
         Args:
             Nphase (int): number of phase bins
         """
         ph = np.arange(Nphase)/Nphase
-        self._profiles = self.calc_profiles(ph)
-        # self._Amax = self._profiles.max()
-        self._profiles #/= self.Amax
+        self._profiles = self.calc_profiles(ph, Nchan=Nchan)
 
     def calc_profiles(self, phases, Nchan=None):
         """calculate the profiles at specified phase(s)
@@ -118,30 +116,32 @@ class GaussPortrait(PulsePortrait):
         ph = np.array(phases)
         # profile = np.zeros_like(ph)
 
-        if hasattr(peak,'ndim'):
-            if peak.ndim == 1:
+        if hasattr(self.peak,'ndim'):
+            if self.peak.ndim == 1:
                 if Nchan is None:
                     err_msg = 'Nchan must be provided if only 1-dim profile '
                     err_msg += 'information provided.'
                     raise ValueError(err_msg)
-                profile = _gaussian_mult_1d(ph, peak, width, amp)
+                profile = _gaussian_mult_1d(ph, self.peak, self.width, self.amp)
                 profiles = np.tile(profile,(Nchan,1))
-            elif peak.ndim == 2:
-                Nchan = peak.shape[0]
-                profiles = _gaussian_mult_2d(ph, peak, width, amp, Nchan)
+            elif self.peak.ndim == 2:
+                Nchan = self.peak.shape[0]
+                profiles = _gaussian_mult_2d(ph, self.peak, self.width,
+                                                   self.amp, Nchan)
         else:
             if Nchan is None:
                 err_msg = 'Nchan must be provided if only 1-dim profile '
                 err_msg += 'information provided.'
-            profile = _gaussian_sing_1d(phases, peak, width, amp)
+                raise ValueError(err_msg)
+            profile = _gaussian_sing_1d(ph, self.peak, self.width, self.amp)
             profiles = np.tile(profile,(Nchan,1))
 
         Amax = self.Amax if hasattr(self, '_Amax') else np.amax(profiles)
         return profiles / Amax
 
     @property
-    def profile(self):
-        return self._profile
+    def profiles(self):
+        return self._profiles
 
     @property
     def peak(self):
@@ -205,7 +205,7 @@ class DataPortrait(PulsePortrait):
         self._generator = _cubeSpline(phases, profiles, axis=1,
                                       bc_type='periodic')
 
-    def calc_profiles(self, phases):
+    def calc_profiles(self, phases, Nchan=None):
         """calculate the profile at specified phase(s)
         Args:
             phases (array-like): phases to calc profile
