@@ -29,7 +29,7 @@ In our first two meetings it was decided that the simulator will be written usin
 If you wish to have access to the GitHub repository please contact Nathaniel Garver-Daniels and include you GitHub username and he will send you an invitation.
 
 The Signal
---------
+----------
 
 The main structure of the code will consist of a signal which will be a class object.
 It will be acted on by other classes modeling the physical processes a pulsar signal experiences as it propagates.
@@ -38,7 +38,7 @@ In an effort to obtain a minimal working model as efficiently as possible the fi
 The signal will be designed, from the beginning, with the goal of expanding the number of time series and increasing the sampling frequency.
 
 The Modules
---------
+-----------
 
 The modules will each be class objects that model various physical processes acting on the signal.
 They will take the signal class as their primary input along with any other necessary parameters needed to model the physical process.
@@ -58,15 +58,14 @@ Other modules that have been discussed include, but are not limited to:
 * Telescope Backend Module
 
 More Features
---------
+-------------
 
 * TODO
 
 Credits
----------
+-------
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
