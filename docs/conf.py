@@ -51,7 +51,7 @@ templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
-
+# autosummary_generate = False
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
 
@@ -147,6 +147,7 @@ html_theme = 'sphinx_rtd_theme'#'default'
 # static files, so a file named "default.css" will overwrite the builtin
 # "default.css".
 html_static_path = ['_static']
+numpydoc_show_class_members = False
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page
 # bottom, using the given strftime format.
@@ -193,7 +194,6 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'psrsigsimdoc'
-
 
 # -- Options for LaTeX output ------------------------------------------
 
