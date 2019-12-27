@@ -7,11 +7,13 @@ from .signal import BaseSignal
 from ..utils.utils import make_quant
 
 class BasebandSignal(BaseSignal):
-    """a time domain base-banded signal
+    """
+    A time domain base-banded signal.
 
     A :class:`BasebandSignal` covers frequencies from 0 Hz to its bandwidth,
     e.g. ~1 GHz for L-band GUPPI.  In reality the telescope backend basebands
     the RF signal, but we allow pre-basebanded signals to save memory.
+    
     Required Args:
         fcent [float]: central radio frequency (MHz)
 

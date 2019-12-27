@@ -8,16 +8,18 @@ from .portraits import PulsePortrait, GaussPortrait, DataPortrait, UserPortrait
 from scipy.interpolate import CubicSpline as _cubeSpline
 
 class PulseProfile(PulsePortrait):
-    """base class for pulse profiles
+    """
+    Base class for pulse profiles
 
     Pulse profiles are INTENSITY series, even when using amplitude style
-    signals (like :class:`BasebandSignal`).
+    signals (like :class:`BasebandSignal` ).
     """
     _profile = None
 
     def __call__(self, phases=None):
-        """a :class:`PulseProfile` returns the actual profile calculated
-        at the specified phases when called
+        """
+        A :class:`PulseProfile` returns the actual profile calculated
+        at the specified phases when called.
         """
         if phases is None:
             if self._profile is None:
@@ -28,7 +30,8 @@ class PulseProfile(PulsePortrait):
             return self.calc_profile(phases)
 
     def init_profile(self, Nphase):
-        """generate the profile, evenly sampled
+        """
+        Generate the profile, evenly sampled.
 
         Args:
             Nphase (int): number of phase bins
@@ -39,15 +42,17 @@ class PulseProfile(PulsePortrait):
         self._profile /= self.Amax
 
     def calc_profile(self, phases):
-        """calculate the profile at specified phase(s)
+        """
+        Calculate the profile at specified phase(s).
+        This is implemented by the subclasses!
+
         Args:
             phases (array-like): phases to calc profile
+
         Note:
             The normalization can be wrong, if you have not run
             ``init_profile`` AND you are generating less than one
             rotation.
-
-        This is implemented by the subclasses!
         """
         raise NotImplementedError()
 
@@ -61,13 +66,17 @@ class PulseProfile(PulsePortrait):
 
 
 class GaussProfile(GaussPortrait):
-    """sum of guassian components
+    """
+    Sum of guassian components.
 
     The shape of the inputs determine the number of gaussian components
     in the pulse.
-        single float  : Single pulse profile made of a single gaussian
-        1-d array     : Single pulse profile made up of multiple gaussians
-    where 'n' is the number of Gaussian components in the profile.
+
+    single float  : Single pulse profile made of a single gaussian
+
+    1-d array     : Single pulse profile made up of multiple gaussians
+
+    where `n` is the number of Gaussian components in the profile.
 
     Required Args:
         N/A
@@ -75,8 +84,7 @@ class GaussProfile(GaussPortrait):
     Optional Args:
         peak (float): center of gaussian in pulse phase, default: ``0.5``
         width (float): stdev of pulse in pulse phase, default: ``0.1``
-        amp (float): amplitude of pulse relative to other pulses,
-            default: ``1``
+        amp (float): amplitude of pulse relative to other pulses, default: ``1``
 
     Pulses are normalized so that maximum is 1.
     See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
@@ -105,7 +113,8 @@ class GaussProfile(GaussPortrait):
 
 
 class UserProfile(PulseProfile):
-    """user specified pulse profile
+    """
+    User specified pulse profile
 
     :class:`UserProfile`s are specified by a function used to compute the
     profile at arbitrary pulse phase. If you want to generate a profile
@@ -125,7 +134,9 @@ class UserProfile(PulseProfile):
         self._generator = profile_func
 
     def calc_profile(self, phases):
-        """calculate the profile at specified phase(s)
+        """
+        Calculate the profile at specified phase(s)
+
         Args:
             phases (array-like): phases to calc profile
         Note:
@@ -138,7 +149,8 @@ class UserProfile(PulseProfile):
         return profile / Amax
 
 class DataProfile(DataPortrait):
-    """a set of pulse profiles generated from data
+    """
+    A set of pulse profiles generated from data.
 
     The data are samples of the profile at specified phases. If you have a
     functional form for the profile use :class:`UserProfile` instead.
@@ -178,15 +190,3 @@ class DataProfile(DataPortrait):
             Number of frequency channels.
         """
         self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
-    # def calc_profile(self, phases):
-    #     """calculate the profile at specified phase(s)
-    #     Args:
-    #         phases (array-like): phases to calc profile
-    #     Note:
-    #         The normalization can be wrong, if you have not run
-    #         ``init_profile`` AND you are generating less than one
-    #         rotation.
-    #     """
-    #     profile = self._generator(phases)
-    #     Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
-    #     return profile / Amax

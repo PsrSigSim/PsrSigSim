@@ -52,12 +52,19 @@ class RFSignal(BaseSignal):
         self._dtype = dtype
 
     def to_RF(self):
-        """convert signal to RFSignal
+        """
+        Convert signal to RFSignal
+
+        Returns
+        -------
+
+        psrsigsim.signal.RFSignal
         """
         return self
 
     def to_Baseband(self):
-        """convert signal to BasebandSignal
+        """
+        Convert signal to BasebandSignal
         """
         # rfft this signal
         # clip array
@@ -65,7 +72,14 @@ class RFSignal(BaseSignal):
         raise NotImplementedError()
 
     def to_FilterBank(self, Nsubband=512):
-        """convert signal to FilterBankSignal
+        """
+        Convert signal to FilterBankSignal
+
+        Parameters
+        ----------
+
+        Nsubband : int
+            Number of frequency subbands.
         """
         # BB = self.to_Basband()
         # return BB.to_FilterBank()

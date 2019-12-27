@@ -9,9 +9,10 @@ from ..utils.utils import make_quant
 import astropy.units as u
 
 class FilterBankSignal(BaseSignal):
-    """a filter bank signal, breaking the time domain signal into RF bins
+    """
+    A filter bank signal, breaking the time domain signal into RF bins.
 
-    Unlike purely time domain signals, :class:`FilterBankSingnal`s are 2-D
+    Unlike purely time domain signals, :class:`FilterBankSignal` \'s are 2-D
     arrays. Filter banks record the intensity of the signal and can be much
     more sparsely sampled. The time binning must accurately capture the
     pulse profile, not the RF oscillations. In practice a filter bank is
