@@ -10,24 +10,32 @@ __all__ = ['Receiver']
 
 
 class Receiver(object):
-    """telescope reciever
+    """
+    Telescope receiver. A :class:`Receiver` must be instantiated with
+    either a callable response function or ``fcent`` and ``bandwidth`` to use a
+    flat response.
 
-    A :class:`Receiver` must be instatiated with either a callable response
-    function or ``fcent`` and ``bandwidth`` to use a flat response.
+    Required Args:
+        N/A
 
     Optional Args:
         response (callable): frequency response function ("bandpass") of
-            receiver.
-        fcent (float): center frequency of reciever with flat response (MHz)
-        bandwidth (float): bandwidth of reciever with flat response (MHz)
-        Trec (float): reciever temperature (K) for radiometer noise level,
-            default: ``35``
+        receiver.
+
+        fcent (float): center frequency of receiver with flat response (MHz)
+
+        bandwidth (float): bandwidth of receiver with flat response (MHz)
+
+        Trec (float): receiver temperature (K) for radiometer noise level,
+        default: ``35``
+
     """
     def __init__(self,
                  response=None,
                  fcent=None, bandwidth=None,
                  Trec=35,
                  name=None):
+
         if response is None:
             if fcent is None or bandwidth is None:
                 msg = "specify EITHER response OR fcent and bandwidth"
@@ -70,7 +78,8 @@ class Receiver(object):
         return self._bandwidth
 
     def radiometer_noise(self, signal, pulsar, gain=1, Tsys=None, Tenv=None):
-        """add radiometer noise to a signal
+        """
+        Add radiometer noise to a signal.
 
         Tsys = Tenv + Trec, unless Tsys is given (just Trec if no Tenv)
 
@@ -157,10 +166,13 @@ def response_from_data(fs, values):
     raise NotImplementedError()
 
 def _flat_response(fcent, bandwidth):
-    """generate a callable, flat response function
+    """
+    Generate a callable, flat response function
+
     Required Args:
         fcent (float): central frequency (MHz)
         bandwidth (float): bandwidth (MHz)
+
     Returns:
         callable bandpass(f), where f is an array or scalar frequency (MHz)
     """

@@ -7,16 +7,18 @@ from scipy.interpolate import CubicSpline as _cubeSpline
 
 
 class PulsePortrait(object):
-    """base class for pulse profiles
+    """
+    Base class for pulse profiles.
 
     A pulse portrait is a set of profiles across the frequency range. They are
     INTENSITY series, even when using amplitude style signals
-    (like :class:`BasebandSignal`).
+    (like :class:`BasebandSignal` ).
     """
     _profile = None
 
     def __call__(self, phases=None):
-        """a :class:`PulsePortrait` returns the actual profiles calculated
+        """
+        A :class:`PulsePortrait` returns the actual profiles calculated
         at the specified phases when called
         """
         if phases is None:
@@ -28,7 +30,8 @@ class PulsePortrait(object):
             return self.calc_profiles(phases)
 
     def init_profiles(self, Nphase, Nchan=None):
-        """generate the profile, evenly sampled
+        """
+        Generate the profile, evenly sampled.
 
         Args:
             Nphase (int): number of phase bins
@@ -39,7 +42,9 @@ class PulsePortrait(object):
         self._profiles /= self.Amax
 
     def calc_profiles(self, phases, Nchan=None):
-        """calculate the profiles at specified phase(s)
+        """
+        Calculate the profiles at specified phase(s)
+
         Args:
             phases (array-like): phases to calc profile
         Note:
@@ -62,13 +67,15 @@ class PulsePortrait(object):
 
 
 class GaussPortrait(PulsePortrait):
-    """sum of gaussian components
+    """
+    Sum of gaussian components.
 
     The shape of the inputs determine the number of gaussian components
     in the pulse.
-        single float  : Single pulse profile made of a single gaussian
-        1-d array     : Single pulse profile made up of multiple gaussians
-    where 'n' is the number of Gaussian components in the profile.
+    single float  : Single pulse profile made of a single gaussian
+
+    1-d array     : Single pulse profile made up of multiple gaussians
+    where `n` is the number of Gaussian components in the profile.
 
     Parameters:
     -----------
@@ -97,7 +104,9 @@ class GaussPortrait(PulsePortrait):
         self._profiles = None
 
     def init_profiles(self, Nphase, Nchan=None):
-        """generate the profile
+        """
+        Generate the profile.
+
         Args:
             Nphase (int): number of phase bins
         """
@@ -105,7 +114,9 @@ class GaussPortrait(PulsePortrait):
         self._profiles = self.calc_profiles(ph, Nchan=Nchan)
 
     def calc_profiles(self, phases, Nchan=None):
-        """calculate the profiles at specified phase(s)
+        """
+        Calculate the profiles at specified phase(s).
+
         Args:
             phases (array-like): phases to calc profile
         Note:
@@ -160,7 +171,8 @@ class GaussPortrait(PulsePortrait):
         return self._Amax
 
 class DataPortrait(PulsePortrait):
-    """a pulse portrait generated from data
+    """
+    A pulse portrait generated from data.
 
     The data are samples of the profiles at specified phases. If you have a
     functional form for the _profiles use :class:`UserProfile` instead.
@@ -206,7 +218,9 @@ class DataPortrait(PulsePortrait):
                                       bc_type='periodic')
 
     def calc_profiles(self, phases, Nchan=None):
-        """calculate the profile at specified phase(s)
+        """
+        Calculate the profile at specified phase(s).
+
         Args:
             phases (array-like): phases to calc profile
         Note:
@@ -220,7 +234,9 @@ class DataPortrait(PulsePortrait):
 
 
 class UserPortrait(PulsePortrait):
-    """user specified 2-D pulse portrait"""
+    """
+    User specified 2-D pulse portrait.
+    """
     def __init__(self):
         raise NotImplementedError()
 
