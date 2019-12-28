@@ -6,3 +6,4 @@ astropy>=2.0
 pdat>=0.2
 fitsio==0.9.12
 packaging>=19.1
+-e git+https://github.com/nanograv/PINT.git#egg=PINT
