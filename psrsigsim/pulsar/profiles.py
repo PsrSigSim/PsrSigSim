@@ -116,11 +116,12 @@ class UserProfile(PulseProfile):
     """
     User specified pulse profile
 
-    :class:`UserProfile`s are specified by a function used to compute the
+    :class:`UserProfile`\'s are specified by a function used to compute the
     profile at arbitrary pulse phase. If you want to generate a profile
     from empirical data, i.e. a Numpy array, use :class:`DataProfile`.
 
     Required Args:
+
         profile_func (callable): a callable function to generate the profile
             as a function of pulse phase. This function takes a single,
             array-like input, a phase or list of phases.
