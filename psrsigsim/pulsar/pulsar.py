@@ -11,36 +11,45 @@ from ..utils.utils import make_quant
 class Pulsar(object):
     """class for pulsars
 
-    The minimal data to instatiate a pulsar is the period, Smean, and
+    The minimal data to instantiate a pulsar is the period, Smean, and
     pulse profile. The Profile is supplied via a :class:`PulseProfile`-like
     object.
 
-    Args:
-        period (float): pulse period (sec)
-        Smean (float): mean pulse flux density (Jy)
-        profile (:class:`PulseProfile`): pulse profile or 2-D pulse portrait
-        name (string): name of pulsar
+    Parameters
+    ----------
+
+    period : float
+        Pulse period (sec)
+
+    Smean : float
+        Mean pulse flux density (Jy)
+
+    profile : :class:`PulseProfile`
+        Pulse profile or 2-D pulse portrait
+
+    name : str
+        Name of pulsar
     """
     #TODO Other data could be supplied via a `.par` file.
-    def __init__(self, period, Smean, profile=None, name=None):
+    def __init__(self, period, Smean, profiles=None, name=None):
         self._period = make_quant(period, 's')
         self._Smean = make_quant(Smean, 'Jy')
 
         self._name = name
-        
+
         # Assign profile class; default to GaussProfile if nothing is specified
-        if profile is None:
-            self._Profile = GaussProfile()
+        if profiles is None:
+            self._Profiles = GaussProfile()
         else:
-            self._Profile = profile
+            self._Profiles = profiles
 
     def __repr__(self):
         namestr = "" if self.name is None else self.name+", "
         return "Pulsar("+namestr+"{})".format(self.period.to('ms'))
 
     @property
-    def Profile(self):
-        return self._Profile
+    def Profiles(self):
+        return self._Profiles
 
     @property
     def name(self):
@@ -55,7 +64,7 @@ class Pulsar(object):
         return self._Smean
 
     def make_pulses(self, signal, tobs):
-        """generate pulses from Profile, :class:`PulseProfile` object
+        """generate pulses from Profiles, :class:`PulsePortrait` object
 
         Required Args:
             signal (:class:`Signal`-like): signal object to store pulses
@@ -65,7 +74,15 @@ class Pulsar(object):
 
         # init base profile at correct sample rate
         Nph = int((signal.samprate * self.period).decompose())
-        self.Profile.init_profile(Nph)
+
+        # If there isn't enough frequencies in the profiles
+        # And if it is a :class:`Profile` instance, reshape.
+        self.Profiles.init_profiles(Nph, signal.Nchan)
+
+        # if (signal.Nchan != self.Profiles.profiles.shape[0]
+        #     and hasattr(self.Profiles, 'set_Nchan')):
+        #     self.Profiles.set_Nchan(signal.Nchan)
+
 
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
@@ -77,8 +94,8 @@ class Pulsar(object):
             raise NotImplementedError(msg)
 
         # compute Smax (needed for radiometer noise level)
-        pr = self.Profile()
-        nbins = len(self.Profile()) # Think this assumes a single profile for now...
+        pr = self.Profiles()
+        nbins = len(self.Profiles()) # Think this assumes a single profile for now...
         signal._Smax = self.Smean * nbins / np.sum(pr)
 
     def _make_amp_pulses(self, signal):
@@ -87,8 +104,11 @@ class Pulsar(object):
         This method should be used for radio frequency and basebanded
         pulses.
 
-        Args:
-            signal (:class:`Signal`-like): signal object to store pulses
+        Parameters
+        ----------
+
+        signal : :class:`Signal`-like
+            Signal object to store pulses.
         """
         # generate several pulses in time
         distr = stats.norm()
@@ -104,7 +124,7 @@ class Pulsar(object):
         phs %= 1  # clip integer part
 
         # convert intensity profile to amplitude!
-        full_prof = np.sqrt(self.Profile.calc_profile(phs))
+        full_prof = np.sqrt(self.Profiles.calc_profiles(phs))
 
         signal._data = full_prof * distr.rvs(size=signal.data.shape)
 
@@ -113,8 +133,11 @@ class Pulsar(object):
 
         This method should be used for filter bank pulses
 
-        Args:
-            signal (:class:`Signal`-like): signal object to store pulses
+        Parameters
+        ----------
+
+        signal : :class:`Signal`-like
+            Signal object to store pulses.
         """
         if signal.fold:
             # Determine how many subints to make
@@ -124,20 +147,22 @@ class Pulsar(object):
             else:
                 # This should be an integer, if not, will round
                 signal._nsub = int(np.round(signal.tobs / signal.sublen))
-            
+
             # determine the number of data samples necessary
             signal._nsamp = int((signal.nsub*(self.period*signal.samprate)).decompose())
             # Need to make an initial empty data array
             signal.init_data(signal.nsamp)
-            
+
             # Tile the profiles to number of desired subints
-            sngl_prof = np.tile(self.Profile(), signal.nsub)
+            sngl_prof = np.tile(self.Profiles(), signal.nsub)
+
             # changed to number of subints
             signal._Nfold = (signal.sublen / self.period).decompose()
             distr = stats.chi2(df=signal.Nfold)
             signal._set_draw_norm(df=signal.Nfold)
 
-            signal.init_data(len(sngl_prof))
+            #Why is there a second call to init_data?
+            signal.init_data(sngl_prof.shape[1])
             signal._data = (sngl_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)
         else:
@@ -155,11 +180,11 @@ class Pulsar(object):
 
             # TODO break into blocks
             # TODO phase from .par file
-            # calc profile at phases
+            # calc profiles at phases
             phs = (np.arange(signal.nsamp) /
                    (signal.samprate * self.period).decompose().value)
             phs %= 1  # clip integer part
-            full_prof = self.Profile.calc_profile(phs)
+            full_prof = self.Profiles.calc_profiles(phs,signal.Nchan)
 
             signal._data = (full_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)

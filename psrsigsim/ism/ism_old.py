@@ -61,8 +61,7 @@ class ISM(object):
                              scintillation=False)
         self.ISM_Dict['to_DM_Broaden'] = self.to_DM_Broaden
         self.ISM_Dict['to_Scatter_Broaden_exp'] = self.to_Scatter_Broaden_exp
-        self.ISM_Dict.update({'to_Scatter_Broaden_stoch':
-                             self.to_Scatter_Broaden_stoch})
+        self.ISM_Dict['to_Scatter_Broaden_stoch'] = self.to_Scatter_Broaden_stoch
         self.ISM_Dict['time_dependent_scatter'] = self.time_dependent_scatter
         self.ISM_Dict['time_dependent_DM'] = self.time_dependent_DM
         self.ISM_Dict['dispersed'] = False
@@ -171,8 +170,7 @@ class ISM(object):
         Broadens & delays baseband signal w transfer function defined in PSR
         Handbook, D. Lorimer and M. Kramer, 2006
         Returns a baseband signal dispersed by the ISM.
-        Use plot_dispersed() in PSS_plot.py to see the
-        dispersed and undispersed signal.
+        Use plot_dispersed() in PSS_plot.py to see the dispersed and undispersed signal.
         """
         #if self.ISM_Dict['dispersion'] == True:
         #    raise ValueError('Signal has already been dispersed!')
@@ -190,8 +188,7 @@ class ISM(object):
             u = np.fft.rfftfreq(2*len(fourier)-1,d=dt/1e3)*1e-6
             f = u-self.bw/2. # u in [0,bw], f in [-bw/2, bw/2]
 
-            # Lorimer & Kramer 2006, eqn. 5.21
-            H = np.exp(1j*2*np.pi*4.148808e9/((f+f0)*f0**2)*DM*f**2)
+            H = np.exp(1j*2*np.pi*4.148808e9/((f+f0)*f0**2)*DM*f**2) # Lorimer & Kramer 2006, eqn. 5.21
 
             product = fourier*H
             Dispersed = np.fft.irfft(product)
@@ -202,39 +199,30 @@ class ISM(object):
 
 
 class scintillate():
-    def __init__(self, Signal_in, V_ISS = None,scint_bw = None,
-                 scint_timescale = None, pulsar= None, to_use_NG_pulsar=False,
-                 telescope=None, freq_band=None):
+    def __init__(self, Signal_in, V_ISS = None,scint_bw = None, scint_timescale = None, pulsar= None, to_use_NG_pulsar=False, telescope=None, freq_band=None):
         """
-        Uses a phase screen with the given power spectrum to scintillate a
-        pulsar signal across an observation band. The class uses the parameters
-        given to calculate thin phase screens and gain image using Fresnel
-        propagation.
+        Uses a phase screen with the given power spectrum to scintillate a pulsar signal
+        across an observation band. The class uses the parameters given to calculate
+        thin phase screens and gain image using Fresnel propagation.
 
-        The screens are calculated for the size appropriate to the given
-        parameters and observation length.
+        The screens are calculated for the size appropriate to the given parameters
+        and observation length.
         """
 
         if pulsar == None and V_ISS==None and scint_timescale==None:
-            raise ValueError('Need to set a variable that'
-                             ' sets the scintillation timescale.')
+            raise ValueError('Need to set a variable that sets the scintillation timescale.')
 
         if pulsar != None and to_use_NG_pulsar:
             if telescope==None or freq_band==None:
-                raise ValueError('Must set both the telescope and'
-                                 ' bandwidth for {0}.'.format(pulsar))
+                raise ValueError('Must set both the telescope and bandwidth for {0}.'.format(pulsar))
 
-            self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope,
-                                                            freq_band)
+            self.scint_bw, self.scint_time = NG_scint_param(pulsar, telescope, freq_band)
 
             if scint_timescale != None:
-                print('Overiding scint_timescale value.'
-                      ' Scintillation timescale set to '
-                      '{0} using Lam, et al. 2015.'.format(self.scint_time))
+                print('Overiding scint_timescale value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
                 print('Change to_use_NG_pulsar flag to use entered value.')
             if V_ISS != None :
-                print('Overiding V_ISS value. Scintillation timescale set to '
-                      '{0} using Lam, et al. 2015.'.format(self.scint_time))
+                print('Overiding V_ISS value. Scintillation timescale set to {0} using Lam, et al. 2015.'.format(self.scint_time))
                 print('Change to_use_NG_pulsar flag to use entered value.')
 
         if pulsar == None and V_ISS==None and scint_timescale!=None:
@@ -245,16 +233,14 @@ class scintillate():
 
         #Should calculate Number_r_F for the particular scint_time.
 
-        diff_phase_screen = scint.phase_screen(Signal_in, Nx=400, Ny=150,
-                                               Freq_DISS=self.scint_bw,
-                                               Number_r_F=1/128.)
+        diff_phase_screen = scint.phase_screen(Signal_in, Nx=400, Ny=150,Freq_DISS=self.scint_bw, Number_r_F=1/128.)
 
         L = np.rint(diff_phase_screen.xmax//diff_phase_screen.r_Fresnel)
 
+        #refrac_phase_screen = scint.phase_screen(self.Signal_in, DM, Number_r_F=5)
         #Calculate a refraction screen to give a correction.
 
-        self.gain = scint.images(diff_phase_screen,
-                                 Signal_in, mode='simulation').gain
+        self.gain = scint.images(diff_phase_screen, Signal_in, mode='simulation').gain
         self.scint_time_sample_rate = 10 #Samples per scintillation time
         self.to_Scintillate = True
         self.Scint_Dict= {}
@@ -265,8 +251,8 @@ class scintillate():
         Signal_in.MetaData.AddInfo(self.Scint_Dict)
 
 def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
-    """ Method for pulling scintillation bandwidth (MHz) and scintillation
-    timescale (sec) from a txt file.
+    """ Method for pulling scintillation bandwidth (MHz) and scintillation timescale (sec)
+    from a txt file.
     pulsar = Any of the NANOGrav pulsars from 9yr Data release in file.
                 See 'PTA_pulsar_nb_data.txt' for details.
     telescope  = 'AO' (Arecibo Obs) or 'GBT' (Greenbank Telescope)
@@ -276,10 +262,8 @@ def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
         telescope = 'AO'
     if telescope == 'Greenbank':
         telescope = 'GBT'
-    freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'],
-                              dtype=str)
-    freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,
-                           freq_bands_txt)[0]
+    freq_bands_txt = np.array(['0.327','0.430','0.820','1.400','2.300'], dtype=str)
+    freq_band = np.extract(freq_band==freq_bands_txt.astype(float)*1e3,freq_bands_txt)[0]
 
     search_list = (pulsar, telescope, freq_band)
     columns = (10,11)
@@ -289,14 +273,9 @@ def NG_scint_param(pulsar, telescope, freq_band, file_path=None):
         file_path = path + '/PTA_pulsar_nb_data.txt'
 
     try:
-        scint_bw, scint_timescale = utils.text_search(search_list, columns,
-                                                      file_path)
+        scint_bw, scint_timescale = utils.text_search(search_list, columns, file_path)
     except:
-        err_msg =  'Combination of pulsar {0}, telescope {1}'.format(pulsar,
-                                                                     telescope)
-        err_msg += ' and bandwidth {0} MHz'.format(freq_band)
-        err_msg += ' not found in txt file.'
-        raise ValueError(err_msg)
+        raise ValueError('Combination of pulsar {0}, telescope {1} and bandwidth {2} MHz'.format(pulsar, telescope, freq_band)+' not found in txt file.')
 
     return scint_bw, scint_timescale
 
@@ -325,11 +304,10 @@ def convolve_with_profile(pulsar_object,input_array):
         input_array_norm = input_array[ii,:] / input_array_sum
 
         #Convolving the input array with the pulse profile
-        convolved_prof = spsig.convolve(pulsar_prof_norm, input_array_norm,
-                                        mode='full',method='fft')
+        convolved_prof = spsig.convolve(pulsar_prof_norm, input_array_norm, mode='full',method='fft')
 
         #Renormalizing the convolved pulse profile
-        pulsar_object.profile[ii,:] = pulsar_prof_sum * convolved_prof[:width]
+        pulsar_object.profile[ii,:] = (pulsar_prof_sum)*(convolved_prof[:width])
 
 def make_dm_broaden_tophat(pulsar_object,signal_object):
     """
@@ -353,28 +331,20 @@ def make_dm_broaden_tophat(pulsar_object,signal_object):
     """
 
     dm_widths = np.zeros(pulsar_object.Nf)
-    lowest_freq = pulsar_object.Signal_in.freq_Array[0]
-    lowest_freq_top_hat = utils.top_hat_width(freqBinSize,lowest_freq, 100)
-    lowest_freq_top_hat_width = np.ceil(lowest_freq_top_hat
-                                        /pulsar_object.TimeBinSize)
-
+    lowest_freq_top_hat_width = int(utils.top_hat_width(pulsar_object.bw / pulsar_object.Nf, pulsar_object.Signal_in.freq_Array[0], 100) // pulsar_object.TimeBinSize)
     tophat_array = np.zeros((pulsar_object.Nf,lowest_freq_top_hat_width))
 
     for ii, freq in enumerate(pulsar_object.Signal_in.freq_Array):
         #Creating the top hat array
 
         sub_band_width = pulsar_object.bw / pulsar_object.Nf
-        tophat_width = int(utils.top_hat_width(sub_band_width, freq,
-                                               signal_object.MetaData.DM)
-                                               // pulsar_object.TimeBinSize)
+        tophat_width = int(utils.top_hat_width(sub_band_width, freq, signal_object.MetaData.DM) // pulsar_object.TimeBinSize)
         if tophat_width > pulsar_object.Nt:
-            raise ValueError('Too Much DM! Dispersion broadening '
-                             'top hat wider than data array!')
+            raise ValueError('Too Much DM! Dispersion broadening top hat wider than data array!')
         dm_widths[ii] = tophat_width
         tophat = spsig.boxcar(tophat_width)
         tophat_len=len(tophat)
-        tophat = np.append(tophat,
-                           np.zeros(lowest_freq_top_hat_width-tophat_len))
+        tophat = np.append(tophat,np.zeros(lowest_freq_top_hat_width-tophat_len))
         tophat_array[ii,:] = tophat
 
     Dict = {'dm_widths':dm_widths}
@@ -404,9 +374,7 @@ def make_scatter_broaden_exp(pulsar_object, signal_object, tau_d_in=1):
     """
 
     width = pulsar_object.nBinsPeriod
-    tau_scatter_time = scint.scale_tau_d(tau_d = tau_d_in,
-                                         nu_i = signal_object.f0,
-                                         nu_f = signal_object.freq_Array)
+    tau_scatter_time = scint.scale_tau_d(tau_d = tau_d_in,nu_i = signal_object.f0,nu_f = signal_object.freq_Array)
     tau_scatter_bins = tau_scatter_time / signal_object.TimeBinSize
     t = np.linspace(0,pulsar_object.T,width)
     EXP_array = np.zeros((pulsar_object.Nf,width))
