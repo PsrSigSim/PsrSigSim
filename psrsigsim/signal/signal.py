@@ -9,7 +9,8 @@ from ..utils.utils import make_quant
 __all__ = ["Signal", "BaseSignal"]
 
 class BaseSignal(object):
-    """base class for signals, subclass from this
+    """
+    Base class for signals, subclass from this.
 
     Required Args:
         fcent [float]: central radio frequency
@@ -24,8 +25,8 @@ class BaseSignal(object):
 
         dtype [type]: data type of array, default: ``np.float32``
             supported types are: ``np.float32`` and ``np.int8``
-        
-        Npols [int]: number of polarizations, 1-4. Currently only values of 
+
+        Npols [int]: number of polarizations, 1-4. Currently only values of
                     1 for total intensity are supported.
 
     """
@@ -77,7 +78,9 @@ class BaseSignal(object):
         raise NotImplementedError()
 
     def init_data(self, Nsamp):
-        """initialize a data array to store the signal
+        """
+        Initialize a data array to store the signal.
+
         Required Args:
             Nsamp (int): number of data samples
         """
@@ -129,11 +132,11 @@ class BaseSignal(object):
     @property
     def dtype(self):
         return self._dtype
-    
+
     @property
     def Npols(self):
         return self._Npols
-    
+
     @property
     def dat_freq(self):
         return self._dat_freq

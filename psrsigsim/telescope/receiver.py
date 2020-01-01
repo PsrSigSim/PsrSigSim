@@ -10,25 +10,33 @@ __all__ = ['Receiver']
 
 
 class Receiver(object):
-    """telescope reciever
+    """
+    Telescope receiver. A :class:`Receiver` must be instantiated with
+    either a callable response function or ``fcent`` and ``bandwidth`` to use a
+    flat response.
 
-    A :class:`Receiver` must be instatiated with either a callable response
-    function or ``fcent`` and ``bandwidth`` to use a flat response.
+    Required Args:
+        N/A
 
     Optional Args:
         response (callable): frequency response function ("bandpass") of
-            receiver.
-        fcent (float): center frequency of reciever with flat response (MHz)
-        bandwidth (float): bandwidth of reciever with flat response (MHz)
-        Trec (float): reciever temperature (K) for radiometer noise level,
-            default: ``35``
+        receiver.
+
+        fcent (float): center frequency of receiver with flat response (MHz)
+
+        bandwidth (float): bandwidth of receiver with flat response (MHz)
+
+        Trec (float): receiver temperature (K) for radiometer noise level,
+        default: ``35``
+
     """
     def __init__(self,
-                 response=None, 
+                 response=None,
                  fcent=None, bandwidth=None,
                  Trec=35,
                  name=None):
-        if response is None: 
+
+        if response is None:
             if fcent is None or bandwidth is None:
                 msg = "specify EITHER response OR fcent and bandwidth"
                 raise ValueError(msg)
@@ -60,20 +68,21 @@ class Receiver(object):
     @property
     def response(self):
         return self._response
-    
+
     @property
     def fcent(self):
         return self._fcent
-    
+
     @property
     def bandwidth(self):
         return self._bandwidth
 
     def radiometer_noise(self, signal, pulsar, gain=1, Tsys=None, Tenv=None):
-        """add radiometer noise to a signal
+        """
+        Add radiometer noise to a signal.
 
         Tsys = Tenv + Trec, unless Tsys is given (just Trec if no Tenv)
-        
+
         flux density fluctuations: sigS from Lorimer & Kramer eq 7.12
         """
         if Tsys is None and Tenv is None:
@@ -85,7 +94,7 @@ class Receiver(object):
             else:
                 Tsys = Tenv + self.Trec
         # else: Tsys given as input!
-        
+
         # gain by this equation should have units of K/Jy
         gain = make_quant(gain, "K/Jy")
 
@@ -108,12 +117,12 @@ class Receiver(object):
         sigS = Tsys / gain / np.sqrt(dt * signal.bw)
 
         distr = stats.norm()
-        
-        U_scale = 1.0 / (np.sum(pulsar.Profile())/signal.samprate)
+
+        U_scale = 1.0 / (np.sum(pulsar.Profiles._max_profile)/signal.samprate)
 
         norm = np.sqrt((sigS / signal._Smax).decompose())*U_scale
         noise = norm * distr.rvs(size=signal.data.shape)
-        
+
         return noise.value  # drop units!
 
     def _make_pow_noise(self, signal, Tsys, gain, pulsar):
@@ -141,9 +150,9 @@ class Receiver(object):
 
         df = signal.Nfold if signal.fold else 1
         distr = stats.chi2(df)
-        
+
         # scaling factor due to profile normalization (see Lam et al. 2018a)
-        U_scale = 1.0 / (np.sum(pulsar.Profile())/nbins)
+        U_scale = 1.0 / (np.sum(pulsar.Profiles._max_profile)/nbins)
 
         norm = (sigS * signal._draw_norm / signal._Smax).decompose() * U_scale
         noise = norm * distr.rvs(size=signal.data.shape)
@@ -159,10 +168,13 @@ def response_from_data(fs, values):
     raise NotImplementedError()
 
 def _flat_response(fcent, bandwidth):
-    """generate a callable, flat response function
+    """
+    Generate a callable, flat response function
+
     Required Args:
         fcent (float): central frequency (MHz)
         bandwidth (float): bandwidth (MHz)
+
     Returns:
         callable bandpass(f), where f is an array or scalar frequency (MHz)
     """
@@ -171,4 +183,3 @@ def _flat_response(fcent, bandwidth):
     fmin = fc - bw/2
     fmax = fc + bw/2
     return lambda f: np.heaviside(f-fmin, 0) * np.heaviside(fmax-f, 0)
-
