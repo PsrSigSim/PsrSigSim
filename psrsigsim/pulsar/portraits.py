@@ -40,6 +40,7 @@ class PulsePortrait(object):
         self._profiles = self.calc_profiles(ph, Nchan=Nchan)
         self._Amax = self._profiles.max()
         self._profiles /= self.Amax
+        self._max_profile = [pr for pr in self._profiles if pr.max()==1.0][0]
 
     def calc_profiles(self, phases, Nchan=None):
         """
@@ -112,6 +113,8 @@ class GaussPortrait(PulsePortrait):
         """
         ph = np.arange(Nphase)/Nphase
         self._profiles = self.calc_profiles(ph, Nchan=Nchan)
+        self._max_profile = [pr for pr in self._profiles if pr.max()==1.0][0]
+
 
     def calc_profiles(self, phases, Nchan=None):
         """

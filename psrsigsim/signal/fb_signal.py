@@ -34,7 +34,9 @@ class FilterBankSignal(BaseSignal):
             the 20.48 us per sample (about 50 kHz).  This is the sample rate
             for coherently dedispersed filter banks using XUPPI backends.
 
-        subint [bool]: is this a folded subintegration, default ``False``
+
+        # subint is now depricated for 'FOLD'
+        #subint [bool]: is this a folded subintegration, default ``False``
 
         sublen [float]: desired length of data subintegration (sec) if subint
             is ``True``, default: ``tobs``. If left as none but subint is
@@ -43,6 +45,12 @@ class FilterBankSignal(BaseSignal):
 
         dtype [type]: data type of array, default: ``np.float32``
             supported types are: ``np.float32`` and ``np.int8``
+        
+        fold [bool]: If `True`, the initialized signal will be folded to some
+            number of subintegrations based on sublen (else will just make
+            a single subintegration). If `False`, the data produced will be
+            single pulse filterbank data. Default is `True`.
+            NOTE - using `False` will generate a large amount of data.
     """
     #TODO: full stokes.  Currently this is just stokes-I
     #  add flag `fullstokes=False`
@@ -57,9 +65,10 @@ class FilterBankSignal(BaseSignal):
                  fcent, bandwidth,
                  Nsubband=512,
                  sample_rate=None,
-                 subint=False,
+                 #subint=False,
                  sublen=None,
-                 dtype=np.float32):
+                 dtype=np.float32,
+                 fold=True):
 
         # Currently only simulate total intensity
         self._Npols = 1
@@ -71,12 +80,13 @@ class FilterBankSignal(BaseSignal):
         else:
             self._bw = make_quant(bandwidth, 'MHz')
 
-        self._subint = subint
-        if self.subint and sublen != None:
+        self._fold = fold
+        if self.fold and sublen != None:
             self._sublen = make_quant(sublen, 's')
         else:
             self._sublen = sublen
 
+            
         f_Nyquist = 2 * self._bw # Not sure if we need this for subintegrated data
         if sample_rate is None:
             self._samprate = (1/make_quant(20.48, 'us')).to('MHz')
@@ -107,10 +117,14 @@ class FilterBankSignal(BaseSignal):
             self._draw_max = np.iinfo(np.int8).max
             self._draw_norm = self._draw_max/limit
 
+    #@property
+    #def subint(self):
+    #    return self._subint
+    
     @property
-    def subint(self):
-        return self._subint
-
+    def fold(self):
+        return self._fold
+    
     @property
     def sublen(self):
         return self._sublen

@@ -139,7 +139,7 @@ class Pulsar(object):
         signal : :class:`Signal`-like
             Signal object to store pulses.
         """
-        if signal.subint:
+        if signal.fold:
             # Determine how many subints to make
             if signal.sublen is None:
                 signal._sublen = signal.tobs
@@ -166,6 +166,11 @@ class Pulsar(object):
             signal._data = (sngl_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)
         else:
+            # fold is false and will make single pulses
+            signal._sublen = self.period
+            # This should be an integer, if not, will round; may not be exact
+            signal._nsub = int(np.round((signal.tobs / signal.sublen).decompose()))
+            
             # generate several pulses in time
             distr = stats.chi2(df=1)
             signal._set_draw_norm(df=1)
