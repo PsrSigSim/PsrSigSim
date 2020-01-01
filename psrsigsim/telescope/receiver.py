@@ -118,7 +118,7 @@ class Receiver(object):
 
         distr = stats.norm()
 
-        U_scale = 1.0 / (np.sum(pulsar.Profile())/signal.samprate)
+        U_scale = 1.0 / (np.sum(pulsar.Profiles._max_profile)/signal.samprate)
 
         norm = np.sqrt((sigS / signal._Smax).decompose())*U_scale
         noise = norm * distr.rvs(size=signal.data.shape)
@@ -150,9 +150,9 @@ class Receiver(object):
 
         df = signal.Nfold if signal.fold else 1
         distr = stats.chi2(df)
-        
+
         # scaling factor due to profile normalization (see Lam et al. 2018a)
-        U_scale = 1.0 / (np.sum(pulsar.Profile())/nbins)
+        U_scale = 1.0 / (np.sum(pulsar.Profiles._max_profile)/nbins)
 
         norm = (sigS * signal._draw_norm / signal._Smax).decompose() * U_scale
         noise = norm * distr.rvs(size=signal.data.shape)
