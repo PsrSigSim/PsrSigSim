@@ -94,8 +94,9 @@ class Pulsar(object):
             raise NotImplementedError(msg)
 
         # compute Smax (needed for radiometer noise level)
-        pr = self.Profiles()
-        nbins = len(self.Profiles()) # Think this assumes a single profile for now...
+        #pr = self.Profiles()
+        pr = self.Profiles._max_profile
+        nbins = len(pr) # Think this assumes a single profile for now...
         signal._Smax = self.Smean * nbins / np.sum(pr)
 
     def _make_amp_pulses(self, signal):

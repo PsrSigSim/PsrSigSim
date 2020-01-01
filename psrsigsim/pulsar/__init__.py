@@ -1,7 +1,7 @@
 
 from .pulsar import Pulsar
 from .profiles import PulseProfile, GaussProfile, UserProfile, DataProfile
-from .portraits import GaussPortrait, UserPortrait
+from .portraits import GaussPortrait, UserPortrait, DataPortrait
 
 __all__ = ["Pulsar",
            "PulseProfile",
@@ -10,4 +10,5 @@ __all__ = ["Pulsar",
            "DataProfile",
            "GaussPortrait",
            "UserPortrait",
+           "DataPortrait",
            ]
