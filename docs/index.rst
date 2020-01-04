@@ -10,6 +10,7 @@ Contents:
    installation
    usage
    modules
+   full_pipeline_tutorial
    contributing
    authors
    history
