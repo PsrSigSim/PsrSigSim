@@ -69,11 +69,12 @@ class Telescope(object):
         append new system to dict systems"""
         self._systems[name] = (receiver, backend)
 
-    def observe(self, signal, pulsar, system=None, mode='search', noise=False):
+    def observe(self, signal, pulsar, system=None, noise=False):
         """observe(signal, system=None, mode='search', noise=False)
         signal -- Signal() instance
         pulsar -- Pulsar() object, necessary for radiometer noise scaling
         system -- dict key for system to use
+        #NOTE: 'mode' variable was removed as signal contains same information
         """
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
         rcvr = self.systems[system][0]
@@ -118,11 +119,9 @@ class Telescope(object):
             # input signal has lower samp freq than telescope samp freq
             #raise ValueError("Signal sampling freq < Telescope sampling freq")
             
-            # circumvent this issue for subintegrated data for now...
-            if signal.subint:
-                out = np.array(sig_in, dtype=float)
-            else:
-                raise ValueError("Signal sampling freq < Telescope sampling freq")
+            # We will need to fix this eventually but for now we will circumvent
+            out = np.array(sig_in, dtype=float)
+            #raise ValueError("Signal sampling freq < Telescope sampling freq")
 
         if noise:
             # The noise is getting added to the data in the radiometer noise function; this function as no output

@@ -21,7 +21,7 @@ def signal():
     """
     Fixture signal class
     """
-    fbsig = FilterBankSignal(1400,400)
+    fbsig = FilterBankSignal(1400,400, fold=False)
     return fbsig
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def subint_signal():
     Fixture for signal class
     - Makes a subintegrated signal
     """
-    fbsubsig = FilterBankSignal(1400,400,subint=True)
+    fbsubsig = FilterBankSignal(1400,400,fold=True)
     return fbsubsig
 
 @pytest.fixture
