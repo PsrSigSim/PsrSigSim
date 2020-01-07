@@ -71,3 +71,10 @@ def test_scattershift(signal, pulsar, ism):
     tobs = make_quant(5,'s')
     pulsar.make_pulses(signal,tobs)
     ism.scatter_broaden(signal, 5e-6, 1400.0)
+
+def test_scatterbroaden(signal, pulsar, ism):
+    """"""
+    tobs = make_quant(5,'s')
+    ism.scatter_broaden(signal, 5e-6, 1400.0, convolve=True,pulsar=pulsar)
+    pulsar.make_pulses(signal,tobs)
+    
