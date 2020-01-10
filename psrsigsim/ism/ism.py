@@ -106,7 +106,7 @@ class ISM(object):
         # calculate the delay added in for the parameters
         time_delays = make_quant(np.zeros(len(freq_array)), 'ms') # will be in seconds
         for ii in range(len(FD_params)):
-            time_delays += np.double(-1.0*make_quant(FD_params[ii], 's').to('ms') * \
+            time_delays += np.double(make_quant(FD_params[ii], 's').to('ms') * \
                     np.power(np.log(freq_array/ref_freq),ii+1)) # will be in seconds
         
         # get time shift based on the sample rate
