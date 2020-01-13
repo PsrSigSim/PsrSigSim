@@ -189,3 +189,25 @@ class Pulsar(object):
 
             signal._data = (full_prof * distr.rvs(size=signal.data.shape)
                             * signal._draw_norm)
+
+    def null(self, signal, null_frac, length=None, frequency=None):
+        """
+        Function to simulate pulsar pulse nulling. Given some nulling fraction,
+        will replace simulated pulses with noise until nulling fraction is met.
+        
+        signal [class] : signal class containing the simulated pulses
+        null_frac [float] : desired pulsar nulling fraction, given as a 
+                            decimal; range of 0.0 to 1.0.
+        length [float] : desired length of each null in seconds. If not given,
+                         will randomly null pulses. Default is None.
+        frequency [float] : frequency of pulse nulling, e.g. how often the pulsar
+                            nulls per hour. E.g. if frequency is 2, then the 
+                            pulsar will null twice per hour for some length
+                            of time. If not given, will randomly null pulses.
+                            Default is None.
+        """
+        
+        raise NotImplementedError("Null function has not been implimented yet")
+        
+        
+        
