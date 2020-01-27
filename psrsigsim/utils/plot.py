@@ -5,9 +5,10 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import matplotlib.pyplot as plt
 import numpy as np
-from . import PSS_utils as utils
+from . import utils
 
-__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum','gain_pdf','plot_dispersed','joy_division_profiles']
+__all__= ['profile_plot','pulse_plot','filter_bank','dynamic_spectrum',
+          'gain_pdf','plot_dispersed','joy_division_profiles']
 
 #plt.rcParams['figure.figsize'] = (8.0,6.0)
 plt.rcParams.update({'font.size': 14})

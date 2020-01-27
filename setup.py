@@ -15,7 +15,8 @@ requirements = [
     'numpy',
     'scipy',
     'matplotlib>=2.0.0',
-    'h5py'
+    'h5py',
+    'pdat'
     # TODO: put package requirements here
 ]
 
@@ -32,12 +33,18 @@ test_requirements = [
 setup(
     name='psrsigsim',
     version='0.1.0',
-    description="The NANOGrav pulsar signal simulator.",
+    description="The NANOGrav Pulsar Signal Simulator.",
     long_description=readme + '\n\n' + history,
     author="Jeffrey S. Hazboun",
     author_email='jeffrey.hazboun@nanograv.org',
     url='https://github.com/PsrSigSim/VersionZeroPointZero',
-    packages=find_packages(include=['psrsigsim']),
+    packages=find_packages(include=['psrsigsim',
+                                    'psrsigsim.signal',
+                                    'psrsigsim.pulsar',
+                                    'psrsigsim.telescope',
+                                    'psrsigsim.ism',
+                                    'psrsigsim.utils',
+                                    'psrsigsim.io']),
     include_package_data=True,
     package_data={'psrsigsim': ['PTA_pulsar_nb_data.txt', 'data/*.par']},
     install_requires=requirements,
@@ -49,11 +56,10 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     test_suite='tests',
     tests_require=test_requirements,

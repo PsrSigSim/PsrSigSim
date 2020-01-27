@@ -1,9 +1,12 @@
 numpy>=1.16.4
 scipy>=1.0.0
 matplotlib>=2.1.1
-h5py>=2.7.0
-astropy>=2.0, <4.0
+astropy>=2.0
 pdat>=0.2
 fitsio==0.9.12
-packaging>=19.1
 -e git+https://github.com/nanograv/PINT.git#egg=PINT
+
+pip>=18.1
+Sphinx>=1.8.1
+twine>=1.12.1
+numpydoc>=0.8.0
