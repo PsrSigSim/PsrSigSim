@@ -62,6 +62,9 @@ class BaseSignal(object):
         else:
             msg = "Only total intensity polarization is currently supported"
             raise ValueError(msg)
+        
+        # set total delay added to signal to be None
+        self._delay = None
 
     def __repr__(self):
         return self.sigtype+"({0}, bw={1})".format(self.fcent, self.bw)
@@ -140,6 +143,10 @@ class BaseSignal(object):
     @property
     def dat_freq(self):
         return self._dat_freq
+    
+    @property
+    def delay(self):
+        return self._delay
 
 
 def Signal():
