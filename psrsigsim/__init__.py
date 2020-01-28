@@ -12,10 +12,12 @@ from . import pulsar
 from . import telescope
 from . import ism
 from . import io
+from . import utils
 
 __all__ = ["signal",
            "pulsar",
            "telescope",
            "ism",
            "io",
+           "utils",
            ]
