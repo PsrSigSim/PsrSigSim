@@ -221,6 +221,11 @@ class Pulsar(object):
             distr = stats.chi2(df=signal.Nfold)
         else:
             distr = stats.chi2(df=1)
+        # have a test ditribution to determine null bins if Nfold is 1
+        if not signal.fold or signal.Nfold < 100:
+            check_distr = stats.chi2(df=100)
+        else:
+            check_distr = stats.chi2(df=signal.Nfold)
         # Figure out how off-center the pulses are
         shift_val = Nph//2 - np.where(signal.data[0,:Nph]==np.max(signal.data[0,:Nph]))[0]
         # Now null randomly if no length or frequency is given
@@ -252,9 +257,9 @@ class Pulsar(object):
                     null_bins = null_bins[null_bins<np.shape(signal.data)[1]]
                     # replace the appropriate arrays
                     if len(null_bins) != Nph:
-                        null_array[:,null_bins] = (distr.rvs(size=len(null_bins)) * signal._draw_norm)
+                        null_array[:,null_bins] = (check_distr.rvs(size=len(null_bins)) * signal._draw_norm)
                     else:
-                        null_array[:,null_bins] = (distr.rvs(size=Nph) * signal._draw_norm)
+                        null_array[:,null_bins] = (check_distr.rvs(size=Nph) * signal._draw_norm)
                 # now shift the data
                 freq_array = signal._dat_freq
                 shift_dt = (1/signal._samprate).to('ms')
@@ -263,9 +268,10 @@ class Pulsar(object):
                                                  signal.delay[ii].value,
                                                  dt=shift_dt.value)
                 # Now replace pulses with noise
+                off_pulse_mean = np.mean(self.Profiles._max_profile[opw.astype(int)])
                 noise_shape = np.shape(np.where(null_array>1))[1]
                 noise = (distr.rvs(size=noise_shape) * signal._draw_norm)
-                signal._data[np.where(null_array>1)] = noise*np.mean(self.Profiles._max_profile[opw.astype(int)])
+                signal._data[np.where(null_array>1)] = noise*off_pulse_mean
         
         else:
             raise NotImplementedError("Length and Frequency not been implimented yet")
