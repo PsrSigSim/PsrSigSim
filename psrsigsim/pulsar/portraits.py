@@ -215,8 +215,8 @@ class DataPortrait(PulsePortrait):
             elif any([ii != jj for ii,jj in zip(profiles[:,0],
                                                 profiles[:,-1])]):
                 # enforce periodicity!
-                profiles[-1,:] = profiles[0,:]
-        
+                profiles[:,-1] = profiles[:,0]
+
         self._generator = _cubeSpline(phases, profiles, axis=1,
                                       bc_type='periodic')
 
