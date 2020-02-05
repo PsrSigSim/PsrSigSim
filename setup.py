@@ -37,7 +37,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Jeffrey S. Hazboun",
     author_email='jeffrey.hazboun@nanograv.org',
-    url='https://github.com/PsrSigSim/VersionZeroPointZero',
+    url='https://github.com/PsrSigSim/PsrSigSim',
     packages=find_packages(include=['psrsigsim',
                                     'psrsigsim.signal',
                                     'psrsigsim.pulsar',
