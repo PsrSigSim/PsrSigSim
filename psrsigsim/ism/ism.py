@@ -38,15 +38,24 @@ class ISM(object):
         #freq in MHz, delays in milliseconds
         freq_array = signal._dat_freq
         time_delays = (DM_K * dm * np.power(freq_array,-2)).to('ms')
+        if signal.delay==None:
+            signal._delay=time_delays
+        else:
+            signal._delay += time_delays
         #Dispersion as compared to infinite frequency
         shift_dt = (1/signal._samprate).to('ms')
         shift_start = time.time()
+        # check if there are less than 20 frequency channels
+        if signal.Nchan <= 20:
+            div_fac = 1
+        else:
+            div_fac = 20
 
         for ii, freq in enumerate(freq_array):
             signal._data[ii,:] = shift_t(signal._data[ii,:],
                                          time_delays[ii].value,
                                          dt=shift_dt.value)
-            if (ii+1) % int(signal.Nchan//20) ==0:
+            if (ii+1) % int(signal.Nchan//div_fac) ==0:
                 shift_check = time.time()
                 percent = round((ii + 1)*100/signal.Nchan)
                 elapsed = shift_check-shift_start
@@ -106,18 +115,27 @@ class ISM(object):
         # calculate the delay added in for the parameters
         time_delays = make_quant(np.zeros(len(freq_array)), 'ms') # will be in seconds
         for ii in range(len(FD_params)):
-            time_delays += np.double(-1.0*make_quant(FD_params[ii], 's').to('ms') * \
+            time_delays += np.double(make_quant(FD_params[ii], 's').to('ms') * \
                     np.power(np.log(freq_array/ref_freq),ii+1)) # will be in seconds
         
+        if signal.delay==None:
+            signal._delay=time_delays
+        else:
+            signal._delay += time_delays
         # get time shift based on the sample rate
         shift_dt = (1/signal._samprate).to('ms')
         shift_start = time.time()
+        # check if there are less than 20 frequency channels
+        if signal.Nchan <= 20:
+            div_fac = 1
+        else:
+            div_fac = 20
 
         for ii, freq in enumerate(freq_array):
             signal._data[ii,:] = shift_t(signal._data[ii,:],
                                          time_delays[ii].value,
                                          dt=shift_dt.value)
-            if (ii+1) % int(signal.Nchan//20) ==0:
+            if (ii+1) % int(signal.Nchan//div_fac) ==0:
                 shift_check = time.time()
                 percent = round((ii + 1)*100/signal.Nchan)
                 elapsed = shift_check-shift_start
@@ -164,15 +182,24 @@ class ISM(object):
         tau_d_scaled = self.scale_tau_d(tau_d, ref_freq , freq_array, beta=beta)
         # First shift signal if convolve = False
         if not convolve:
+            if signal.delay==None:
+                signal._delay=tau_d_scaled
+            else:
+                signal._delay += tau_d_scaled
             # define bin size to shift by
             shift_dt = (1/signal._samprate).to('ms')
             shift_start = time.time()
+            # check if there are less than 20 frequency channels
+            if signal.Nchan <= 20:
+                div_fac = 1
+            else:
+                div_fac = 20
             # now loop through and scale things appropriately
             for ii, freq in enumerate(freq_array):
                 signal._data[ii,:] = shift_t(signal._data[ii,:],
                                              tau_d_scaled[ii].value,
                                              dt=shift_dt.value)
-                if (ii+1) % int(signal.Nchan//20) ==0:
+                if (ii+1) % int(signal.Nchan//div_fac) ==0:
                     shift_check = time.time()
                     percent = round((ii + 1)*100/signal.Nchan)
                     elapsed = shift_check-shift_start
