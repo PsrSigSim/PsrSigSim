@@ -107,6 +107,9 @@ class FilterBankSignal(BaseSignal):
 
         self._dtype = dtype
         self._set_draw_norm()
+        
+        # set total delay added to signal to be None
+        self._delay = None
 
     def _set_draw_norm(self, df=1):
         if self.dtype is np.float32:

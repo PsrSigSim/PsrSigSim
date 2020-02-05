@@ -56,6 +56,28 @@ class PulsePortrait(object):
         This is implemented by the subclasses!
         """
         raise NotImplementedError()
+        
+    def _calcOffpulseWindow(self, Nphase = None):
+        """
+        Function adapted from Pypulse (https://github.com/mtlam/PyPulse)
+        to determine the offpulse window of the input profile
+        """
+        # Find minimum in the area
+        if Nphase == None:
+            windowsize = 2048/8
+        else:
+            windowsize = Nphase/8
+        
+        bins = np.arange(0, Nphase)
+
+        integral = np.zeros_like(self._max_profile)
+        for i in bins:
+            win = np.arange(i-windowsize//2, i+windowsize//2) % Nphase
+            integral[i] = np.trapz(self._max_profile[win.astype(int)])
+        minind = np.argmin(integral)
+        opw = np.arange(minind-windowsize//2, minind+windowsize//2+1)
+        opw = opw % Nphase
+        return opw
 
     @property
     def profiles(self):
