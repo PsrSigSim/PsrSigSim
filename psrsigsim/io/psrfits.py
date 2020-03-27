@@ -93,7 +93,10 @@ class PSRFITS(BaseFile):
         if self.obs_mode=='SEARCH':
             self.pfit_pars['SUBINT'].append('TDIM17')
         elif self.obs_mode=='PSR':
-            self.pfit_pars['SUBINT'].append('TDIM20')
+            #self.pfit_pars['SUBINT'].append('TDIM20')
+            for k in self.file.fits_template['SUBINT'].read_header().keys():
+                if 'TDIM' in k:
+                    self.pfit_pars['SUBINT'].append(k)
             self.pfit_pars['PSRPARAM'].append('F')
             # Need both there depending on the template file. Only one will work.
             self.pfit_pars['PSRPARAM'].append('F0')
@@ -247,7 +250,7 @@ class PSRFITS(BaseFile):
     # Save the signal
     def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
              MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
-             ref_MJD = 56000.0, usePint = True):
+             ref_MJD = 56000.0, usePint = True, eq_wts = True, copymetadata = True):
         """Save PSS signal file to disk. Currently only one mode of doing this
         is supported. Saved data can be phase connected but PSRFITS file metadata must
         be edited appropriately as well and requires the following input:
@@ -268,6 +271,11 @@ class PSRFITS(BaseFile):
         inc_len [float] : time difference (days) between reference MJD and new phase connected
                           MJD, default is 0 (e.g. no time difference).
         usePINT [bool] : Method used to generate polycos. Currently only PINT is supported.
+        eq_wts [bool] : If `True` (default), replaces the data weights so that each subintegration and 
+                        frequency channel have an equal weight in the file. If `False`, just copies the
+                        weights from the template file.
+        copymetadata [bool] : If `True` (default), will copy the file metadata into the 
+                            simulated fitsfile. 
         """
         
         """
@@ -291,26 +299,31 @@ class PSRFITS(BaseFile):
             idxF = idx0 + 2048
             Out[ii,0,:,:] = sim_sig[:,idx0:idxF]
         
-        self.copy_psrfit_BinTables()
+        self.copy_psrfit_BinTables(copy_SUBINT_nonDATA=copymetadata)
         # We can currently only make total intensity data
         self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
         for ii in range(self.nsubint):
             self.file.HDU_drafts['SUBINT'][ii]['DATA'] = Out[ii,0,:,:]
             self.file.HDU_drafts['SUBINT'][ii]['DAT_FREQ'] = signal.dat_freq.value
-            # Get the shapes of the wieghts, scales, and offs arrays, assumes we want to reset these to all be equal
-            if len(np.shape(self.file.fits_template[4][0]['DAT_SCL'])) != 1:
-                scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol])
-                offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol])
-                weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+            if eq_wts:
+                # Get the shapes of the wieghts, scales, and offs arrays, assumes we want to reset these to all be equal
+                if len(np.shape(self.file.fits_template[4][0]['DAT_SCL'])) != 1:
+                    scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol])
+                    offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol])
+                    weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+                else:
+                    scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:])
+                    offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:])
+                    weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+                # Now assign the values
+                #print(scale_shape, offs_shape, weight_shape)
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = np.ones(scale_shape)
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = np.zeros(offs_shape)
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = np.ones(weight_shape)
             else:
-                scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:])
-                offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:])
-                weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
-            # Now assign the values
-            #print(scale_shape, offs_shape, weight_shape)
-            self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = np.ones(scale_shape)
-            self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = np.zeros(offs_shape)
-            self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = np.ones(weight_shape)
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol]
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol]
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template[4][ii]['DAT_WTS']
         
         """If we try to phase connect the data we want to do it here. If this is not done and the info not
         provided, the data saved to the fits file will likely not be appropriate for timing simulations."""
