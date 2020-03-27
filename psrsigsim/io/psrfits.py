@@ -245,8 +245,8 @@ class PSRFITS(BaseFile):
                 if dp.encode('utf-8') == param[0].split()[0]:
                     idx = np.where(param == self.file.HDU_drafts['PSRPARAM'])[0]
                     self.file.HDU_drafts['PSRPARAM'] = np.delete(self.file.HDU_drafts['PSRPARAM'], idx)
-
     
+ 
     # Save the signal
     def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
              MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
@@ -287,6 +287,9 @@ class PSRFITS(BaseFile):
         elif self._fits_mode == 'auto':
             pass
         """
+        # If mode not search, set nsblk to 1
+        if self.obs_mode != 'SEARCH':
+            self.nsblk = 1
         # We need to appropriatly shape the signal for the fits file
         stop = self.nbin*self.nsubint
         sim_sig = signal.data[:,:stop].astype('>i2')
