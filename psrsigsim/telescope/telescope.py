@@ -180,6 +180,13 @@ def GBT():
     g.add_system(name="Lband_GUPPI",
                  receiver=Receiver(fcent=1400, bandwidth=800, name="Lband"),  # check me
                  backend=Backend(samprate=12.5, name="GUPPI"))
+    # Parameters from NANOGrav 9 year paper
+    g.add_system(name="800_GASP",
+                 receiver=Receiver(fcent=844, bandwidth=64, name="800"),  # check me
+                 backend=Backend(samprate=0.25, name="GASP"))
+    g.add_system(name="Lband_GASP",
+                 receiver=Receiver(fcent=1410, bandwidth=64, name="Lband"),  # check me
+                 backend=Backend(samprate=0.25, name="GASP"))
     return g
 
 
@@ -199,4 +206,18 @@ def Arecibo():
     a.add_system(name="Sband_PUPPI",
                  receiver=Receiver(fcent=2030, bandwidth=400, name="Sband"),  # check me
                  backend=Backend(samprate=12.5, name="PUPPI"))
+    # Parameters from NANOGrav 9 year paper
+    a.add_system(name="327_ASP",
+                 receiver=Receiver(fcent=327, bandwidth=64, name="327"),  # check me
+                 backend=Backend(samprate=0.25, name="ASP"))
+    a.add_system(name="430_ASP",
+                 receiver=Receiver(fcent=432, bandwidth=64, name="430"),  # check me
+                 backend=Backend(samprate=0.25, name="ASP"))
+    a.add_system(name="Lband_ASP",
+                 receiver=Receiver(fcent=1412, bandwidth=64, name="Lband"),  # check me
+                 backend=Backend(samprate=0.25, name="ASP"))
+    a.add_system(name="Sband_ASP",
+                 receiver=Receiver(fcent=2348, bandwidth=64, name="Sband"),  # check me
+                 backend=Backend(samprate=0.25, name="ASP"))
+
     return a
