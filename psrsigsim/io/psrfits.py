@@ -250,7 +250,7 @@ class PSRFITS(BaseFile):
     # Save the signal
     def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
              MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
-             ref_MJD = 56000.0, usePint = True, eq_wts = True):
+             ref_MJD = 56000.0, usePint = True, eq_wts = True, copymetadata = True):
         """Save PSS signal file to disk. Currently only one mode of doing this
         is supported. Saved data can be phase connected but PSRFITS file metadata must
         be edited appropriately as well and requires the following input:
@@ -274,6 +274,8 @@ class PSRFITS(BaseFile):
         eq_wts [bool] : If `True` (default), replaces the data weights so that each subintegration and 
                         frequency channel have an equal weight in the file. If `False`, just copies the
                         weights from the template file.
+        copymetadata [bool] : If `True` (default), will copy the file metadata into the 
+                            simulated fitsfile. 
         """
         
         """
@@ -297,7 +299,7 @@ class PSRFITS(BaseFile):
             idxF = idx0 + 2048
             Out[ii,0,:,:] = sim_sig[:,idx0:idxF]
         
-        self.copy_psrfit_BinTables()
+        self.copy_psrfit_BinTables(copy_SUBINT_nonDATA=copymetadata)
         # We can currently only make total intensity data
         self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
         for ii in range(self.nsubint):
