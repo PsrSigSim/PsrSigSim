@@ -208,6 +208,7 @@ class PSRFITS(BaseFile):
         primary_dict['STT_IMJD'] = int(next_MJD.value)
         primary_dict['STT_SMJD'] = int(next_seconds.value)
         primary_dict['STT_OFFS'] = np.double(next_frac_sec.value)
+        primary_dict['BE_DELAY'] = 0.0
             
         return primary_dict, subint_dict
     
