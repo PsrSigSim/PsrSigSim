@@ -57,7 +57,7 @@ def test_fitssig(PSRfits):
     """
     S = PSRfits.make_signal_from_psrfits()
     os.remove("data/test.fits")
-    
+
 def test_savesig(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it.
@@ -67,7 +67,7 @@ def test_savesig(PSRfits, pulsar):
     pulsar.make_pulses(S, tobs = obslen)
     PSRfits.save(S, pulsar)
     os.remove("data/test.fits")
-    
+
 def test_savephaseconnect(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it,
@@ -81,7 +81,7 @@ def test_savephaseconnect(PSRfits, pulsar):
                  MJD_start = 55999.9861, inc_len = 0.0, ref_MJD = 56000.0, \
                  usePint = True)
     os.remove("data/test.fits")
-    
+
 def test_savephaseconnect_inc(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it,
@@ -95,10 +95,9 @@ def test_savephaseconnect_inc(PSRfits, pulsar):
                  MJD_start = 55999.9861+30.0, inc_len = 30.0, ref_MJD = 56000.0, \
                  usePint = True)
     os.remove("data/test.fits")
-    
+
 def test_savepdv(TXTfile, signal, pulsar):
     tobs = make_quant(1,'s')
     pulsar.make_pulses(signal,tobs)
     TXTfile.save_psrchive_pdv(signal, pulsar)
     os.remove("data/test_pdv_0.txt")
-
