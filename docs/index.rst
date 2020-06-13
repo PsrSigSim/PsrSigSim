@@ -10,6 +10,7 @@ Contents:
    installation
    usage
    modules
+   tutorial_1
    full_pipeline_tutorial
    Pulse_Nulling_Example
    contributing
