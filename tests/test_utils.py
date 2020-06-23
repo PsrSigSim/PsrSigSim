@@ -13,11 +13,40 @@ import numpy as np
 from psrsigsim.utils.utils import *
 from astropy import units as u
 
+from psrsigsim.signal.fb_signal import FilterBankSignal
+from psrsigsim.pulsar.pulsar import Pulsar
+from psrsigsim.ism.ism import ISM
+
 """
 Still need to write tests for get_pint_models, function may be too specific
 right now.
 Still need to write test for text_search -> don't have files to test.
 """
+@pytest.fixture
+def signal():
+    """
+    Fixture signal class
+    """
+    fbsig = FilterBankSignal(1400,400,Nsubband=2,\
+                             sample_rate=186.49408124993144*2048*10**-6,\
+                             sublen=0.5)
+    return fbsig
+
+@pytest.fixture
+def pulsar():
+    """
+    Fixture pulsar class
+    """
+    F0 = 186.49408124993144
+    period = make_quant(1.0/F0,'s')
+    return Pulsar(period,10,name='J1746-0118')
+
+@pytest.fixture
+def ism():
+    """
+    Fixture ism class
+    """
+    return ISM()
 
 def test_shiftt():
     """
@@ -88,3 +117,14 @@ def test_makequant():
     param = make_quant(param, u.second)
     param = make_quant(param, u.year)
     assert(hasattr(param, 'unit'))
+
+def test_makepar(signal, pulsar, ism):
+    """
+    Test make_par function.
+    """
+    tobs = make_quant(0.5,'s')
+    pulsar.make_pulses(signal,tobs)
+    ism.disperse(signal,10)
+    make_par(signal, pulsar)
+    os.remove("simpar.par")
+    

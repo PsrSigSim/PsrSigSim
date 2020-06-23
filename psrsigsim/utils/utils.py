@@ -335,3 +335,48 @@ def get_pint_models(psr_name, psr_file_path):
         par_model = models.get_model(model_name)
 
         return par_model
+
+def make_par(signal, pulsar, outpar = "simpar.par"):
+    """
+    Function to create a par file for simulated pulsar.
+    
+    Input:
+    ---------
+    signal : class
+        PsrSigSim Signal class object
+    pulsar : class
+        PsrSigSim Pulsar class object
+    outpar : string
+        Name of output par file.
+    """
+    # Get parameters and other things that should go into this file
+    par_lines = []
+    par_lines.append("PSR            %s\n" % (pulsar.name))
+    par_lines.append("LAMBDA            0.0\n" ) # Default for now
+    par_lines.append("BETA           0.0\n" ) # Default for now
+    par_lines.append("PMLAMBDA            0.0\n" ) # Default for now
+    par_lines.append("PMBETA            0.0\n" ) # Default for now
+    par_lines.append("PX            0.0\n" ) # Default for now
+    par_lines.append("POSEPOCH            56000.0\n" ) # Default for now
+    par_lines.append("F0           %s\n" % (1.0/pulsar.period))
+    par_lines.append("PEPOCH            56000.0\n" ) # Default for now
+    par_lines.append("START            50000.0\n" ) # Default for now
+    par_lines.append("FINISH            60000.0\n" ) # Default for now
+    par_lines.append("DM                %s\n" % (signal.dm)) 
+    par_lines.append("EPHEM               DE436\n" ) # Default for now
+    par_lines.append("ECL                 IERS2010\n" ) # Default for now
+    par_lines.append("CLK                 TT(BIPM2015) \n" ) # Default for now                   
+    par_lines.append("UNITS               TDB\n" ) # Default for now
+    par_lines.append("TIMEEPH             FB90\n" ) # Default for now
+    par_lines.append("T2CMETHOD           TEMPO\n" ) # Default for now
+    par_lines.append("CORRECT_TROPOSPHERE N\n" ) # Default for now
+    par_lines.append("PLANET_SHAPIRO      N\n" ) # Default for now
+    par_lines.append("DILATEFREQ          N\n" ) # Default for now
+    par_lines.append("TZRMJD        56000.0\n" ) # Default for now
+    par_lines.append("TZRFRQ            1500.0\n" ) # Default for now
+    par_lines.append("TZRSITE                  @\n" ) # Default for now
+    par_lines.append("MODE                     1\n" ) # Default for now
+    # Write out the file
+    with open(outpar, 'w') as op:
+        op.writelines(par_lines)
+        op.close()
