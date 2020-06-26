@@ -58,6 +58,13 @@ def test_fitssig(PSRfits):
     S = PSRfits.make_signal_from_psrfits()
     os.remove("data/test.fits")
 
+def test_getsigparams(PSRfits, signal, pulsar):
+    """
+    Test getting signal parameters from signal object
+    """
+    pulsar.make_pulses(signal, tobs = 1.0)
+    PSRfits._get_signal_params(signal=signal)
+
 def test_savesig(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it.
@@ -101,3 +108,17 @@ def test_savepdv(TXTfile, signal, pulsar):
     pulsar.make_pulses(signal,tobs)
     TXTfile.save_psrchive_pdv(signal, pulsar)
     os.remove("data/test_pdv_0.txt")
+    
+def test_notimplementedfuncs(PSRfits, signal):
+    """
+    Test functions that have not yet be implemented.
+    """
+    with pytest.raises(NotImplementedError):
+        parfile = "data/test_parfile.par"
+        PSRfits._gen_polyco(parfile, 56000.0, usePINT=False)
+        PSRfits.append(signal)
+        PSRfits.load()
+        PSRfits.to_txt()
+        PSRfits.to_psrfits()
+        PSRfits.set_sky_info()
+        PSRfits._calc_psrfits_dims(signal)

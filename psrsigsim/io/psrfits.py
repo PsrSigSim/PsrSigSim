@@ -251,7 +251,7 @@ class PSRFITS(BaseFile):
     # Save the signal
     def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
              MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
-             ref_MJD = 56000.0, usePint = True, eq_wts = True, copymetadata = True):
+             ref_MJD = 56000.0, usePint = True, eq_wts = True):
         """Save PSS signal file to disk. Currently only one mode of doing this
         is supported. Saved data can be phase connected but PSRFITS file metadata must
         be edited appropriately as well and requires the following input:
@@ -275,8 +275,6 @@ class PSRFITS(BaseFile):
         eq_wts [bool] : If `True` (default), replaces the data weights so that each subintegration and 
                         frequency channel have an equal weight in the file. If `False`, just copies the
                         weights from the template file.
-        copymetadata [bool] : If `True` (default), will copy the file metadata into the 
-                            simulated fitsfile. 
         """
         
         """
@@ -303,7 +301,7 @@ class PSRFITS(BaseFile):
             idxF = idx0 + 2048
             Out[ii,0,:,:] = sim_sig[:,idx0:idxF]
         
-        self.copy_psrfit_BinTables(copy_SUBINT_nonDATA=copymetadata)
+        self.copy_psrfit_BinTables()
         # We can currently only make total intensity data
         self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
         for ii in range(self.nsubint):
@@ -382,7 +380,6 @@ class PSRFITS(BaseFile):
         self._get_signal_params()
         
         if self.obs_mode == 'PSR':
-            ObsTime = self.tsubint*self.nrows
             # Get correct period value from template fits options
             if self.pfit_dict['F'] is None and self.pfit_dict['F0'] is not None:
                 s_rate = self.pfit_dict['F0']*self.nbin*10**-6 # in MHz
@@ -394,7 +391,6 @@ class PSRFITS(BaseFile):
                 msg = "No pulsar frequency defined in input fits file."
                 raise ValueError(msg)        
         else:
-            ObsTime = self.tbin*self.nbin*self.nsblk*self.nrows
             s_rate = (1/self.tbin).to('MHz').value
 
         S = FilterBankSignal(fcent=self.obsfreq.value,
@@ -402,7 +398,6 @@ class PSRFITS(BaseFile):
                    Nsubband=self.nchan,
                    sample_rate=s_rate,
                    dtype=np.float32,
-                   #subint=True,
                    fold = True,
                    sublen=self.tsubint)
 
@@ -410,7 +405,7 @@ class PSRFITS(BaseFile):
         
         return S
 
-    def copy_psrfit_BinTables(self, ext_names='all', copy_SUBINT_nonDATA=True):
+    def copy_psrfit_BinTables(self, ext_names='all'):
         """Method to copy BinTables from the PSRFITS file given as the template.
 
         Parameters
@@ -419,14 +414,6 @@ class PSRFITS(BaseFile):
         ext_names : list, 'all'
             List of BinTable Extensions to copy. Defaults to all, but does not
             copy DATA array in SUBINT BinTable.
-
-        copy_SUBINT_nonDATA : bool, optional
-            If True all of the contents of the `SUBINT` BinTable will be copied
-            except for the DATA array. This includes the single floats as well
-            as TSUBINT, OFFS_SUB, LST_SUB, RA_SUB, DEC_SUB, GLON_SUB, GLAT_SUB,
-            FD_ANG, POS_ANG, PAR_ANG, TEL_AZ, TEL_ZEN and others. Is set to
-            False if ext_names does not include 'SUBINT' or not equal to 'all'.
-            Does not set DAT_FREQ, DAT_SCL, DAT_WTS, DAT_OFFS.
         """
         if ext_names == 'all':
             ext_names = self.file.draft_hdr_keys[1:]
@@ -437,15 +424,14 @@ class PSRFITS(BaseFile):
         for ky in ext_names:
             self.file.copy_template_BinTable(ky)
 
-        if copy_SUBINT_nonDATA:
-            self.file.set_subint_dims(nbin=self.nbin, nsblk=self.nsblk,
-                                      nchan=self.nchan, nsubint=self.nrows,
-                                      npol=self.npol,
-                                      data_dtype=self.dtypes['DATA'][0],
-                                      obs_mode=self.pfit_dict['OBS_MODE'])
+        self.file.set_subint_dims(nbin=self.nbin, nsblk=self.nsblk,
+                                  nchan=self.nchan, nsubint=self.nrows,
+                                  npol=self.npol,
+                                  data_dtype=self.dtypes['DATA'][0],
+                                  obs_mode=self.pfit_dict['OBS_MODE'])
 
-            self.file.copy_template_BinTable(ext_name='SUBINT',
-                                            cols=self.file.single_subint_floats)
+        self.file.copy_template_BinTable(ext_name='SUBINT',
+                                        cols=self.file.single_subint_floats)
 
 
     def to_txt(self):
@@ -456,7 +442,7 @@ class PSRFITS(BaseFile):
     def to_psrfits(self):
         """Convert file to PSRFITS file.
         """
-        return self
+        return NotImplementedError()
 
     def set_sky_info(self):
         """Enter various astronomical and observing data into PSRFITS draft."""
@@ -467,8 +453,7 @@ class PSRFITS(BaseFile):
         Calculate the needed dimensions of a PSRFITS file from a PSS.signal
         object.
         """
-        self.nchan = signal.Nf
-        Nt = signal.Nt
+        raise NotImplementedError()
 
     def _get_signal_params(self, signal = None):
         """
