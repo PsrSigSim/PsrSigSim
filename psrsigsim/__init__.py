@@ -13,6 +13,7 @@ from . import telescope
 from . import ism
 from . import io
 from . import utils
+from . import simulate
 
 __all__ = ["signal",
            "pulsar",
@@ -20,4 +21,5 @@ __all__ = ["signal",
            "ism",
            "io",
            "utils",
+           "simulate",
            ]
