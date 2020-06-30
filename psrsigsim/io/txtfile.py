@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from ..utils import make_quant
 from .file import BaseFile
+from astropy import log
 
 class TxtFile(BaseFile):
     """A class for saving PsrSigSim signals as text files.
@@ -56,7 +57,7 @@ class TxtFile(BaseFile):
         # Now we make a list of the lines to save
         lines = [header]
         if self.npol != 1:
-            print("Only saving total intensity, multiple polarizations not yet implemented")
+            log.warning("Only saving total intensity, multiple polarizations not yet implemented")
         # We need to dump the data every so often to avoid files that are too big
         dump_val = 0
         # Now we need to loop through each subint, frequency channel, and polarization
