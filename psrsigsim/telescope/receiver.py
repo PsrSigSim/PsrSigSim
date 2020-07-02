@@ -48,6 +48,8 @@ class Receiver(object):
                 raise ValueError(msg)
             else:
                 self._response = response
+                msg = "Non-flat response not yet implemented."
+                raise NotImplementedError(msg)
 
         self._Trec = make_quant(Trec, "K")
         self._name = name

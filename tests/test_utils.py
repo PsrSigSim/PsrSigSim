@@ -87,10 +87,10 @@ def test_SG():
     y = np.arange(0,100)
     smoothed = savitzky_golay(y, 5, 2, deriv=0, rate=1)
     with pytest.raises(ValueError):
-        smoothed = savitzky_golay(y, 'five', 2.0, deriv=0, rate=1)
+        smoothed = savitzky_golay(y, 'five', 'two', deriv=0, rate=1)
     with pytest.raises(TypeError):
         smoothed = savitzky_golay(y, 2, 2, deriv=0, rate=1)
-        smoothed = savitzky_golay(y, 3, 2, deriv=0, rate=1)
+        smoothed = savitzky_golay(y, 7, 6, deriv=0, rate=1)
 
 def test_findnearest():
     """
@@ -117,6 +117,8 @@ def test_makequant():
     param = make_quant(param, u.second)
     param = make_quant(param, u.year)
     assert(hasattr(param, 'unit'))
+    with pytest.raises(ValueError):
+        param = make_quant(param, u.meter)
 
 def test_makepar(signal, pulsar, ism):
     """
@@ -127,4 +129,21 @@ def test_makepar(signal, pulsar, ism):
     ism.disperse(signal,10)
     make_par(signal, pulsar)
     os.remove("simpar.par")
+
+def test_txtsearch():
+    """
+    Test text search function.
+    """
+    out = text_search("pull", ['header1', 'header2'], "data/txt_search_test.txt", header_line=1)
+    out2 = text_search("pull", [1], "data/txt_search_test.txt", header_line=1)
+    with pytest.raises(ValueError):
+        out3 = text_search("push", [1], "data/txt_search_test.txt", header_line=1)
+        out4 = text_search("nope", [1], "data/txt_search_test.txt", header_line=1)
     
+def test_getpintmodel():
+    """
+    Test get_pint_model function.
+    """
+    psr_name = "J1910+1256"
+    psr_file_path = "data/"
+    m = get_pint_models(psr_name, psr_file_path)

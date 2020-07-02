@@ -27,7 +27,7 @@ class Telescope(object):
 
         if area is None:
             # assume circular single dish
-            self._area = np.pi * (aperture/2)**2
+            self._area = np.pi * (self.aperture/2)**2
         else:
             self._area = make_quant(area, "m^2")
         self._gain = self.area / (2*_kB)  # 2 polarizations
@@ -69,12 +69,16 @@ class Telescope(object):
         append new system to dict systems"""
         self._systems[name] = (receiver, backend)
 
-    def observe(self, signal, pulsar, system=None, noise=False):
-        """observe(signal, system=None, mode='search', noise=False)
+    def observe(self, signal, pulsar, system=None, noise=False, ret_resampsig = False):
+        """
         signal -- Signal() instance
         pulsar -- Pulsar() object, necessary for radiometer noise scaling
         system -- dict key for system to use
-        #NOTE: 'mode' variable was removed as signal contains same information
+        noise : bool
+            If True will add radiometer noise to the signal data.
+        ret_resampsig : bool
+            If True will return the resampled signal as a numpy array. Otherwise
+            will not return anything.
         """
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
         rcvr = self.systems[system][0]
@@ -87,9 +91,6 @@ class Telescope(object):
             dt_sig = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
         else:
             dt_sig = signal.tobs / signal.nsamp # unit: s
-        
-        # QUESTION: out should be the resampled signal now right? So we 
-        # should be editing the signal object directly here.
         
         if dt_sig == dt_tel:
             out = np.array(sig_in, dtype=float)
@@ -116,52 +117,44 @@ class Telescope(object):
             print(msg.format((1/dt_sig).to("kHz").value, (1/dt_tel).to("kHz").value))
 
         else:
-            # input signal has lower samp freq than telescope samp freq
-            #raise ValueError("Signal sampling freq < Telescope sampling freq")
-            
+            # input signal has lower samp freq than telescope samp freq   
             # We will need to fix this eventually but for now we will circumvent
             out = np.array(sig_in, dtype=float)
-            #raise ValueError("Signal sampling freq < Telescope sampling freq")
 
         if noise:
             # The noise is getting added to the data in the radiometer noise function; this function as no output
             # Need to look into this resampling as well
-            #out += rcvr.radiometer_noise(signal, gain=1) 
             rcvr.radiometer_noise(signal, pulsar, gain=self.gain)
             
 
         if signal.sigtype == 'voltage':
-            #clip = signal.MetaData.gauss_draw_max 
             # Difference between gauss and gamma draw here?
             clip = signal._draw_max
 
             out[out>clip] = clip
             out[out<-clip] = -clip
         else:
-            #clip = signal.MetaData.gamma_draw_max
             # Difference between gauss and gamma draw here?
             clip = signal._draw_max
             out[out>clip] = clip
 
         out = np.array(out, dtype=signal.dtype)
         
-        """
-        What should out be? What is it taking the place of? How should we add noise to it?
-        Currently appears to just be downsampled signal (which is fine but we need to know this)
-        """
-        return out
+        if ret_resampsig:
+            # Return the downsampled signal
+            return out
 
     def apply_response(self, signal):
-        pass
+        raise NotImplementedError()
 
     def rfi(self):
-        pass
+        raise NotImplementedError()
 
     def init_signal(self, system):
         """init_signal(system)
         instantiate a signal object with same Nt, Nf, bandwidth, etc
         as the system to be used for observation"""
-        pass
+        raise NotImplementedError()
 
 
 # Convenience functions to construct GBT and AO telescopes
