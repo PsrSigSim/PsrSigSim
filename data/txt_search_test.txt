@@ -1,0 +1,5 @@
+# file to test text search function with
+# header1     header2    header3
+pull         7          1
+nope         8          0
+nope         9          0

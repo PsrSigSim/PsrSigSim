@@ -79,7 +79,7 @@ def rebin(ar, newlen):
     for ii, lbin in enumerate(newBins):
         rbin = int(np.ceil(lbin + stride))
         # fix for potential last bin rounding error
-        if rbin > ar.size:
+        if rbin > ar.size: # Not sure how to force this for test...
             rbin = ar.size
         lbin = int(np.ceil(lbin))
         ar_new[ii, 0:rbin-lbin] = ar[lbin:rbin]
