@@ -154,8 +154,8 @@ class PSRFITS(BaseFile):
             return polyco_dict
     
         else:
-            print("Only PINT is currently supported for generating polycos")
-            raise NotImplementedError()
+            #print("Only PINT is currently supported for generating polycos")
+            raise NotImplementedError("Only PINT is currently supported for generating polycos")
     
     # Define a function to collect the metadata necessary for phase connection
     def _gen_metadata(self, signal, pulsar, ref_MJD = 56000.0, inc_len = 0.0):
@@ -417,8 +417,6 @@ class PSRFITS(BaseFile):
         """
         if ext_names == 'all':
             ext_names = self.file.draft_hdr_keys[1:]
-        if 'SUBINT' not in ext_names:
-            copy_SUBINT_nonDATA = False
 
         ext_names.remove('SUBINT')
         for ky in ext_names:
