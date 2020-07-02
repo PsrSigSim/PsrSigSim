@@ -162,4 +162,4 @@ class BaseSignal(object):
 def Signal():
     """helper function to instantiate signals
     """
-    pass
+    raise NotImplementedError()
