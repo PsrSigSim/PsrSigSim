@@ -35,6 +35,13 @@ def pulsar():
     return Pulsar(period,10,name='J1746-0118')
 
 @pytest.fixture
+def ism():
+    """
+    Fixture ism class
+    """
+    return ISM()
+
+@pytest.fixture
 def PSRfits():
     """
     Fixture psrfits class
