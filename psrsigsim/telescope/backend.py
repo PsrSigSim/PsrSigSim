@@ -31,19 +31,19 @@ class Backend(object):
         """
 
 
-    def fold(self, signal, psr):
+    def fold(self, signal, pulsar):
         """fold data using pulsar ephemeris
         currently only uses pulsar period
 
         Args:
-            signal (array): data to fold
+            signal (:class: FilterbankSignal): simulated signal 
             psr (:class:`Pulsar`): observed pulsar
         """
         #TODO: use .par file if available
-        period = psr.T
-        Nf, Nt = signal.shape
-        Npbins = int(period * 2*self.samprate)  # number of phase bins
+        period = pulsar.period
+        Nf, Nt = signal.data.shape
+        Npbins = int(period * 2*signal.samprate)  # number of phase bins
         N_fold = Nt // Npbins  # number of folds
-        fold_sig = signal[:, Npbins:Npbins*(N_fold+1)].reshape(
-                                                         Nf, N_fold, Npbins)
+        fold_sig = signal.data[:, Npbins:Npbins*(N_fold+1)].reshape(
+                                                         Nf, N_fold, Npbins//2)
         return np.sum(fold_sig, axis=1)
