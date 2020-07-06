@@ -67,7 +67,7 @@ class ISM(object):
                 #This is the Python 2 version
                 #__future__ does not have 'flush' kwarg.
                 except:
-                    print(chk_str , end='')
+                    print(chk_str , end='') 
                 sys.stdout.flush()
 
     def _disperse_baseband(self, signal, dm):
@@ -75,8 +75,6 @@ class ISM(object):
         Broadens & delays baseband signal w transfer function defined in PSR
         Handbook, D. Lorimer and M. Kramer, 2006
         Returns a baseband signal dispersed by the ISM.
-        Use plot_dispersed() in PSS_plot.py to see the
-        dispersed and undispersed signal.
         """
         for x in range(signal.Nchan):
             sig = signal._data[x]
@@ -85,7 +83,7 @@ class ISM(object):
 
             fourier = np.fft.rfft(sig)
             u = make_quant(np.fft.rfftfreq(2 * len(fourier) - 1,
-                                d=dt.to('s').value), 'us')
+                                d=dt.to('s').value), 'MHz')
             f = u-signal.bw/2. # u in [0,bw], f in [-bw/2, bw/2]
 
             # Lorimer & Kramer 2006, eqn. 5.21
@@ -94,8 +92,6 @@ class ISM(object):
             product = fourier*H
             Dispersed = np.fft.irfft(product)
 
-            if self.MD.mode == 'explore':
-                self.Signal_in.undispersedsig[x] = sig
             signal._data[x] = Dispersed
     
     def FD_shift(self, signal, FD_params):
