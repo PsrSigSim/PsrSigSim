@@ -1,0 +1,23 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "http://orcid.org/0000-0003-2742-3321",
+      "@type": "Person",
+      "email": "jeffrey.hazboun@gmail.com",
+      "name": "Hazboun6",
+      "affiliation": "University of Washington Bothell"
+    }
+  ],
+  "identifier": "",
+  "codeRepository": "https://github.com/PsrSigSim/PsrSigSim",
+  "datePublished": "2019-09-20",
+  "dateModified": "2019-09-20",
+  "dateCreated": "2019-09-20",
+  "description": "Python package for calculating sensitivity curves for pulsar timing arrays.",
+  "keywords": "pulsar timing array, gravitational waves, supermassive binary black holes",
+  "license": "MIT",
+  "title": "psrsigsim",
+  "version": "v1.0.0"
+}
