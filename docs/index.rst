@@ -15,6 +15,7 @@ Contents:
    full_pipeline_tutorial
    Pulse_Nulling_Example
    contributing
+   code_of_conduct
    authors
    history
 
