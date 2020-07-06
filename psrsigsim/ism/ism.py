@@ -67,7 +67,7 @@ class ISM(object):
                 #This is the Python 2 version
                 #__future__ does not have 'flush' kwarg.
                 except:
-                    print(chk_str , end='')
+                    print(chk_str , end='') 
                 sys.stdout.flush()
 
     def _disperse_baseband(self, signal, dm):
