@@ -9,11 +9,11 @@ Contents:
    readme
    installation
    usage
-   modules
    tutorial_1
    Simulate_Tutorial
    full_pipeline_tutorial
    Pulse_Nulling_Example
+   modules
    contributing
    code_of_conduct
    authors
