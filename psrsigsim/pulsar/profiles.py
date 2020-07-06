@@ -101,7 +101,9 @@ class GaussProfile(GaussPortrait):
         """
         Method to reintialize the portraits with the correct number of frequency
         channels. Once must run `init_profiles` or `calc_profiles` to remake
-        the `profiles` property.
+        the `profiles` property. 
+        
+        Note - No phases attribute, function must be updated.
 
         Parameters
         ----------
@@ -109,7 +111,8 @@ class GaussProfile(GaussPortrait):
         Nchan : int
             Number of frequency channels.
         """
-        self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
+        raise NotImplementedError()
+        #self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
 
 
 class UserProfile(PulseProfile):
@@ -145,9 +148,9 @@ class UserProfile(PulseProfile):
             ``init_profile`` AND you are generating less than one
             rotation.
         """
-        profile = self._generator(phases)
-        Amax = self.Amax if hasattr(self, '_Amax') else np.max(profile)
-        return profile / Amax
+        self._profile = self._generator(phases)
+        self._Amax = self.Amax if hasattr(self, '_Amax') else np.max(self.profile)
+        return self.profile / self.Amax
 
 class DataProfile(DataPortrait):
     """
@@ -183,6 +186,8 @@ class DataProfile(DataPortrait):
         Method to reintialize the portraits with the correct number of frequency
         channels. Once must run `init_profiles` or `calc_profiles` to remake
         the `profiles` property.
+        
+        Note - Has same issue as set_Nchan before.
 
         Parameters
         ----------
@@ -190,4 +195,5 @@ class DataProfile(DataPortrait):
         Nchan : int
             Number of frequency channels.
         """
-        self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
+        raise NotImplementedError()
+        #self.__init__(self._profiles[0], phases=self._phases, Nchan=Nchan)
