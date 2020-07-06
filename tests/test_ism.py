@@ -7,6 +7,7 @@ import pytest
 
 from psrsigsim.signal.fb_signal import FilterBankSignal
 from psrsigsim.signal.bb_signal import BasebandSignal
+from psrsigsim.pulsar.profiles import DataProfile
 from psrsigsim.pulsar.pulsar import Pulsar
 from psrsigsim.ism.ism import ISM
 from psrsigsim.utils.utils import make_quant
@@ -25,7 +26,7 @@ def bbsignal():
     """
     Fixture baseband signal class
     """
-    bbsig = BasebandSignal(1400,400)
+    bbsig = BasebandSignal(1400,400, Nchan=2)
     return bbsig
 
 @pytest.fixture
@@ -35,6 +36,16 @@ def pulsar():
     """
     period = make_quant(5,'ms')
     return Pulsar(period,10,name='J1746-0118')
+
+@pytest.fixture
+def j1713_profile():
+    """
+    DataProfile of J1713+0747 profile.
+    """
+    path = 'psrsigsim/data/J1713+0747_profile.npy'
+    pr = DataProfile(np.load(path),phases=None)
+    return pr
+    
 
 @pytest.fixture
 def ism():
@@ -54,14 +65,16 @@ def test_disperse(signal,pulsar,ism):
     with pytest.raises(ValueError):
         ism.disperse(signal,10)
         
-#def test_bb_disperse(bbsignal,pulsar,ism):
-#    """
-#    Test disperse function with baseband signal.
-#    """
-#    tobs = make_quant(0.05,'s')
-#    pulsar.make_pulses(bbsignal,tobs)
-#    ism.disperse(bbsignal,10)
-#    assert bbsignal.dm.value==10
+def test_bb_disperse(bbsignal, j1713_profile, ism):
+    """
+    Test disperse function with baseband signal.
+    """
+    tobs = make_quant(0.05,'s')
+    period = make_quant(5,'ms')
+    psr = Pulsar(period, 10, profiles = j1713_profile, name='J1746-0118')
+    psr.make_pulses(bbsignal,tobs)
+    ism.disperse(bbsignal,10)
+    assert(bbsignal.dm.value==10)
 
 def test_add_delay(signal,pulsar,ism):
     """
