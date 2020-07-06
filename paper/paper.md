@@ -16,7 +16,19 @@ authors:
   - name: Paul T. Baker
     orcid:
     affiliation: 3
-  - name:
+  - name: Amelia Henkel
+    orcid:
+    affiliation: 4
+  - name: Cassidy Wagner
+    orcid:
+    affiliation: 4
+  - name: Paul Brook
+    orcid:
+    affiliation: 4
+  - name: Maura Mclaughlin
+    orcid:
+    affiliation: 2
+  - name: Michael T. Lam
     orcid:
     affiliation: 4
 
@@ -27,7 +39,13 @@ affiliations:
    index: 2
  - name: Widener College
    index: 3
-date: 16 September 2019
+ - name: Widener College
+   index: 4
+ - name: Widener College
+   index: 5
+ - name: Rochester Institute of Technology
+   index: 6
+date: 16 July 2020
 bibliography: paper.bib
 ---
 
