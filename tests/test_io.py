@@ -15,6 +15,7 @@ from psrsigsim.io.psrfits import PSRFITS
 from psrsigsim.utils.utils import make_quant
 from psrsigsim.io.txtfile import TxtFile
 from psrsigsim.io.file import BaseFile
+from psrsigsim.ism.ism import ISM
 
 @pytest.fixture
 def signal():
@@ -232,3 +233,4 @@ def test_notimplementedfuncs(PSRfits, signal):
         PSRfits.to_psrfits()
         PSRfits.set_sky_info()
         PSRfits._calc_psrfits_dims(signal)
+    os.remove("data/test.fits")

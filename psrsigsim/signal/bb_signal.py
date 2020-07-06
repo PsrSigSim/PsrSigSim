@@ -27,18 +27,21 @@ class BasebandSignal(BaseSignal):
 
         dtype [type]: data type of array, default: ``np.float32``
             any numpy compatible floating point type will work
+            
+        Nchan [int]: number of frequency channels to simulate, default is 2.
     """
 
     _sigtype = "BasebandSignal"
-    _Nchan = 2
 
     def __init__(self,
                  fcent, bandwidth,
                  sample_rate=None,
-                 dtype=np.float32):
+                 dtype=np.float32,
+                 Nchan = 2):
 
         self._fcent = make_quant(fcent, 'MHz')
         self._bw = make_quant(bandwidth, 'MHz')
+        self._Nchan = Nchan
 
         f_Nyquist = 2 * self._bw
         if sample_rate is None:
