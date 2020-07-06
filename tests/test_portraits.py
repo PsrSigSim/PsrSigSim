@@ -101,8 +101,6 @@ def test_portrait2(j1713_profile):
 def test_pulseprofile():
     """
     Test for basic Pulse Profile Class.
-    NOTE: Cannot init_profile here since calc_profile not implemented.
-    This leads to some lines being untestable right now.
     """
     # No input phases
     pprof1 = PulseProfile()

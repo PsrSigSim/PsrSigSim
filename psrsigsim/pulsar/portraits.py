@@ -32,7 +32,6 @@ class PulsePortrait(object):
     def init_profiles(self, Nphase, Nchan=None):
         """
         Generate the profile, evenly sampled.
-        NOTE - Impossilbe to test since calc_prof is not implemented.
 
         Args:
             Nphase (int): number of phase bins
