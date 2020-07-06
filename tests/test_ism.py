@@ -22,11 +22,19 @@ def signal():
     return fbsig
 
 @pytest.fixture
+def S_lowchan():
+    """
+    Fixture signal class
+    """
+    fbsig = FilterBankSignal(1400,400,Nsubband=10)
+    return fbsig
+
+@pytest.fixture
 def bbsignal():
     """
     Fixture baseband signal class
     """
-    bbsig = BasebandSignal(1400,400, Nchan=2)
+    bbsig = BasebandSignal(1400,400, sample_rate = 500.0*2048*10**-6, Nchan=2)
     return bbsig
 
 @pytest.fixture
@@ -78,13 +86,15 @@ def test_bb_disperse(bbsignal, j1713_profile, ism):
 
 def test_add_delay(signal,pulsar,ism):
     """
-    Test add delay from dispersion class.
+    Test add delay from dispersion and FD.
     """
     tobs = make_quant(5,'s')
     pulsar.make_pulses(signal,tobs)
     signal._delay = np.repeat(make_quant(1.0,'ms'), len(signal._dat_freq))
     ism.disperse(signal,10)
     assert signal.dm.value==10
+    ism.FD_shift(signal, [1e-5, -2e-5])
+    assert(signal._FDshifted==True)
 
 def test_FDshift(signal,pulsar,ism):
     """
@@ -128,3 +138,15 @@ def test_scatterbroaden(signal, pulsar, ism):
     tobs = make_quant(5,'s')
     ism.scatter_broaden(signal, 5e-6, 1400.0, convolve=True,pulsar=pulsar)
     pulsar.make_pulses(signal,tobs)
+    
+def test_shiftlowchan(S_lowchan, pulsar, ism):
+    """
+    Test shift functions with less than 20 frequency channels.
+    """
+    tobs = make_quant(5,'s')
+    pulsar.make_pulses(S_lowchan,tobs)
+    ism.disperse(S_lowchan,10)
+    ism.FD_shift(S_lowchan, [1e-5, -2e-5])
+    ism.scatter_broaden(S_lowchan, 5e-6, 1400.0)
+    
+    
