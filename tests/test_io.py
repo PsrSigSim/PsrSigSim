@@ -129,3 +129,4 @@ def test_notimplementedfuncs(PSRfits, signal):
         PSRfits.to_psrfits()
         PSRfits.set_sky_info()
         PSRfits._calc_psrfits_dims(signal)
+    os.remove("data/test.fits")
