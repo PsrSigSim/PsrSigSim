@@ -39,6 +39,13 @@ IO
     :members:
     :inherited-members:
 
+Simulate
+--------
+
+.. automodule:: psrsigsim.simulate
+    :members:
+    :inherited-members:
+
 Utilities
 ---------
 

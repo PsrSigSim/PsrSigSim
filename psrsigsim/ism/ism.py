@@ -18,9 +18,12 @@ class ISM(object):
         pass
 
     def disperse(self, signal, dm):
-        """
-        Function to calculate the dispersion
-        per frequency bin for 1/f^2 dispersion
+        r"""
+        Function to calculate the dispersion per frequency bin for :math:`1/\nu^{2}`
+        dispersion.
+
+        .. math::
+            \Delta t_{\rm{DM}} = 4.15\times 10^{6}~\rm{ms} \times \rm{DM} \times \frac{1}{\nu^{2}}
         """
         signal._dm = make_quant(dm,'pc/cm^3')
 

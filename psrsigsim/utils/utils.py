@@ -15,29 +15,33 @@ from pint import models
 
 
 def shift_t(y, shift, dt=1):
-    """Shift timeseries data in time.
+    """
+    Shift timeseries data in time.
     Shift array, y, in time by amount, shift. For dt=1 units of samples
     (including fractional samples) are used. Otherwise, shift and dt are
     assumed to have the same physical units (i.e. seconds).
+
     Parameters
     ----------
     y : array like, shape (N,), real
-        time series data
+        Time series data.
     shift : int or float
-        amount to shift
+        Amount to shift
     dt : float
-        time spacing of samples in y (aka cadence)
+        Time spacing of samples in y (aka cadence).
+
     Returns
     -------
     out : ndarray
-        time shifted data
+        Time shifted data.
+
     Examples
     --------
     >>>shift_t(y, 20)
-    shift data by 20 samples
+    # shift data by 20 samples
 
     >>>shift_t(y, 0.35, dt=0.125)
-    shift data sampled at 8 Hz by 0.35 sec
+    # shift data sampled at 8 Hz by 0.35 sec
 
     Uses np.roll() for integer shifts and the Fourier shift theorem with
     real FFT in general.  Defined so positive shift yields a "delay".
@@ -304,15 +308,22 @@ def text_search(search_list, header_values, filepath, header_line=0,
 
 
 def make_quant(param, default_unit):
-    """Convenience function to intialize a parameter as an astropy quantity.
-    param == parameter to initialize.
-    default_unit == string that matches an astropy unit, set as
-                    default for this parameter.
+    """
+    Convenience function to intialize a parameter as an astropy quantity.
 
-    returns:
-        an astropy quantity
+    Parameters
+    ----------
+    param : attribute
+        Parameter to initialize.
+    default_unit : string
+        Name of an astropy unit, set as default for this parameter.
 
-    example:
+    Returns
+    -------
+        An astropy quantity
+
+    Examples
+    --------
         self.f0 = make_quant(f0,'MHz')
     """
     default_unit = u.core.Unit(default_unit)
@@ -339,7 +350,7 @@ def get_pint_models(psr_name, psr_file_path):
 def make_par(signal, pulsar, outpar = "simpar.par"):
     """
     Function to create a par file for simulated pulsar.
-    
+
     Input:
     ---------
     signal : class
@@ -362,10 +373,10 @@ def make_par(signal, pulsar, outpar = "simpar.par"):
     par_lines.append("PEPOCH            56000.0\n" ) # Default for now
     par_lines.append("START            50000.0\n" ) # Default for now
     par_lines.append("FINISH            60000.0\n" ) # Default for now
-    par_lines.append("DM                %s\n" % (signal.dm)) 
+    par_lines.append("DM                %s\n" % (signal.dm))
     par_lines.append("EPHEM               DE436\n" ) # Default for now
     par_lines.append("ECL                 IERS2010\n" ) # Default for now
-    par_lines.append("CLK                 TT(BIPM2015) \n" ) # Default for now                   
+    par_lines.append("CLK                 TT(BIPM2015) \n" ) # Default for now
     par_lines.append("UNITS               TDB\n" ) # Default for now
     par_lines.append("TIMEEPH             FB90\n" ) # Default for now
     par_lines.append("T2CMETHOD           TEMPO\n" ) # Default for now
