@@ -351,8 +351,8 @@ def make_par(signal, pulsar, outpar = "simpar.par"):
     """
     Function to create a par file for simulated pulsar.
 
-    Input:
-    ---------
+    Parameters
+    ----------
     signal : class
         PsrSigSim Signal class object
     pulsar : class
