@@ -25,6 +25,9 @@ authors:
   - name: Paul Brook
     orcid:
     affiliation: 4
+  - name: Jacob Hesse
+    orcid:
+    affiliation: 4
   - name: Maura Mclaughlin
     orcid:
     affiliation: 2
@@ -73,10 +76,8 @@ It uses standard Python packages, such as ``Numpy`` [@numpy] and ``Astropy``
 [@astropy] to build sensitivity curves from generic PTAs of individually
 constructed pulsars.
 
-<!--- The source code for ``Hasasia`` has been archived to Zenodo with the linked DOI: [@zenodo] --->
-
 # Acknowledgements
 
-JSH , and  acknowledge subawards from the University of Wisconsin-Milwaukee for the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). Finally, we thank Joseph D. Romano,  for useful discussions and sharing preliminary code.
+JSH , and  acknowledge subawards from the University of Wisconsin-Milwaukee for the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). Finally, we thank Joseph D. Romano, Tim Pennucci and for useful discussions and sharing preliminary code.
 
 # References
