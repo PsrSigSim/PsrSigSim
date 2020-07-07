@@ -1,5 +1,3 @@
-.. module:: hasasia
-
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/Pulse_Nulling_Example.ipynb>`_.
 
@@ -25,7 +23,7 @@ version supported are 3.5-3.7.
     # Start by importing the packages we will need for the simulation; start with simulator
     #import PsrSigSim.psrsigsim as pss # for local development
     import psrsigsim as pss # from pip install
-    
+
     # Additional necessary packages
     import numpy as np
     import scipy as sp
@@ -33,7 +31,7 @@ version supported are 3.5-3.7.
     import os
     # helpful magic lines
     %matplotlib inline
-    
+
     %load_ext autoreload
     %autoreload 2
 
@@ -219,4 +217,3 @@ will have "\_#.txt" added to the end of the ``path`` variable.
 And that's all that there should be to it. Let us know if you have any
 questions moving forward, or if something is not working as it should
 be.
-
