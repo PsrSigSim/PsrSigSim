@@ -68,10 +68,16 @@ def test_basefile(signal):
     assert(bf.path == "data/B1855+09.L-wide.PUPPI.11y.x.sum.sm")
     with pytest.raises(NotImplementedError):
         bf.save(signal)
+    with pytest.raises(NotImplementedError):
         bf.load()
+    with pytest.raises(NotImplementedError):
         bf.append()
+    with pytest.raises(NotImplementedError):
         bf.to_txt()
+    with pytest.raises(NotImplementedError):
         bf.to_psrfits()
+    bf.path = "./"
+    assert(bf.path == "./")
 
 def test_fitssig(PSRfits):
     """
@@ -96,7 +102,7 @@ def test_savesig(PSRfits, pulsar):
     pulsar.make_pulses(S, tobs = obslen)
     PSRfits.save(S, pulsar)
     os.remove("data/test.fits")
-    
+
 def test_savephaseconnect(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it,
@@ -124,23 +130,23 @@ def test_savephaseconnect_inc(PSRfits, pulsar):
                  MJD_start = 55999.9861+30.0, inc_len = 30.0, ref_MJD = 56000.0, \
                  usePint = True)
     os.remove("data/test.fits")
-    
+
 def test_more_psrfits():
     """
     Additional PSRFITS file tests.
-    Lines to test: 313-315 (can't test without multiple polarizations), 
+    Lines to test: 313-315 (can't test without multiple polarizations),
     326-328 (Can't test without using folded file),
-    386-394 (Can't test without many more files), 
+    386-394 (Can't test without many more files),
     486, 506 (Can't test without SEARCH mode implemented)
-    547-548 (Can't test without additional files), 
-    566-567 (can't test without different version of fitsio), 
+    547-548 (Can't test without additional files),
+    566-567 (can't test without different version of fitsio),
     """
     # Test initialization with no template, obs_mode SEARCH
     fitspath = "data/test.fits"
     tempfits = "data/B1855+09.L-wide.PUPPI.11y.x.sum.sm"
     pf = PSRFITS(path=fitspath, obs_mode = 'SEARCH', template=None)
     os.remove(fitspath)
-    
+
 def test_params(PSRfits, pulsar):
     """
     Test calling some attributes of the PSRFITS object.
@@ -199,7 +205,7 @@ def test_savepdv(TXTfile, signal, pulsar):
     TXTfile.save_psrchive_pdv(signal, pulsar)
     os.remove("data/test_pdv_0.txt")
 
-    
+
 def test_moretxtfile(pulsar):
     """
     Test a few additional lines and properties of the txtfile class.
@@ -216,10 +222,10 @@ def test_moretxtfile(pulsar):
     os.remove("PsrSigSim_Simulated_Pulsar.ar_1.txt")
     os.remove("PsrSigSim_Simulated_Pulsar.ar_2.txt")
     # Check attribute
-    assert(tf.tbin == 1.0/fbsig.samprate) 
+    assert(tf.tbin == 1.0/fbsig.samprate)
     assert(tf.obsfreq == fbsig.fcent)
     assert(tf.chan_bw == fbsig.bw / fbsig.Nchan)
-    
+
 def test_notimplementedfuncs(PSRfits, signal):
     """
     Test functions that have not yet be implemented.

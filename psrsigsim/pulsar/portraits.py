@@ -14,7 +14,7 @@ class PulsePortrait(object):
     INTENSITY series, even when using amplitude style signals
     (like :class:`BasebandSignal` ).
     """
-    _profile = None
+    _profiles = None
 
     def __call__(self, phases=None):
         """
@@ -172,8 +172,8 @@ class GaussPortrait(PulsePortrait):
             profile = _gaussian_sing_1d(ph, self.peak, self.width, self.amp)
             profiles = np.tile(profile,(Nchan,1))
 
-        Amax = self.Amax if hasattr(self, '_Amax') else np.amax(profiles)
-        return profiles / Amax
+        self._Amax = self.Amax if hasattr(self, '_Amax') else np.amax(profiles)
+        return profiles / self._Amax
 
     @property
     def profiles(self):
@@ -282,6 +282,6 @@ def _gaussian_mult_1d(phases, peaks, widths, amps):
     return np.sum(prof, axis=0)
 
 def _gaussian_mult_2d(phases, peaks, widths, amps, nchan):
-    return np.array([_gaussian_mult_1d(phases, peaks[ii,:],
-                                       widths[ii,:], amps[ii,:])
+    return np.array([_gaussian_mult_1d(phases, peaks[:],
+                                       widths[:], amps[:])
                                        for ii in range(nchan)])
