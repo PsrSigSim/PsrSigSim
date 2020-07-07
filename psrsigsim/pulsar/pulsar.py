@@ -171,7 +171,7 @@ class Pulsar(object):
             signal._sublen = self.period
             # This should be an integer, if not, will round; may not be exact
             signal._nsub = int(np.round((signal.tobs / signal.sublen).decompose()))
-            
+
             # generate several pulses in time
             distr = stats.chi2(df=1)
             signal._set_draw_norm(df=1)
@@ -195,17 +195,20 @@ class Pulsar(object):
         Function to simulate pulsar pulse nulling. Given some nulling fraction,
         will replace simulated pulses with noise until nulling fraction is met.
         This function should only be run after running any ism or other delays
-        have been added, e.g. disperison, FD, profile evolution, etc., but 
+        have been added, e.g. disperison, FD, profile evolution, etc., but
         should be run before adding the radiometer noise ('telescope.observe()`),
         if nulling is desired.
-        
+
+        Parameters
+        ----------
+
         signal [class] : signal class containing the simulated pulses
-        null_frac [float] : desired pulsar nulling fraction, given as a 
-                            decimal; range of 0.0 to 1.0.
+        null_frac [float] : desired pulsar nulling fraction, given as a
+            decimal; range of 0.0 to 1.0.
         length [float] : desired length of each null in seconds. If not given,
                          will randomly null pulses. Default is None.
         frequency [float] : frequency of pulse nulling, e.g. how often the pulsar
-                            nulls per hour. E.g. if frequency is 2, then the 
+                            nulls per hour. E.g. if frequency is 2, then the
                             pulsar will null twice per hour for some length
                             of time. If not given, will randomly null pulses.
                             Default is None.
@@ -272,9 +275,6 @@ class Pulsar(object):
                 noise_shape = np.shape(np.where(null_array>1))[1]
                 noise = (distr.rvs(size=noise_shape) * signal._draw_norm)
                 signal._data[np.where(null_array>1)] = noise*off_pulse_mean
-        
+
         else:
             raise NotImplementedError("Length and Frequency not been implimented yet")
-        
-        
-        
