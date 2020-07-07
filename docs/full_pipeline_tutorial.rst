@@ -1,4 +1,4 @@
-.. module:: hasasia
+:orphan:
 
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/full_pipeline_tutorial.ipynb>`_.
@@ -43,7 +43,7 @@ notebook, in addition to just the PsrSigSim
     import pint.residuals as r
     import pint.fitter as fit
     import pint.polycos as polycos
-    
+
     # The pulsar signal simulator imports necessary to run the notebook
     module_path = os.path.abspath(os.path.join('..'))
     if module_path not in sys.path:
@@ -52,7 +52,7 @@ notebook, in addition to just the PsrSigSim
     from psrsigsim.utils import make_quant
     # Some extra magic lines to make things run nicely :)
     %matplotlib inline
-    
+
     %load_ext autoreload
     %autoreload 2
 
@@ -86,7 +86,7 @@ We now will define some convience functions for use later
     # Functions that can be used in-notebook to run command-line commands, not strictly necessary for the PsrSigSim
     def call(x):
         subprocess.call(x,shell=True)
-        
+
     def callvar(x):
         variable = subprocess.check_output(x, shell=True)
         return variable
@@ -241,7 +241,7 @@ to disperse the data.
     ism_ob = pss.ism.ISM()
     # Now we give the ISM class the signal and disperse the data
     ism_ob.disperse(signal_Lband, dm)
-    # If we plot the same pulses as above, you can see that the phase of the pulse has 
+    # If we plot the same pulses as above, you can see that the phase of the pulse has
     # been shfited due to the dispersion
     plotsignal([signal_Lband.data[0,:4096]])
 
@@ -320,16 +320,16 @@ folded, it is folded correctly.
     # Now we load our template fits file into the simulator psrfits class
     pfit = pss.io.PSRFITS(path=outfits, template=tempfits, fits_mode='copy', obs_mode='PSR')
     # We use a build in function to get the signal class parameters needed to write header data
-    pfit._get_signal_params(signal = signal_Lband) 
+    pfit._get_signal_params(signal = signal_Lband)
     """
-    Now we save the data. Much of the inputs here are used to generate polycos to write to 
-    the PSRFITS file so that the data can be folded correctly. `phaseconnect` may be set to 
-    `False` in which case all following inputs are not required, however the saved data may 
+    Now we save the data. Much of the inputs here are used to generate polycos to write to
+    the PSRFITS file so that the data can be folded correctly. `phaseconnect` may be set to
+    `False` in which case all following inputs are not required, however the saved data may
     not appropriately phase connect the pulses and it may not be suitable for pulsar timing
     experiments.
-    
+
     NOTE: Currently the `PINT` python package is required to generate the polycos and is needed
-    for the phase connection. 
+    for the phase connection.
     """
     pfit.save(signal_Lband, pulsar, phaseconnect = True, parfile = parfile, \
               MJD_start = 55999.9861, segLength = 60.0,\
@@ -365,7 +365,7 @@ folded, it is folded correctly.
 
 .. parsed-literal::
 
-    
+
     Finished writing and saving the file
 
 
@@ -431,7 +431,7 @@ Now we run the rest of the simulation exactly as above, with some plots
     ism_ob = pss.ism.ISM()
     # Now we give the ISM class the signal and disperse the data
     ism_ob.disperse(signal_Lband_sp, dm)
-    # If we plot the same pulses as above, you can see that the phase of the pulse has 
+    # If we plot the same pulses as above, you can see that the phase of the pulse has
     # been shfited due to the dispersion
     plotsignal([signal_Lband_sp.data[0,:]])
 
@@ -556,7 +556,7 @@ separately.
     inc_lens = [0.0,30.0]
     tempfits = "template_files/puppi_57627_B1855+09_1077_0001.fits"
     parfile = "par_files/B1855+09_NANOGrav_11yv0_example.par"
-    
+
     # Now loop through
     for ii in range(len(inc_lens)):
         #start by defining the signal
@@ -580,7 +580,7 @@ separately.
         fitspath = 'test_fits_Lband'+str(ii+1)+'.fits'
         pfit = pss.io.PSRFITS(path=fitspath, template=tempfits, fits_mode='copy', \
                               obs_mode='PSR')
-        pfit._get_signal_params(signal = signal_Lband) 
+        pfit._get_signal_params(signal = signal_Lband)
         # Now save the data
         pfit.save(signal_Lband, pulsar, phaseconnect = True, parfile = parfile, \
                   MJD_start = 55999.9861+inc_lens[ii],segLength = 60.0,\
@@ -617,7 +617,7 @@ separately.
 
 .. parsed-literal::
 
-    
+
     Finished writing and saving the file
     Warning: specified sample rate 0.3819398783998596 MHz < Nyquist frequency 1600.0 MHz
     98% dispersed in 3.862 seconds.(64, 4, 512, 2048)
@@ -647,7 +647,7 @@ separately.
 
 .. parsed-literal::
 
-    
+
     Finished writing and saving the file
 
 
@@ -660,12 +660,12 @@ separately.
     ObsTime = 1203.8455 # total observation time, seconds
     subintlen =1203.8455/113.0 # subintegration length, seconds
     flux = 0.0246 # mean flux, Jy (from Demorest et al. 2013)
-    
+
     # Now define files and values necessary for the observation.
     inc_lens = [0.1, 30.1] # slightly offset from the 1400 MHz observations
     tempfits = "template_files/puppi_57627_B1855+09_1075_0001.fits"
     parfile = "par_files/B1855+09_NANOGrav_11yv0_example.par"
-    
+
     # Now loop through
     for ii in range(len(inc_lens)):
         #start by defining the signal
@@ -688,7 +688,7 @@ separately.
         fitspath = 'test_fits_430'+str(ii+1)+'.fits'
         pfit = pss.io.PSRFITS(path=fitspath, template=tempfits, fits_mode='copy', \
                               obs_mode='PSR')
-        pfit._get_signal_params(signal = signal_430) 
+        pfit._get_signal_params(signal = signal_430)
         # Now save the data
         pfit.save(signal_430, pulsar, phaseconnect = True, parfile = parfile, \
                   MJD_start = 55999.9861+inc_lens[ii], segLength = 60.0,\
@@ -725,7 +725,7 @@ separately.
 
 .. parsed-literal::
 
-    
+
     Finished writing and saving the file
     Warning: specified sample rate 0.3819398783998596 MHz < Nyquist frequency 200.0 MHz
     98% dispersed in 1.156 seconds.(113, 4, 64, 2048)
@@ -755,7 +755,7 @@ separately.
 
 .. parsed-literal::
 
-    
+
     Finished writing and saving the file
 
 
@@ -781,16 +781,16 @@ defining these functions.
 .. code:: python
 
     # Define a function to get the TOAs in the correct format
-    
+
     # and we define a function to get TOAs from the simulated data
     def getSimTOAs(fitsfiles, tempfile, scrunch = False, nchan = 64, nsubint = 1, npol = 1):
         """
-        This function will take a single or list of fitsfiles of simulated data and run 
-        PSRCHIVE calls to get TOAs from the simulated fits files, and scrunch the data to a 
+        This function will take a single or list of fitsfiles of simulated data and run
+        PSRCHIVE calls to get TOAs from the simulated fits files, and scrunch the data to a
         number of frequency channels and subintegrations is desired. It then also barycenters
         all of the TOAs (e.g. replaces the observatory code with '@') and also saves all the
         TOAs as one big file with "_ALL.tim" at the end. The inputs are as follows:
-        fitsfiles [string] - a single or list of fits file names (and paths to) to get TOAs 
+        fitsfiles [string] - a single or list of fits file names (and paths to) to get TOAs
                             from
         tempfile [string] - Profile template fits file to make TOAs with (since we are only
                             using PSRCHIVE for now)
@@ -829,7 +829,7 @@ defining these functions.
                 scrunchfits.append(ff.split(".")[0]+"."+ext)
             # Then reassign the fits files if we needed to scrunch the,
             fitsfiles = scrunchfits
-    
+
         # Now once we've scrunched we get the TOAs # IPTA does not work with tempo2 on this machine for some reason
         TOAcall = "pat -A FDM -e mcmc=0 -C chan -C subint -C snr -C wt  -C rcvr:name -C be:name -f tempo2 -s %s "\
                     % (tempfile)
@@ -907,20 +907,20 @@ defining these functions.
         with open(fulltim, 'w') as ft:
             ft.writelines(alltimlines)
             ft.close()
-        
+
         # and return the name of this last fits file
         return fulltim
-        
+
 
 .. code:: python
 
     # We define a function to combine multiple tim files generated by get_SimTOAs above
     def combine_tim(timfiles, outfile = "Combined_tim_file.tim"):
         """
-        This function will take a list of tim files (e.g. the files generated by the 
-        gen_SimTOAs function above) and combine them into one big tim file with the name 
+        This function will take a list of tim files (e.g. the files generated by the
+        gen_SimTOAs function above) and combine them into one big tim file with the name
         of the output file designated by the 'outfile' input. Inputs;
-        
+
         timfiles [list of strings] : a list of tim files to combine
         outfile [string] : name of output file constiting of all combined TOAs
         """
@@ -942,52 +942,52 @@ defining these functions.
 
 .. code:: python
 
-    # Now we will define a function that will just take a par and tim file and output the 
+    # Now we will define a function that will just take a par and tim file and output the
     # residuals from that
     def get_resids(timfile, parfile, plot = False, save = False):
         """
         This function will take a tim file and a par file both used and generated from and for
-        PsrSigSim simulated data and get simulated TOAs using the PINT pulsar timing python 
+        PsrSigSim simulated data and get simulated TOAs using the PINT pulsar timing python
         package. This function requires PINT to be install to run. Inputs:
-        
+
         timfile [string] : A tim file (e.g. as generated by the functions above) containing
                            TOAs from a PSRFITS file with PsrSigSim simulated data saved to it.
-        parfile [string] : a pulsar par file (probably the same one used for the polyco 
+        parfile [string] : a pulsar par file (probably the same one used for the polyco
                            generation above) used as the pulsar timing model to get timing
                            residuals.
-        plot [bool] : If `True` will output plots of the timing residuals both as a function 
-                      of MJD and as a function of frequency. 
+        plot [bool] : If `True` will output plots of the timing residuals both as a function
+                      of MJD and as a function of frequency.
         save [bool/string] : If not `False`, will save the plots output above with the name
                              or string input to `save`. e.g. save="Plots" will save the plots
                              with the name "Plots.png". Requires plot=True to run.
         """
         # read in the toas
-        t = toa.get_TOAs(timfile, ephem='DE436', usepickle=False) 
-        
+        t = toa.get_TOAs(timfile, ephem='DE436', usepickle=False)
+
         # Since there is no solar system motion input in the simulated pulsar data, we
         # change the earth velocity to 0
         t.table.remove_column('ssb_obs_vel')
         t.table.columns['ssb_obs_vel'] = table.Column(name='ssb_obs_vel',\
                                             data=np.zeros((t.ntoas, 3), dtype=np.float64),\
                                             unit=u.km/u.s, meta={'origin':'SSB', 'obj':'OBS'})
-        
+
         # Load in the par file to get the timing model
         m = models.get_model(parfile)
-    
+
         # Now get the residuals
         rs = r.Residuals(t, m).time_resids
         rs_phase = r.Residuals(t, m).phase_resids
-    
+
         # Define the fitter and the type of fitting we are doing.
         f = fit.GLSFitter(t, m)
         # Need to fit for a jump for multiple frequencies to account for profile phase offsets
         f.set_fitparams('JUMP1')
         f.fit_toas()
-        
+
         # Now we print some information about the residuals that we have
         print("Best fit has reduced chi^2 of", f.resids.chi2_reduced.value)
         print("RMS in time is", f.resids.time_resids.std().to(u.us).value, "us")
-        
+
         # Now plot the residuals vs. MJD and frequency if desired
         if plot:
             fig = plt.figure(figsize = (8,4))
@@ -1013,7 +1013,7 @@ defining these functions.
             plt.close()
         # Return the toas (for plotting), prefit residuals (rs), and postfit residuals (accessed via f)
         return t, rs, f
-        
+
 
 Now that we have defined these convenience functions, we will use them
 to get our TOAs and then our timing residuals.
@@ -1088,4 +1088,3 @@ usually done for the NANOGrav data sets.
 .. parsed-literal::
 
     0:01:42.722792
-
