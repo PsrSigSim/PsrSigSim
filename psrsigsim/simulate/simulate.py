@@ -5,7 +5,7 @@ from astropy import log
 
 from ..signal import FilterBankSignal
 from ..telescope import Telescope, Receiver, Backend
-import psrsigsim.telescope.telescope as telescope
+from ..telescope import telescope
 from ..pulsar import Pulsar
 from ..pulsar import GaussPortrait
 from ..pulsar import UserPortrait
