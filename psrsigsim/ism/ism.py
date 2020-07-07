@@ -98,7 +98,7 @@ class ISM(object):
             signal._data[x] = Dispersed
 
     def FD_shift(self, signal, FD_params):
-        """
+        r"""
         This calculates the delay that will be added due to an arbitrary number
         of input FD parameters following the NANOGrav standard as defined in
         Arzoumanian et al. 2016. It will then shift the pulse profiles by the
@@ -106,6 +106,9 @@ class ISM(object):
 
         FD values should be input in units of seconds, frequency array in MHz
         FD values can be a list or an array
+
+        .. math::
+            \Delta t_{\rm{FD}} = \sum_{i=1}^{n} c_{i} \log\left({\frac{\nu}{1~\rm{GHz}}}\right)^{i}.
         """
         #freq in MHz, delays in milliseconds
         freq_array = signal._dat_freq
