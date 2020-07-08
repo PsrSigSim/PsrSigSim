@@ -3,7 +3,8 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 
 __author__ = ["Jeffrey S. Hazboun",
-              "Paul T. Baker"]
+              "Brent Shapiro-Albert",
+              "Paul T. Baker",]
 __email__ = 'jeffrey.hazboun@nanograv.org'
 __version__ = '0.1.0'
 

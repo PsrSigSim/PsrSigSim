@@ -1,6 +1,3 @@
-
-.. module:: hasasia
-
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_1.ipynb>`_.
 
@@ -22,7 +19,7 @@ script.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -240,4 +237,3 @@ below.
 
 
 .. image:: tutorial_1_files/tutorial_1_26_0.png
-

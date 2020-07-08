@@ -12,6 +12,10 @@ class TxtFile(BaseFile):
     """A class for saving PsrSigSim signals as text files.
     Multiple different text file data types may be supported, but currently
     only the PSRCHIVE pdv function output is supported.
+
+    Parameters
+    ----------
+
     path: name and path of new text file that will be saved
     """
     _path = None
@@ -37,11 +41,14 @@ class TxtFile(BaseFile):
         Function to save simulated data in the same format as the PSRCHIVE pdf function.
         To avoid large file sizes, every hundred pulses the data will be saved as a text file.
         Currently one a single polarization (total intensity) is supported. Inputs are:
-        
+
+        Parameters
+        ----------
+
         signal [class] : signal class object, currently only filterbank is supported
         pulsar [class] : pulsar class object
         filename [string] : desired name of source/output file. Output files will be saved as
-                            `filename`_#.txt, where # is the chronological number of the 
+                            'filename'_#.txt, where # is the chronological number of the
                             files being saved.
         """
         # Get the signal parameters
@@ -83,7 +90,7 @@ class TxtFile(BaseFile):
         with open(self.path+"_%s.txt" % (file_num), 'w') as pdv_file:
             pdv_file.writelines(lines)
             pdv_file.close()
-        
+
     def _get_signal_params(self, signal, pulsar):
         """
         Retrieve the various parameters needed to save the file from
@@ -100,7 +107,7 @@ class TxtFile(BaseFile):
         self.chan_bw = signal.bw / signal.Nchan
         self.tsubint = signal.sublen # length of subint in seconds
         self.nsubint = self.nrows
-            
+
       #### Define various PSRFITS parameters
     @property
     def tbin(self):
@@ -165,13 +172,11 @@ class TxtFile(BaseFile):
     @chan_bw.setter
     def chan_bw(self, value):
         self._chan_bw = make_quant(value,'MHz')
-        
+
     @property
     def tsubint(self):
         return self._tsubint
-    
+
     @tsubint.setter
     def tsubint(self, value):
-        self._tsubint = make_quant(value, 'second')     
-            
-            
+        self._tsubint = make_quant(value, 'second')
