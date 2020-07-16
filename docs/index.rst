@@ -12,8 +12,9 @@ Contents
    installation
    usage
    tutorial_1
-   Simulate_Tutorial
-   Pulse_Nulling_Example
+   tutorial_2
+   simulate_tutorial
+   pulse_nulling_example
    modules
    contributing
    code_of_conduct

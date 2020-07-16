@@ -1,7 +1,8 @@
-.. note:: This tutorial was generated from a Jupyter notebook that can be
-          downloaded `here <_static/notebooks/Pulse_Nulling_Example.ipynb>`_.
 
-.. _Pulse_Nulling_Example:
+.. note:: This tutorial was generated from a Jupyter notebook that can be
+          downloaded `here <_static/notebooks/pulse_nulling_example.ipynb>`_.
+
+.. _pulse_nulling_example:
 
 Pulse Nulling Example Notebook
 ==============================
@@ -121,7 +122,7 @@ Now lets take a look at what the signals look like.
 
 
 
-.. image:: Pulse_Nulling_Example_files/Pulse_Nulling_Example_13_0.png
+.. image:: pulse_nulling_example_files/pulse_nulling_example_13_0.png
 
 
 Now we can disperse the simuated data if desired. Note that this is not
@@ -147,14 +148,14 @@ dispersed.
     100% dispersed in 0.003 seconds.
 
 
-.. image:: Pulse_Nulling_Example_files/Pulse_Nulling_Example_15_1.png
+.. image:: pulse_nulling_example_files/pulse_nulling_example_15_1.png
 
 
 This is where the pulses should be nulled if desired. This can be run
 easily by giving the pulsar object only the signal class and the null
 fraction as a value between 0 and 1. The simulator will null as close to
 the null fraction as desired, and will round to the closest integer
-number of pulses to null based on the input nulling fraction, e.g. if 5
+number of pulses to null based on the input nulling fraction, e.g. if 5
 pulses are simulated and the nulling fraction is 0.5, it will round to
 null 3 pulses. Additionally, currently only the ability to null the
 pulses randomly is implemented.
@@ -172,7 +173,7 @@ Here we will put in a nulling fraction of 33%
 
 
 
-.. image:: Pulse_Nulling_Example_files/Pulse_Nulling_Example_18_0.png
+.. image:: pulse_nulling_example_files/pulse_nulling_example_18_0.png
 
 
 We can also add radiometer noise from some observing telescope. This
@@ -197,7 +198,7 @@ the single pulses above the noise.
 
 
 
-.. image:: Pulse_Nulling_Example_files/Pulse_Nulling_Example_20_1.png
+.. image:: pulse_nulling_example_files/pulse_nulling_example_20_1.png
 
 
 Now we can save the data in a ``PSRCHIVE pdv`` format. This is done with
@@ -205,7 +206,7 @@ the ``txtfile`` class. The save function will dump a new file for every
 100 pulses that it writes to the text file. We start by initializing the
 ``txtfile`` object. The only input needed here is the ``path`` variable,
 which will tell the simulator where to save the data. All files saved
-will have "\_#.txt" added to the end of the ``path`` variable.
+will have "_#.txt" added to the end of the ``path`` variable.
 
 .. code:: python
 
@@ -214,6 +215,6 @@ will have "\_#.txt" added to the end of the ``path`` variable.
     # the two inputs are the signal and the pulsar objects used to simulate the data.
     txtfile.save_psrchive_pdv(null_signal, pulsar)
 
-And that's all that there should be to it. Let us know if you have any
+And that’s all that there should be to it. Let us know if you have any
 questions moving forward, or if something is not working as it should
 be.

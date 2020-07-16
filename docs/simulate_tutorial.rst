@@ -1,7 +1,8 @@
-.. note:: This tutorial was generated from a Jupyter notebook that can be
-          downloaded `here <_static/notebooks/Simulate_Tutorial.ipynb>`_.
 
-.. _Simulate_Tutorial:
+.. note:: This tutorial was generated from a Jupyter notebook that can be
+          downloaded `here <_static/notebooks/simulate_tutorial.ipynb>`_.
+
+.. _simulate_tutorial:
 
 Pulsar Signal Simulator - Simulation Class Tutorial
 ===================================================
@@ -142,7 +143,7 @@ simulated data and plot it below.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_9_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_9_0.png
 
 
 .. code:: python
@@ -171,11 +172,11 @@ simulated data and plot it below.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_10_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_10_0.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_10_1.png
+.. image:: simulate_tutorial_files/simulate_tutorial_10_1.png
 
 
 A second way to simulate
@@ -246,12 +247,12 @@ error of the simulated noise to what we have above.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_0.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_1.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_1.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_2.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_2.png
