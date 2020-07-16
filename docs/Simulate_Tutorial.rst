@@ -1,7 +1,9 @@
-.. note:: This tutorial was generated from a Jupyter notebook that can be
-          downloaded `here <_static/notebooks/Simulate_Tutorial.ipynb>`_.
+.. module:: psrsigsim
 
-.. _Simulate_Tutorial:
+.. note:: This tutorial was generated from a Jupyter notebook that can be
+          downloaded `here <_static/notebooks/simulate_tutorial.ipynb>`_.
+
+.. _simulate_tutorial:
 
 Pulsar Signal Simulator - Simulation Class Tutorial
 ===================================================
@@ -23,7 +25,7 @@ notebook.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-
+    
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -100,7 +102,7 @@ units and names as above).
                  'backend_name' : "TestBack",
                  'tempfile' : None,
                 }
-
+    
     sim = pss.simulate.Simulation(psrdict = pdict)
 
 Simulating the Data
@@ -142,14 +144,14 @@ simulated data and plot it below.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_9_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_9_0.png
 
 
 .. code:: python
 
     # Get the simulated data
     sim_data = sim.signal.data
-
+    
     # Get the phases of the pulse
     phases = np.linspace(0, sim.tobs/sim.period, len(sim_data[0,:]))
     # Plot just the pulses in the first frequency channels
@@ -159,7 +161,7 @@ simulated data and plot it below.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-
+    
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
     plt.imshow(sim_data, aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(phases), max(phases), sim.signal.dat_freq[0].value, sim.signal.dat_freq[-1].value])
@@ -171,11 +173,11 @@ simulated data and plot it below.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_10_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_10_0.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_10_1.png
+.. image:: simulate_tutorial_files/simulate_tutorial_10_1.png
 
 
 A second way to simulate
@@ -221,10 +223,10 @@ error of the simulated noise to what we have above.
     plt.xlabel("Phase")
     plt.show()
     plt.close()
-
+    
     # Get the simulated data
     sim_data = sim.signal.data
-
+    
     # Get the phases of the pulse
     phases = np.linspace(0, sim.tobs/sim.period, len(sim_data[0,:]))
     # Plot just the pulses in the first frequency channels
@@ -234,7 +236,7 @@ error of the simulated noise to what we have above.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-
+    
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
     plt.imshow(sim_data, aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(phases), max(phases), sim.signal.dat_freq[0].value, sim.signal.dat_freq[-1].value])
@@ -246,12 +248,14 @@ error of the simulated noise to what we have above.
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_0.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_0.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_1.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_1.png
 
 
 
-.. image:: Simulate_Tutorial_files/Simulate_Tutorial_14_2.png
+.. image:: simulate_tutorial_files/simulate_tutorial_14_2.png
+
+
