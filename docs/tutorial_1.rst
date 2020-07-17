@@ -1,17 +1,17 @@
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_1.ipynb>`_.
 
 .. _tutorial_1:
 
-Pulsar Signal Simulator Tutorial Notebook 1
-===========================================
+Getting Start: Introductory Tutorial 1
+======================================
 
-This notebook will show you some of the basic features of the pulsar
-signal simulator, and will lead you through the steps of how to simulate
-your pulsar signal from start to finish.
+This notebook introduces the basic features of the pulsar signal
+simulator, and leading the user through the steps of how to simulate a
+pulsar signal from start to finish.
 
-The pulsar signal simulator can be run in a jupyter notebook or python
-script.
+The ``PsrSigSim`` can be run in a jupyter notebook or python script.
 
 .. code:: python
 
@@ -26,14 +26,14 @@ script.
 The Signal
 ----------
 
-The first thing we need to do so simulate our pulsar is to initialize
-our signal. Once this is done, we’ll come back to it later. This will be
-done for a filterbank-style signal class. This type of signal needs some
-values first though. It needs to how many frequency channels the signal
-should be recorded with, what the bandwidth of the signal is, what the
-center frequency of the signal is, and how quickly it should record the
-data, or the sampling rate. To make single pulses, we also need to set
-the ‘fold’ flag to False (the default is True).
+The first thing we need to do in order to simulate a pulsar is to
+initialize our signal. This will be done for a filterbank-style signal
+class. This type of signal needs parameters first though. One needs to
+enter the number of frequency channels the signal should be recorded
+with, what the bandwidth of the signal is, what the center frequency of
+the signal is, and how quickly it should record the data, or the
+sampling rate. To make single pulses, we also need to set the ‘fold’
+flag to False (the default is True).
 
 For this example, we will simulate single pulses from a 350 MHz
 observation from the Green Bank Telescope.
@@ -51,7 +51,7 @@ observation from the Green Bank Telescope.
 The Pulsar
 ----------
 
-Now we need to define our pulsar. Our pulsar needs a pulse shape though.
+Next we define a pulsar object. The pulsar needs a pulse shape though.
 There are a number of ways to define this in the pulsar signal
 simulator, but here we will make a simple, predefined Gaussian profile.
 The Guassian needs three parameters, an amplitude, a width (or sigma),
@@ -155,17 +155,17 @@ of observing, which amounts to just two pulse periods.
     obslen = 2.0 # seconds
 
 Now we can make the pulses! This is done using the make_pulses()
-function of pulsar object we made before. It takes just the signal
-object, and the observation length.
+function of the ``pulsar`` object we made before. It takes just the
+signal object, and the observation length.
 
 .. code:: python
 
     pulsar_1.make_pulses(signal_1, tobs = obslen)
 
-Now we want to disperse our pulses, or propagate them through the
-interstellar medium. We can do that easily using the disperse() function
-of the ISM object. This again takes the signal object, as well as the DM
-value defined above.
+Next we disperse our pulses, or propagate them through the interstellar
+medium. We can do that easily using the disperse() function of the ISM
+object. This again takes the signal object, as well as the DM value
+defined above.
 
 .. code:: python
 
@@ -174,7 +174,7 @@ value defined above.
 
 .. parsed-literal::
 
-    98% dispersed in 3.177 seconds.
+    98% dispersed in 1.283 seconds.
 
 Now we need to observe the signal with our telescope. This will add
 radiometer noise from the telescope receiver and backend to the signal.
@@ -202,9 +202,9 @@ Looking at the Results
 And that’s all that needs to be done to simulate a signal! If you want
 to view the simulated signal, you can access the full data array through
 ``signal_1.data``. Two ways to look at the data are to just plot an
-individual frequency channel, or make a 2-D of the power as a function
-of the pulse phase and frequency channel, both of which are demonstrated
-below.
+individual frequency channel (a phase plot), or make a 2-D of the power
+as a function of the pulse phase and frequency channel (a filterbank
+plot), both of which are demonstrated below.
 
 .. code:: python
 

@@ -4,44 +4,22 @@
 
 .. _pulse_nulling_example:
 
-Pulse Nulling Example Notebook
-==============================
+Pulse Nulling: Example Notebook
+===============================
 
 This notebook will serve as an exampe of how to use the pulse nulling
-feature of the ``Pulse Signal Simulator``. It will not go into explicit
-detail about how the ``PsrSigSim`` works, and a full documentation can
-be found at:
-
-https://psrsigsim.readthedocs.io/en/latest/
-
-Particularly under the example notebooks. This will serve only to show
-how the pulse nulling and pdv saving works. The ``PsrSigSim`` can be
-installed with ``pypi`` using: ``pip install psrsigsim``. Current python
-version supported are 3.5-3.7.
+feature of the ``Pulse Signal Simulator``.
 
 .. code:: python
 
-    # Start by importing the packages we will need for the simulation; start with simulator
-    #import PsrSigSim.psrsigsim as pss # for local development
-    import psrsigsim as pss # from pip install
+    # Start by importing the packages we will need for the simulation.
+    import psrsigsim as pss
 
     # Additional necessary packages
     import numpy as np
-    import scipy as sp
     import matplotlib.pyplot as plt
-    import os
     # helpful magic lines
     %matplotlib inline
-
-    %load_ext autoreload
-    %autoreload 2
-
-
-.. parsed-literal::
-
-    The autoreload extension is already loaded. To reload it, use:
-      %reload_ext autoreload
-
 
 We define a plotting convenience function for later.
 
@@ -145,7 +123,7 @@ dispersed.
 
 .. parsed-literal::
 
-    100% dispersed in 0.003 seconds.
+    100% dispersed in 0.001 seconds.
 
 
 .. image:: pulse_nulling_example_files/pulse_nulling_example_15_1.png
