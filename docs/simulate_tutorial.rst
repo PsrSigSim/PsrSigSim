@@ -4,18 +4,18 @@
 
 .. _simulate_tutorial:
 
-Pulsar Signal Simulator - Simulation Class Tutorial
-===================================================
+Simulation Class: Introductory Tutorial 3
+=========================================
 
 This notebook will demonstrate how to use the ``Simulation`` class of
-the pulsar signal simulator for easy simulation of data. The
+the pulsar signal simulator for more automated simulation of data. The
 ``Simulation`` class is designed as a convenience class within the
-PsrSigSim. Instead of instantiating each step of the simulation, the
+``PsrSigSim``. Instead of instantiating each step of the simulation, the
 ``Simulation`` class allows the input of all desired variables for the
-simulation at once, and then will run all of the sections of the
-simulation. The ``Simulation`` class also allows for individual running
-of each step (e.g. ``Signal``, ``Pulsar``, etc.) if desired. Not all
-options available within the ``Simulation`` will be demonstrated in this
+simulation at once, and then will run all parts of the simulation. The
+``Simulation`` class also allows for individual running of each step
+(e.g. ``Signal``, ``Pulsar``, etc.) if desired. Not all options
+available within the ``Simulation`` will be demonstrated in this
 notebook.
 
 .. code:: python
@@ -74,33 +74,33 @@ units and names as above).
 .. code:: python
 
     pdict = {'fcent' : 430,
-                 'bandwidth' : 100,
-                 'sample_rate' : 1.0*2048*10**-6,
-                 'dtype' : np.float32,
-                 'Npols' : 1,
-                 'Nchan' : 64,
-                 'sublen' : 2.0,
-                 'fold' : True,
-                 'period' : 1.0,
-                 'Smean' : 1.0,
-                 'profiles' : [0.5, 0.05, 1.0],
-                 'tobs' : 4.0,
-                 'name' : 'J0000+0000',
-                 'dm' : 10.0,
-                 'tau_d' : None,
-                 'tau_d_ref_f' : None,
-                 'aperture' : 100.0,
-                 'area' : 5500.0,
-                 'Tsys' : 35.0,
-                 'tscope_name' : "TestScope",
-                 'system_name' : "TestSys",
-                 'rcvr_fcent' : 430,
-                 'rcvr_bw' : 100,
-                 'rcvr_name' : "TestRCVR",
-                 'backend_samprate' : 1.5625,
-                 'backend_name' : "TestBack",
-                 'tempfile' : None,
-                }
+             'bandwidth' : 100,
+             'sample_rate' : 1.0*2048*10**-6,
+             'dtype' : np.float32,
+             'Npols' : 1,
+             'Nchan' : 64,
+             'sublen' : 2.0,
+             'fold' : True,
+             'period' : 1.0,
+             'Smean' : 1.0,
+             'profiles' : [0.5, 0.05, 1.0],
+             'tobs' : 4.0,
+             'name' : 'J0000+0000',
+             'dm' : 10.0,
+             'tau_d' : None,
+             'tau_d_ref_f' : None,
+             'aperture' : 100.0,
+             'area' : 5500.0,
+             'Tsys' : 35.0,
+             'tscope_name' : "TestScope",
+             'system_name' : "TestSys",
+             'rcvr_fcent' : 430,
+             'rcvr_bw' : 100,
+             'rcvr_name' : "TestRCVR",
+             'backend_samprate' : 1.5625,
+             'backend_name' : "TestBack",
+             'tempfile' : None,
+            }
 
     sim = pss.simulate.Simulation(psrdict = pdict)
 
@@ -120,7 +120,7 @@ the the data from start to finish.
 .. parsed-literal::
 
     Warning: specified sample rate 0.002048 MHz < Nyquist frequency 200.0 MHz
-    98% dispersed in 0.029 seconds.
+    98% dispersed in 0.050 seconds.
 
 .. parsed-literal::
 
@@ -210,7 +210,12 @@ initially input simulated parameters.
 .. parsed-literal::
 
     Warning: specified sample rate 0.002048 MHz < Nyquist frequency 200.0 MHz
-    98% dispersed in 0.044 seconds.
+    98% dispersed in 0.055 seconds.
+
+.. parsed-literal::
+
+    WARNING: AstropyDeprecationWarning: The truth value of a Quantity is ambiguous. In the future this will raise a ValueError. [astropy.units.quantity]
+
 
 If we plot the results here we find that they are identical within the
 error of the simulated noise to what we have above.
