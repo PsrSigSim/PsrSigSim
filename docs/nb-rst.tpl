@@ -9,7 +9,7 @@
 {% endblock input %}
 
 {% block header %}
-.. module:: hasasia
+{% .. module:: psrsigsim %}
 
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/{{ resources.metadata.name }}.ipynb>`_.

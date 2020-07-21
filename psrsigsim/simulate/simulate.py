@@ -20,12 +20,12 @@ class Simulation(object):
 
     Necessary information includes all minimal parameters
     for instances of each other class, Signal, Pulsar, ISM,
-    Telescope. 
+    Telescope.
 
-    Input may be specified manuall, from a pre-made parfile with 
+    Input may be specified manually, from a pre-made parfile with
     additional input, e.g. for the Signal, or from a premade dictionary
     with appropriate keys.
-    
+
     Parameters
     ----------
     fcent : float]
@@ -49,7 +49,7 @@ class Simulation(object):
     dtype : type
         Data type of array, default: ``np.float32``
         supported types are: ``np.float32`` and ``np.int8``
-    fold : bool 
+    fold : bool
         If `True`, the initialized signal will be folded to some
         number of subintegrations based on sublen (else will just make
         a single subintegration). If `False`, the data produced will be
@@ -106,9 +106,9 @@ class Simulation(object):
     parfile : string
         Path to pulsar par file to read in to use for pulsar parameters
     psrdict : dictionary
-        Dictionary of input parameters to generate simualted data from. 
+        Dictionary of input parameters to generate simualted data from.
         Keys should be the same as possible input values listed above.
-        
+
     """
     def __init__(self,
                  fcent = None,
@@ -140,7 +140,7 @@ class Simulation(object):
                  tempfile = None,
                  parfile = None,
                  psrdict = None,):
-        
+
         # Assign values from manual input
         self._fcent = fcent
         self._bandwidth = bandwidth
@@ -174,26 +174,26 @@ class Simulation(object):
         # Assign values from dictionary
         if psrdict != None:
             self.params_from_dict(psrdict)
-    
+
     def params_from_dict(self, psrdict):
         """
         Function to take the input dictionary and assign values from that.
         """
         for key in psrdict.keys():
             setattr(self, "_"+key, psrdict[key])
-    
+
     def params_from_par(self, parfile):
         """
         Function to take input par file and assign values from that.
         """
         raise NotImplementedError()
-    
+
     def init_signal(self, from_template = False):
         """
         Function to initialize a signal from the input parameters.
-        
-        Input:
-        ---------
+
+        Parameters
+        ----------
         from_template : bool
             If True, will use the input template file to initialize the
             signal. If False will use other input values to initialize the signal.
@@ -207,7 +207,7 @@ class Simulation(object):
             sim_signal = FilterBankSignal(fcent = self.fcent, bandwidth = self.bw, Nsubband=self.Nchan,\
                                 sample_rate=self.samprate, fold=self.fold, sublen=self.sublen)
             self._signal = sim_signal
-            
+
     def init_profile(self):
         """
         Function to initialize a profile object from input.
@@ -231,8 +231,8 @@ class Simulation(object):
         # Reassign the profile as the class object
         if not any(isinstance(self.profiles, x) for x in proftypes):
             self._profiles = prof
-        
-    
+
+
     def init_pulsar(self):
         """
         Function to initialize a pulsar from the input parameters.
@@ -242,14 +242,14 @@ class Simulation(object):
         pulsar = Pulsar(period=self.period, Smean=self.Smean, \
                                    profiles=self.profiles, name=self.name)
         self._pulsar = pulsar
-    
+
     def init_ism(self):
         """
         Function to initialize the ISM from the input parameters.
         """
         ism = ISM()
         self._ism = ism
-        
+
     def init_telescope(self):
         """
         Function to initialize the telescope from input parameters.
@@ -259,7 +259,7 @@ class Simulation(object):
         elif self.tscope_name == 'Arecibo':
             tscope = telescope.Arecibo()
         else:
-            tscope = Telescope(self.aperture, area = self.area, Tsys = self.Tsys, 
+            tscope = Telescope(self.aperture, area = self.area, Tsys = self.Tsys,
                                name = self.tscope_name)
         # Now need to add systems
         if type(self.rcvr_fcent) is list:
@@ -277,18 +277,18 @@ class Simulation(object):
                  backend=Backend(samprate=self.backend_samprate, name=self.backend_name))
         # If not entered, do not add any systems
         self._tscope = tscope
-    
+
     def simulate(self, from_template = False):
         """
         Function to run the full simulation.
-        
-        Input:
-        ---------
+
+        Parameters
+        ----------
         from_template : bool
             If True, will use the input template file to initialize the
             signal. If False will use other input values to initialize the signal.
         twoD : bool
-            If True, will generate a 2-D profile array, else will do a 
+            If True, will generate a 2-D profile array, else will do a
             1-D and will tile the profile in frequency.
         """
         # We start by initializing things
@@ -307,38 +307,38 @@ class Simulation(object):
         # disperse the simulated pulses
         self.ism.disperse(self.signal, self.dm)
         # TODO: Add in FD parameter or other delays in ISM
-        
+
         # Now add the telescope and radiometer noise
         self.init_telescope()
         # add radiometer noise
         # TODO: figure out how to do multiple systems
         out_array = self.tscope.observe(self.signal, self.pulsar, system=self.system_name, noise=True)
-        
+
     def save_simulation(self, outfile = "simfits", out_format = 'psrfits', phaseconnect = False,
                         parfile = None, ref_MJD = 56000.0, MJD_start = 55999.9861) :
         """
         Function to save the simulated data in a default format.
         Currently only PSRFITS is supported.
-        
-        Input:
-        ---------
+
+        Parameters
+        ----------
         outfile : string
             Path and name of output save file.
             If not provided, output file is "simfits".
         out_format : string
             Format of output file (not case sensitive).
             Options are:
-                'psrfits' - PSRFITS format. Requires template file.
-                'pdv' - PSRCHIVE pdv format. Output is a text file.
+            'psrfits' - PSRFITS format. Requires template file.
+            'pdv' - PSRCHIVE pdv format. Output is a text file.
         phaseconnect : bool
             Make sure to phase connect output data if output format is PSRFITS.
         parfile : string
-            Parfile to use to make phase connection polycos. If none supplied 
+            Parfile to use to make phase connection polycos. If none supplied
             will attempt to create one.
         ref_MJD : float
             Reference MJD for phase connection.
         MJD_start : float
-            Desired start time of the simulated observation. Needed for 
+            Desired start time of the simulated observation. Needed for
             phase connection.
         """
         # Now save the data if desired
@@ -350,7 +350,7 @@ class Simulation(object):
             else:
                 pfit = PSRFITS(path=outfile, template=self.tempfile, fits_mode='copy', \
                               obs_mode='PSR')
-                pfit._get_signal_params(signal = self.signal) 
+                pfit._get_signal_params(signal = self.signal)
                 # Now save the data
                 if phaseconnect and parfile == None:
                     log.warning("No par file provided, attempting to make one...")
@@ -366,13 +366,13 @@ class Simulation(object):
             txtfile.save_psrchive_pdv(self.signal, self.pulsar)
         else:
             raise RuntimeError("Unrecognized output file format: %s" % (out_format))
-            
-        
-    
+
+
+
     @property
     def fold(self):
         return self._fold
-    
+
     @property
     def sublen(self):
         return self._sublen
@@ -404,19 +404,19 @@ class Simulation(object):
     @property
     def Npols(self):
         return self._Npols
-    
+
     @property
     def dm(self):
         return self._dm
-    
+
     @property
     def tau_d(self):
         return self._tau_d
-    
+
     @property
     def tau_d_ref_f(self):
         return self._tau_d_ref_f
-    
+
     @property
     def profiles(self):
         return self._profiles
@@ -432,7 +432,7 @@ class Simulation(object):
     @property
     def Smean(self):
         return self._Smean
-    
+
     @property
     def tscope_name(self):
         return self._tscope_name
@@ -444,52 +444,51 @@ class Simulation(object):
     @property
     def aperture(self):
         return self._aperture
-    
+
     @property
     def Tsys(self):
         return self._Tsys
-    
+
     @property
     def system_name(self):
         return self._system_name
-    
+
     @property
     def rcvr_fcent(self):
         return self._rcvr_fcent
-    
+
     @property
     def rcvr_bw(self):
         return self._rcvr_bw
-    
+
     @property
     def rcvr_name(self):
         return self._rcvr_name
-    
+
     @property
     def backend_samprate(self):
         return self._backend_samprate
-    
+
     @property
     def backend_name(self):
         return self._backend_name
-    
+
     @property
     def tempfile(self):
         return self._tempfile
-    
+
     @property
     def signal(self):
         return self._signal
-    
+
     @property
     def pulsar(self):
         return self._pulsar
-    
+
     @property
     def ism(self):
         return self._ism
-    
+
     @property
     def tscope(self):
         return self._tscope
-    

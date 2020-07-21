@@ -33,7 +33,9 @@ class PulsePortrait(object):
         """
         Generate the profile, evenly sampled.
 
-        Args:
+        Parameters
+        ----------
+
             Nphase (int): number of phase bins
         """
         ph = np.arange(Nphase)/Nphase
@@ -56,7 +58,7 @@ class PulsePortrait(object):
         This is implemented by the subclasses!
         """
         raise NotImplementedError()
-        
+
     def _calcOffpulseWindow(self, Nphase = None):
         """
         Function adapted from Pypulse (https://github.com/mtlam/PyPulse)
@@ -67,7 +69,7 @@ class PulsePortrait(object):
             windowsize = 2048/8
         else:
             windowsize = Nphase/8
-        
+
         bins = np.arange(0, Nphase)
 
         integral = np.zeros_like(self._max_profile)
@@ -100,8 +102,8 @@ class GaussPortrait(PulsePortrait):
     1-d array     : Single pulse profile made up of multiple gaussians
     where `n` is the number of Gaussian components in the profile.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
 
     peak : float)
         Center of gaussian in pulse phase.
@@ -202,8 +204,8 @@ class DataPortrait(PulsePortrait):
     The data are samples of the profiles at specified phases. If you have a
     functional form for the _profiles use :class:`UserProfile` instead.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
 
     profiles : array, list of lists
         Profile data in 2-d array.

@@ -31,7 +31,7 @@ class Telescope(object):
         else:
             self._area = make_quant(area, "m^2")
         self._gain = self.area / (2*_kB)  # 2 polarizations
-        
+
         if Tsys == None:
             self._Tsys = Tsys
         else:
@@ -59,7 +59,7 @@ class Telescope(object):
     @property
     def systems(self):
         return self._systems
-    
+
     @property
     def Tsys(self):
         return self._Tsys
@@ -71,6 +71,9 @@ class Telescope(object):
 
     def observe(self, signal, pulsar, system=None, noise=False, ret_resampsig = False):
         """
+        Parameters
+        ----------
+
         signal -- Signal() instance
         pulsar -- Pulsar() object, necessary for radiometer noise scaling
         system -- dict key for system to use
@@ -91,7 +94,7 @@ class Telescope(object):
             dt_sig = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
         else:
             dt_sig = signal.tobs / signal.nsamp # unit: s
-        
+
         if dt_sig == dt_tel:
             out = np.array(sig_in, dtype=float)
 
@@ -117,7 +120,7 @@ class Telescope(object):
             print(msg.format((1/dt_sig).to("kHz").value, (1/dt_tel).to("kHz").value))
 
         else:
-            # input signal has lower samp freq than telescope samp freq   
+            # input signal has lower samp freq than telescope samp freq
             # We will need to fix this eventually but for now we will circumvent
             out = np.array(sig_in, dtype=float)
 
@@ -125,7 +128,7 @@ class Telescope(object):
             # The noise is getting added to the data in the radiometer noise function; this function as no output
             # Need to look into this resampling as well
             rcvr.radiometer_noise(signal, pulsar, gain=self.gain)
-            
+
 
         if signal.sigtype == 'voltage':
             # Difference between gauss and gamma draw here?
@@ -139,7 +142,7 @@ class Telescope(object):
             out[out>clip] = clip
 
         out = np.array(out, dtype=signal.dtype)
-        
+
         if ret_resampsig:
             # Return the downsampled signal
             return out
@@ -166,16 +169,16 @@ About G/ASP and XUPPI backend sampling rates and bandwidths. May need to change
 some of these evetually...
 From Paul Demorest:
 
-so both instruments work by sampling a "wide" band then digitally filtering into a number of smaller channels, 
+so both instruments work by sampling a "wide" band then digitally filtering into a number of smaller channels,
 with reduced rate per-channel.  do you need the original rate, or the per-channel rate?
 
-anyways, for GUPPI/PUPPI the original sampling rate is either 1.6 GHz, 400 MHz, 
-or 200 MHz depending on which total BW mode was in use (800, 200, or 100 MHz), we 
+anyways, for GUPPI/PUPPI the original sampling rate is either 1.6 GHz, 400 MHz,
+or 200 MHz depending on which total BW mode was in use (800, 200, or 100 MHz), we
 use different modes for different receivers.
 
 for ASP/GASP original sample rate was fixed at 128 MHz.
 
-The per-channel rate in all cases is equal to the channel BW (because a complex 
+The per-channel rate in all cases is equal to the channel BW (because a complex
 data representation was used).  4 MHz for ASP/GASP and 1.5625 for GUPPI/PUPPI for nanograv obs.
 """
 

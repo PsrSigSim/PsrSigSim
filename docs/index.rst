@@ -1,7 +1,9 @@
 Welcome to PsrSimSig's documentation!
 ======================================
+.. include:: ../README.rst
 
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -9,12 +11,13 @@ Contents:
    readme
    installation
    usage
-   modules
    tutorial_1
-   Simulate_Tutorial
-   full_pipeline_tutorial
-   Pulse_Nulling_Example
+   tutorial_2
+   simulate_tutorial
+   pulse_nulling_example
+   modules
    contributing
+   code_of_conduct
    authors
    history
 
