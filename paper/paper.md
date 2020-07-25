@@ -24,7 +24,7 @@ authors:
     affiliation: 4
   - name: Paul Brook
     orcid:
-    affiliation: 4
+    affiliation: 2
   - name: Jacob Hesse
     orcid:
     affiliation: 4
@@ -54,30 +54,26 @@ bibliography: paper.bib
 
 # Summary
 
-Pulsar observations have been a hallmark of radio astronomy since Jocelyn Bell
-discovered the repeating signal from PSR B19 in 1967. Many radio telescopes have
-been designed with these observations in mind. The phenomenal precision of pulsar
+Pulsar observations have been a hallmark of radio astronomy since Jocelyn Bell-Burnell
+discovered the repeating signal from PSR B1919+21 in 1967. Many radio telescopes have
+been designed with observations of these sources in mind. The phenomenal precision of pulsar
 rotational periods has allowed for many notable observations stemming from strong
-field general relativity.
+field general relativity, including a Nobel prize for the discovery of the first binary neutron star, which led to the first evidence for gravitational waves [@taylor:1982].
 
-Gravitational waves are quickly changing the way that we view the wider
-universe, enabling observations of compact objects in highly relativistic
-scenarios. Gravitational-wave detectors measure the minuscule, time-dependent
-perturbations to the spacetime metric. These detectors have long been
-characterized by a sensitivity curve, a plot in the frequency domain, which
-summarizes their ability to *detect* a given signal. Pulsar timing arrays
-(PTAs) are collections of highly precise millisecond pulsars regularly
+Pulsars continue to be used as probes of strong field gravity by being observed as parts of pulsar timing arrays (PTAs). PTAs are collections of highly precise millisecond pulsars regularly
 monitored for shifts in the spin period of pulsars indicative of gravitational
 waves in the nanohertz regime. See @hobbs and @burke-spolaor for a review of
 pulsar timing arrays and the astrophysics of nanohertz gravitational waves.
 
+In order to use these neutron stars as a galactic-scale gravitational wave observatory it is important to understand as many sources of noise in the timing of pulses. This timing depends on many parameters in a timing model and process which includes aspects of the pulse profile, intrinsic flux, orbital parameters of the pulsar, proper motion across the sky, effects of the interstellar medium (ISM), position of the observatory WRT the solar system barycenter, as well as various aspects of the telescope and backend processing. In order to understand the covariances and noise terms in this model an end-to-end simulation is needed.
+
 The ``PsrSigSim`` is a Python package for simulating radio telescope data from pulsar timing observations, largely based on the formalism presented in [@shapiro-key:2020].
 It uses standard Python packages, such as ``Numpy`` [@numpy] and ``Astropy``
 [@astropy] to simulate radio pulses from a neutron, the propagation effects upon that signal
-from the interstellar medium and the various Doppler shifts that come from the motion of the pulsar and the Earth.  
+from the interstellar medium and the various Doppler shifts that come from the motion of the pulsar and the Earth. ``Signals``-objects are passed to ``Pulsar``-objects and `ISM`-objects to build a realistic pulsar signal from scratch. The ``PsrSigSim`` uses various signal processing techniques, such as the Fourier shift theorem and convolution of pulse profiles with decaying exponentials in order to simulate the frequency dependent effects of the interstellar medium on pulse arrival times.
 
 # Acknowledgements
 
-JSH , BJS, PTB,  and  acknowledge subawards from the University of Wisconsin-Milwaukee for the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). Finally, we thank Joseph D. Romano, Tim Pennucci and for useful discussions and sharing preliminary code.
+JSH , BJS, PTB,  and  acknowledge subawards from the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). Finally, we thank Joseph D. Romano, Tim Pennucci and for useful discussions and sharing preliminary code.
 
 # References
