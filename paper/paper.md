@@ -11,43 +11,45 @@ authors:
     orcid: 0000-0003-2742-3321
     affiliation: 1
   - name: Brent Shapiro-Albert
-    orcid:
+    orcid: 0000-0002-7283-1124
     affiliation: 2
   - name: Paul T. Baker
-    orcid:
+    orcid: 0000-0003-2745-753X
     affiliation: 3
-  - name: Amelia Henkel
+  - name: Amelia M. Henkel
     orcid:
     affiliation: 4
-  - name: Cassidy Wagner
-    orcid:
-    affiliation: 4
+  - name: Cassidy M. Wagner
+    orcid: 0000-0002-1186-2082
+    affiliation: 5
   - name: Paul Brook
-    orcid:
+    orcid: 0000-0003-3053-6538
     affiliation: 2
   - name: Jacob Hesse
     orcid:
-    affiliation: 4
+    affiliation: 1
   - name: Maura Mclaughlin
-    orcid:
+    orcid: 0000-0001-7697-7422
     affiliation: 2
   - name: Michael T. Lam
-    orcid:
-    affiliation: 4
+    orcid: 0000-0003-0721-651X
+    affiliation: 6
 
 affiliations:
- - name: University of Washington Bothell
+ - name: Physical Sciences Division, University of Washington Bothell, 18115 Campus Way NE, Bothell, WA 98011, USA
    index: 1
- - name: West Virginia University
+ - name: Department of Physics and Astronomy, West Virginia University, P.O. Box 6315, Morgantown, WV 26506, USA
    index: 2
- - name: Widener College
+ - name: Department of Physics and Astronomy, Widener University, One University Place, Chester, PA 19013, USA
    index: 3
  - name: Widener College
    index: 4
- - name: University of Illinois Champagne-Urbana
+ - name: Department of Astronomy, University of Illinois, 1002 West Green Street, Urbana IL 61802, USA
    index: 5
- - name: Rochester Institute of Technology
+ - name: School of Physics and Astronomy, Rochester Institute of Technology, Rochester, NY 14623, USA
    index: 6
+ - name: Laboratory for Multiwavelength Astronomy, Rochester Institute of Technology, Rochester, NY 14623, USA
+   index: 7
 date: 16 July 2020
 bibliography: paper.bib
 ---
@@ -74,7 +76,7 @@ from the interstellar medium and the various Doppler shifts that come from the m
 
 The modularity of the simulation allows for enumerable options for investigating the processing of pulsar signals. The signals from different pulsars can be treated by the same telescope in order to investigate how various pulsars would look using a particular telescope configuration. A user can either use a provided telescope, or build one with their own specifications. This modularity also makes the `PsrSigSim` an excellent tool for educating students about the physics of pulsar signals and how they are observed and processed.
 
-The documentation for the `PsrSigSim` includes a number of beginner level tutorials for getting started using the package. 
+The documentation for the `PsrSigSim` includes a number of beginner level tutorials for getting started using the package.
 
 # Acknowledgements
 
