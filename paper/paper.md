@@ -50,26 +50,27 @@ affiliations:
    index: 6
  - name: Laboratory for Multiwavelength Astronomy, Rochester Institute of Technology, Rochester, NY 14623, USA
    index: 7
-date: 16 July 2020
+date: 6 August 2020
 bibliography: paper.bib
 ---
 
 # Summary
 
 Pulsar observations have been a hallmark of radio astronomy since Jocelyn Bell-Burnell
-discovered the repeating signal from PSR B1919+21 in 1967. Many radio telescopes have
-been designed with observations of these sources in mind. The phenomenal precision of pulsar
+discovered the repeating signal from PSR B1919+21 in 1967 [@hewish1968]. Many
+radio telescopes have been designed with observations of these sources in mind [CITE].
+The phenomenal precision of millisecond pulsar
 rotational periods has allowed for many notable observations stemming from strong
 field general relativity, including a Nobel prize for the discovery of the first binary neutron star, which led to the first evidence for gravitational waves [@taylor:1982].
 
 Pulsars continue to be used as probes of strong field gravity as the constituents of pulsar timing arrays (PTAs). PTAs are collections of highly precise millisecond pulsars regularly
 monitored for shifts in their pulse arrival times indicative of gravitational
-waves in the nanohertz regime. See @hobbs and @burke-spolaor for a review of
+waves in the nanohertz regime. See @ransom2019, @hobbs and @burke-spolaor for a review of
 pulsar timing arrays and the astrophysics of nanohertz gravitational waves.
 
-In order to use these neutron stars as a galactic-scale gravitational wave observatory it is important to understand as many sources of noise in the timing of pulses. This timing depends on many parameters in a timing process and deterministic model that includes aspects of the pulse profile, intrinsic flux, orbital parameters of the pulsar, proper motion across the sky, effects of the interstellar medium (ISM), position of the observatory with respect to the solar system barycenter, as well as various aspects of the telescope and backend processing. In order to understand the covariances and noise terms in this model an end-to-end simulation is needed.
+In order to use these neutron stars as a galactic-scale gravitational wave observatory it is important to understand as many sources of noise in the timing of pulses. This timing depends on many parameters in a timing process and deterministic model that includes aspects of the pulse profile, intrinsic flux, orbital parameters of the pulsar, proper motion across the sky, effects of the interstellar medium (ISM), position of the observatory with respect to the solar system barycenter and various aspects of the telescope and backend processing. In order to understand the covariances and noise terms in this model an end-to-end simulation is needed.
 
-The ``PsrSigSim`` is a Python package for simulating radio telescope data from pulsar timing observations, largely based on the formalism presented in [@shapiro-key:2020].
+The ``PsrSigSim`` is a Python package for simulating radio telescope data from pulsar timing observations, largely based on the formalism presented in [@shapiro-albert:2020].
 It uses standard Python packages, such as ``Numpy`` [@numpy] and ``Astropy``
 [@astropy] to simulate radio pulses from a neutron star, the propagation effects upon that signal
 from the interstellar medium and the various Doppler shifts that come from the motion of the pulsar and the Earth. ``Signals``-objects are passed to ``Pulsar``-objects and `Telescope`-objects to build a realistic pulsar signal from scratch. `ISM`-objects use various signal processing techniques, such as the Fourier shift theorem and convolution of pulse profiles with decaying exponentials in order to simulate the frequency dependent effects of the interstellar medium on pulse arrival times.
