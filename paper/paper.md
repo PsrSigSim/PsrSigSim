@@ -33,7 +33,7 @@ authors:
     affiliation: 2
   - name: Michael T. Lam
     orcid: 0000-0003-0721-651X
-    affiliation: 6
+    affiliation: 6, 7
 
 affiliations:
  - name: Physical Sciences Division, University of Washington Bothell, 18115 Campus Way NE, Bothell, WA 98011, USA
@@ -52,6 +52,8 @@ affiliations:
    index: 7
 date: 6 August 2020
 bibliography: paper.bib
+aas-doi: 10.3847/xxxxx
+aas-journal: Astrophysical Journal
 ---
 
 # Summary
