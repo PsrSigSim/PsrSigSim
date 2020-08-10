@@ -33,8 +33,7 @@ authors:
     affiliation: 2
   - name: Michael T. Lam
     orcid: 0000-0003-0721-651X
-    affiliation: 6, 7
-
+    affiliation: 6
 affiliations:
  - name: Physical Sciences Division, University of Washington Bothell, 18115 Campus Way NE, Bothell, WA 98011, USA
    index: 1
