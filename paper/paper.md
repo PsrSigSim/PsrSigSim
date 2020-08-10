@@ -17,7 +17,6 @@ authors:
     orcid: 0000-0003-2745-753X
     affiliation: 3
   - name: Amelia M. Henkel
-    orcid:
     affiliation: 4
   - name: Cassidy M. Wagner
     orcid: 0000-0002-1186-2082
@@ -26,7 +25,6 @@ authors:
     orcid: 0000-0003-3053-6538
     affiliation: 2
   - name: Jacob Hesse
-    orcid:
     affiliation: 1
   - name: Maura Mclaughlin
     orcid: 0000-0001-7697-7422
