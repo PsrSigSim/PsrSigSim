@@ -60,7 +60,7 @@ discovered the repeating signal from PSR B1919+21 in 1967 [@hewish1968]. Many
 radio telescopes have been designed with observations of these sources in mind [CITE].
 The phenomenal precision of millisecond pulsar
 rotational periods has allowed for many notable observations stemming from strong
-field general relativity, including a Nobel prize for the discovery of the first binary neutron star, which led to the first evidence for gravitational waves [@taylor1982].
+field general relativity, including a Nobel prize for the discovery of the first binary neutron star [@taylor1975], which led to the first evidence for gravitational waves [@taylor1982].
 
 Pulsars continue to be used as probes of strong field gravity as the constituents of pulsar timing arrays (PTAs). PTAs are collections of highly precise millisecond pulsars regularly
 monitored for shifts in their pulse arrival times indicative of gravitational
