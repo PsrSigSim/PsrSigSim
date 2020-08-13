@@ -26,12 +26,12 @@ authors:
   - name: Paul Brook
     orcid: 0000-0003-3053-6538
     affiliation: 2,3
-  - name: Maura Mclaughlin
-    orcid: 0000-0001-7697-7422
-    affiliation: 2,3
   - name: Michael T. Lam
     orcid: 0000-0003-0721-651X
     affiliation: 7,8
+  - name: Maura Mclaughlin
+    orcid: 0000-0001-7697-7422
+    affiliation: 2,3
   - name: Nathan Garver-Daniels
     orcid: 0000-0001-6166-9646
     affiliation: 2,3
