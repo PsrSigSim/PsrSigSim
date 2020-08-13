@@ -76,6 +76,6 @@ The modularity of the simulation allows enumerable options for investigating the
 
 # Acknowledgements
 
-JSH , BJS, PTB, PB, MM and MTL  acknowledge subawards from the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). BJS acknowledges support from West Virginia University through the STEM Mountains of Excellence Fellowship. Finally, we thank Richard Prestage, Joseph D. Romano, Tim Pennucci and Paul Demorest for useful discussions.
+JSH , BJS, PTB, PB, MM and MTL acknowledge subawards from the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). BJS acknowledges support from West Virginia University through the STEM Mountains of Excellence Fellowship. Finally, we thank Richard Prestage, Joseph D. Romano, Tim Pennucci and Paul Demorest for useful discussions.
 
 # References
