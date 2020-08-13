@@ -21,11 +21,11 @@ authors:
   - name: Cassidy M. Wagner
     orcid: 0000-0002-1186-2082
     affiliation: 6
+  - name: Jacob Hesse
+    affiliation: 1
   - name: Paul Brook
     orcid: 0000-0003-3053-6538
     affiliation: 2, 3
-  - name: Jacob Hesse
-    affiliation: 1
   - name: Maura Mclaughlin
     orcid: 0000-0001-7697-7422
     affiliation: 2, 3
