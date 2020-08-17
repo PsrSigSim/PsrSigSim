@@ -1,11 +1,10 @@
-
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_1.ipynb>`_.
 
 .. _tutorial_1:
 
-Getting Start: Introductory Tutorial 1
-======================================
+Getting Started: Introductory Tutorial 1
+========================================
 
 This notebook introduces the basic features of the pulsar signal
 simulator, and leading the user through the steps of how to simulate a
@@ -19,9 +18,26 @@ The ``PsrSigSim`` can be run in a jupyter notebook or python script.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-
+    
     # import the pulsar signal simulator
     import psrsigsim as pss
+
+
+::
+
+
+    ---------------------------------------------------------------------------
+
+    ModuleNotFoundError                       Traceback (most recent call last)
+
+    <ipython-input-4-a6aae14e7a68> in <module>
+          5 
+          6 # import the pulsar signal simulator
+    ----> 7 import psrsigsim as pss
+    
+
+    ModuleNotFoundError: No module named 'psrsigsim'
+
 
 The Signal
 ----------
@@ -76,12 +92,6 @@ and then we can give it a number of phase bins and plot it.
     # We can look at the shape of the profile array to make sure it matches with what we expect
     print(np.shape(gauss_prof.profiles))
 
-
-.. parsed-literal::
-
-    (1, 2048)
-
-
 .. code:: python
 
     # And then we can plot the array to see what the profile looks like
@@ -89,11 +99,6 @@ and then we can give it a number of phase bins and plot it.
     plt.xlabel("Phase")
     plt.show()
     plt.close()
-
-
-
-.. image:: tutorial_1_files/tutorial_1_9_0.png
-
 
 Now we can define the pulsar object itself. Out pulsar needs a period
 (s), a mean flux (Jy), a profile, which we’ve defined above, and a name
@@ -171,11 +176,6 @@ defined above.
 
     ism_1.disperse(signal_1, dm)
 
-
-.. parsed-literal::
-
-    98% dispersed in 1.283 seconds.
-
 Now we need to observe the signal with our telescope. This will add
 radiometer noise from the telescope receiver and backend to the signal.
 This is done using the observe() function of the telescope object, which
@@ -183,18 +183,9 @@ takes the signal, the pulsar, the system name (for the GBT telescope
 this is either ‘820_GUPPI’ or ‘Lband_GUPPI’), and make sure that the
 noise variable is set to ‘True’.
 
-Note that the output array here is the data array before the radiometer
-noise has been added, and not the full signal.
-
 .. code:: python
 
-    data_array = tscope.observe(signal_1, pulsar_1, system="820_GUPPI", noise=True)
-
-
-.. parsed-literal::
-
-    WARNING: AstropyDeprecationWarning: The truth value of a Quantity is ambiguous. In the future this will raise a ValueError. [astropy.units.quantity]
-
+    tscope.observe(signal_1, pulsar_1, system="820_GUPPI", noise=True)
 
 Looking at the Results
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -218,11 +209,6 @@ plot), both of which are demonstrated below.
     plt.show()
     plt.close()
 
-
-
-.. image:: tutorial_1_files/tutorial_1_25_0.png
-
-
 .. code:: python
 
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
@@ -234,6 +220,3 @@ plot), both of which are demonstrated below.
     plt.show()
     plt.close()
 
-
-
-.. image:: tutorial_1_files/tutorial_1_26_0.png
