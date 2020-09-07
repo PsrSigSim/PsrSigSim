@@ -1,11 +1,10 @@
-
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_1.ipynb>`_.
 
 .. _tutorial_1:
 
-Getting Start: Introductory Tutorial 1
-======================================
+Getting Started: Introductory Tutorial 1
+========================================
 
 This notebook introduces the basic features of the pulsar signal
 simulator, and leading the user through the steps of how to simulate a
@@ -19,7 +18,7 @@ The ``PsrSigSim`` can be run in a jupyter notebook or python script.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-
+    
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -174,7 +173,7 @@ defined above.
 
 .. parsed-literal::
 
-    98% dispersed in 1.283 seconds.
+    98% dispersed in 1.399 seconds.
 
 Now we need to observe the signal with our telescope. This will add
 radiometer noise from the telescope receiver and backend to the signal.
@@ -183,12 +182,9 @@ takes the signal, the pulsar, the system name (for the GBT telescope
 this is either ‘820_GUPPI’ or ‘Lband_GUPPI’), and make sure that the
 noise variable is set to ‘True’.
 
-Note that the output array here is the data array before the radiometer
-noise has been added, and not the full signal.
-
 .. code:: python
 
-    data_array = tscope.observe(signal_1, pulsar_1, system="820_GUPPI", noise=True)
+    tscope.observe(signal_1, pulsar_1, system="820_GUPPI", noise=True)
 
 
 .. parsed-literal::
@@ -237,3 +233,5 @@ plot), both of which are demonstrated below.
 
 
 .. image:: tutorial_1_files/tutorial_1_26_0.png
+
+

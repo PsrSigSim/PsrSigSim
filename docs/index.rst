@@ -13,6 +13,9 @@ Contents
    usage
    tutorial_1
    tutorial_2
+   pulse_profiles_tutorial_3
+   ism_options_tutorial_4
+   telescopes_tutorial_5
    simulate_tutorial
    pulse_nulling_example
    modules
