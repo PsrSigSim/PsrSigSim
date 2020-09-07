@@ -336,8 +336,8 @@ class PSRFITS(BaseFile):
         print(np.shape(Out))
         # We assign the data in the appropriate shape
         for ii in range(self.nsubint):
-            idx0 = 0 + ii*2048
-            idxF = idx0 + 2048
+            idx0 = 0 + ii*self.nbin
+            idxF = idx0 + self.nbin
             Out[ii,0,:,:] = sim_sig[:,idx0:idxF]
 
         self.copy_psrfit_BinTables()
@@ -466,9 +466,9 @@ class PSRFITS(BaseFile):
                                   npol=self.npol,
                                   data_dtype=self.dtypes['DATA'][0],
                                   obs_mode=self.pfit_dict['OBS_MODE'])
-
-        self.file.copy_template_BinTable(ext_name='SUBINT',
-                                        cols=self.file.single_subint_floats)
+        # Make an array of the desired size, don't copy from template file
+        subint_draft = self.file.make_HDU_rec_array(self.file.nsubint, self.file.subint_dtype)
+        self.file.HDU_drafts['SUBINT'] = subint_draft
 
 
     def to_txt(self):
