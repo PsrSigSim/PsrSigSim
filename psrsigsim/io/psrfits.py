@@ -109,6 +109,7 @@ class PSRFITS(BaseFile):
             self.pfit_pars['PSRPARAM'].append('F')
             # Need both there depending on the template file. Only one will work.
             self.pfit_pars['PSRPARAM'].append('F0')
+            self.pfit_pars['PSRPARAM'].append('DM')
 
     # We will define a function that will generate a dictionary with the parameters needed to replace POLYCO header params
     def _gen_polyco(self, parfile, MJD_start, segLength = 60.0, ncoeff = 15, \
@@ -233,6 +234,9 @@ class PSRFITS(BaseFile):
             next_frac_sec = make_quant(init_OFFS, 's') + (leftover_s - np.floor(leftover_s))
 
         # Assign these to dictionary values
+        primary_dict['OBSFREQ'] = self.obsfreq.value
+        primary_dict['OBSBW'] = self.obsbw.value
+        primary_dict['CHAN_DM'] = signal.dm.value
         primary_dict['STT_IMJD'] = int(next_MJD.value)
         primary_dict['STT_SMJD'] = int(next_seconds.value)
         primary_dict['STT_OFFS'] = np.double(next_frac_sec.value)
@@ -261,11 +265,25 @@ class PSRFITS(BaseFile):
         """
         # We go through each dictionary and replace the appropriate values; start with primary
         self.file.set_draft_header('PRIMARY', primary_dict)
+        # Now we adjust the history header
+        self.file.HDU_drafts['HISTORY'][0]['POL_TYPE'] = str.encode(subint_dict['POL_TYPE'])
+        self.file.HDU_drafts['HISTORY'][0]['NSUB'] = self.nsubint
+        self.file.HDU_drafts['HISTORY'][0]['NPOL'] = self.npol
+        self.file.HDU_drafts['HISTORY'][0]['NBIN'] = subint_dict['NBIN']
+        self.file.HDU_drafts['HISTORY'][0]['NBIN_PRD'] = subint_dict['NBIN']
+        self.file.HDU_drafts['HISTORY'][0]['TBIN'] = subint_dict['TBIN']
+        self.file.HDU_drafts['HISTORY'][0]['CTR_FREQ'] =self.obsfreq.value
+        self.file.HDU_drafts['HISTORY'][0]['NCHAN'] = self.nchan
+        self.file.HDU_drafts['HISTORY'][0]['CHAN_BW'] = subint_dict['CHAN_BW']
+        self.file.HDU_drafts['HISTORY'][0]['DM'] = subint_dict['DM']
         # Now do the subint header
-        self.file.set_draft_header('SUBINT', {'EPOCHS' : subint_dict['EPOCHS']})
+        self.file.set_draft_header('SUBINT', {'EPOCHS' : subint_dict['EPOCHS'], 'CHAN_BW' : subint_dict['CHAN_BW'],
+                                              'POL_TYPE': subint_dict['POL_TYPE'], 'TBIN': subint_dict['TBIN'],
+                                              'DM' : subint_dict['DM'], 'NBIN' : subint_dict['NBIN']})
         # Now replace the values of the offs_sub subints
         for ii in range(len(subint_dict['OFFS_SUB'])):
             self.file.HDU_drafts['SUBINT'][ii]['OFFS_SUB'] = subint_dict['OFFS_SUB'][ii]
+            self.file.HDU_drafts['SUBINT'][ii]['TSUBINT'] = subint_dict['TSUBINT'][ii]
         # And finally the polycos;
         for ky in polyco_dict.keys():
             try:
@@ -281,7 +299,6 @@ class PSRFITS(BaseFile):
                 if dp.encode('utf-8') == param[0].split()[0]:
                     idx = np.where(param == self.file.HDU_drafts['PSRPARAM'])[0]
                     self.file.HDU_drafts['PSRPARAM'] = np.delete(self.file.HDU_drafts['PSRPARAM'], idx)
-
 
     # Save the signal
     def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
@@ -342,7 +359,6 @@ class PSRFITS(BaseFile):
 
         self.copy_psrfit_BinTables()
         # We can currently only make total intensity data
-        self.file.set_draft_header('SUBINT',{'POL_TYPE':'AA+BB'})
         for ii in range(self.nsubint):
             self.file.HDU_drafts['SUBINT'][ii]['DATA'] = Out[ii,0,:,:]
             self.file.HDU_drafts['SUBINT'][ii]['DAT_FREQ'] = signal.dat_freq.value
@@ -357,7 +373,7 @@ class PSRFITS(BaseFile):
                 if len(np.shape(self.file.fits_template['SUBINT'][0]['DAT_SCL'])) != 1:
                     scale_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:,:self.nchan*self.npol])
                     offs_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:,:self.nchan*self.npol])
-                    weight_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_WTS'])
+                    weight_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_WTS'][:,:self.nchan])
                 else:
                     scale_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:])
                     offs_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:])
@@ -370,7 +386,7 @@ class PSRFITS(BaseFile):
             else:
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:,:self.nchan*self.npol]
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:,:self.nchan*self.npol]
-                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template['SUBINT'][qq]['DAT_WTS']
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template['SUBINT'][qq]['DAT_WTS'][:,:self.nchan]
 
         """If we try to phase connect the data we want to do it here. If this is not done and the info not
         provided, the data saved to the fits file will likely not be appropriate for timing simulations."""
@@ -380,6 +396,18 @@ class PSRFITS(BaseFile):
                        maxha=12.0, method="TEMPO", numNodes=20, usePINT = usePint)
             # generate the primary header and subint header parameters
             primary_dict, subint_dict = self._gen_metadata(signal, pulsar, ref_MJD = ref_MJD, inc_len = inc_len)
+            # Add values to the subint_dict to fix the metadata, first polarization
+            subint_dict['POL_TYPE'] = 'AA+BB'
+            # Then the bandwidth
+            subint_dict['CHAN_BW'] = self.chan_bw.value
+            # Get TSUBINT length
+            subint_dict['TSUBINT'] = np.repeat(self.tsubint.value, self.nsubint)
+            # Change TBIN
+            subint_dict['TBIN'] = pulsar.period.value/self.nbin
+            # Change TBIN
+            subint_dict['DM'] = signal.dm.value
+            # Change TBIN
+            subint_dict['NBIN'] = self.nbin
             # Now edit the header parameters with the new phase connected values
             self._edit_psrfits_header(polyco_dict, subint_dict, primary_dict)
         else:
@@ -447,6 +475,7 @@ class PSRFITS(BaseFile):
                    sublen=self.tsubint)
 
         S._dat_freq = make_quant(self._get_pfit_bin_table_entry('SUBINT', 'DAT_FREQ'), 'MHz')
+        S._dm = make_quant(self.pfit_dict['DM'], 'pc/cm^3')
 
         return S
 
@@ -533,7 +562,7 @@ class PSRFITS(BaseFile):
             self.nchan = signal.Nchan
             self.tbin = 1.0/signal.samprate
             self.nbin = int(signal.nsamp/signal.nsub)
-            self.npol = self.pfit_dict['NPOL']#signal.Npols
+            self.npol = signal.Npols # self.pfit_dict['NPOL']
             self.nrows = signal.nsub
             self.nsblk = self.pfit_dict['NSBLK']
             self.obsfreq = signal.fcent
