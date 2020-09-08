@@ -346,25 +346,31 @@ class PSRFITS(BaseFile):
         for ii in range(self.nsubint):
             self.file.HDU_drafts['SUBINT'][ii]['DATA'] = Out[ii,0,:,:]
             self.file.HDU_drafts['SUBINT'][ii]['DAT_FREQ'] = signal.dat_freq.value
+            # Can't get values from subints that don't exists.
+            # If more subints than in initial file, use the last set of values
+            if ii >= self.file.fits_template['SUBINT'].get_nrows():
+                qq = self.file.fits_template['SUBINT'].get_nrows()-1
+            else:
+                qq = ii
             if eq_wts:
                 # Get the shapes of the wieghts, scales, and offs arrays, assumes we want to reset these to all be equal
-                if len(np.shape(self.file.fits_template[4][0]['DAT_SCL'])) != 1:
-                    scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol])
-                    offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol])
-                    weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+                if len(np.shape(self.file.fits_template['SUBINT'][0]['DAT_SCL'])) != 1:
+                    scale_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:,:self.nchan*self.npol])
+                    offs_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:,:self.nchan*self.npol])
+                    weight_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_WTS'])
                 else:
-                    scale_shape = np.shape(self.file.fits_template[4][ii]['DAT_SCL'][:])
-                    offs_shape = np.shape(self.file.fits_template[4][ii]['DAT_OFFS'][:])
-                    weight_shape = np.shape(self.file.fits_template[4][ii]['DAT_WTS'])
+                    scale_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:])
+                    offs_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:])
+                    weight_shape = np.shape(self.file.fits_template['SUBINT'][qq]['DAT_WTS'])
                 # Now assign the values
                 #print(scale_shape, offs_shape, weight_shape)
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = np.ones(scale_shape)
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = np.zeros(offs_shape)
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = np.ones(weight_shape)
             else:
-                self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = self.file.fits_template[4][ii]['DAT_SCL'][:,:self.nchan*self.npol]
-                self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = self.file.fits_template[4][ii]['DAT_OFFS'][:,:self.nchan*self.npol]
-                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template[4][ii]['DAT_WTS']
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_SCL'] = self.file.fits_template['SUBINT'][qq]['DAT_SCL'][:,:self.nchan*self.npol]
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:,:self.nchan*self.npol]
+                self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template['SUBINT'][qq]['DAT_WTS']
 
         """If we try to phase connect the data we want to do it here. If this is not done and the info not
         provided, the data saved to the fits file will likely not be appropriate for timing simulations."""
