@@ -16,6 +16,7 @@ from psrsigsim.utils.utils import make_quant
 from psrsigsim.io.txtfile import TxtFile
 from psrsigsim.io.file import BaseFile
 from psrsigsim.ism.ism import ISM
+import numpy as np
 
 @pytest.fixture
 def signal():
@@ -189,6 +190,17 @@ def test_edit_header(pulsar):
     obslen = 3.0
     pulsar.make_pulses(S, tobs = obslen)
     pri_dict, sub_dict = PSRfits._gen_metadata(S, pulsar, ref_MJD = 56000.0, inc_len = 0.0)
+    sub_dict['POL_TYPE'] = 'AA+BB'
+    # Then the bandwidth
+    sub_dict['CHAN_BW'] = PSRfits.chan_bw.value
+    # Get TSUBINT length
+    sub_dict['TSUBINT'] = np.repeat(PSRfits.tsubint.value, PSRfits.nsubint)
+    # Change TBIN
+    sub_dict['TBIN'] = pulsar.period.value/PSRfits.nbin
+    # Change TBIN
+    sub_dict['DM'] = S.dm.value
+    # Change TBIN
+    sub_dict['NBIN'] = PSRfits.nbin
     parfile = "data/J1910+1256_NANOGrav_11yv1.gls.par"
     poly_dict = PSRfits._gen_polyco(parfile = parfile, MJD_start = 56000.0)
     PSRfits._nsblk = 1
