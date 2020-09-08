@@ -210,13 +210,8 @@ def test_savesim(simulation, PSRfits):
     # Try pdv format
     simulation.save_simulation(out_format = "pdv")
     # Try psrfits format
-    simulation.save_simulation(out_format = "psrfits", phaseconnect = False)
+    simulation.save_simulation(out_format = "psrfits")
     os.remove("sim_fits.fits")
-    # Try psrfits format with phaseconnect = True
-    #parfile = "data/test_parfile.par"
-    #simulation._parfile = parfile
-    #simulation.save_simulation(out_format = "psrfits", phaseconnect = True)
-    #os.remove("sim_fits.fits")
     dfs = glob.glob("simfits*")
     for df in dfs:
         os.remove(df)

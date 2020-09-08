@@ -113,7 +113,7 @@ def test_savephaseconnect(PSRfits, pulsar):
     obslen = PSRfits.tsubint.value*PSRfits.nsubint
     pulsar.make_pulses(S, tobs = obslen)
     parfile = "data/test_parfile.par"
-    PSRfits.save(S, pulsar, phaseconnect = True, parfile = parfile, \
+    PSRfits.save(S, pulsar, parfile = None, \
                  MJD_start = 55999.9861, inc_len = 0.0, ref_MJD = 56000.0, \
                  usePint = True)
     os.remove("data/test.fits")
@@ -127,7 +127,7 @@ def test_savephaseconnect_inc(PSRfits, pulsar):
     obslen = PSRfits.tsubint.value*PSRfits.nsubint
     pulsar.make_pulses(S, tobs = obslen)
     parfile = "data/test_parfile.par"
-    PSRfits.save(S, pulsar, phaseconnect = True, parfile = parfile, \
+    PSRfits.save(S, pulsar, parfile = parfile, \
                  MJD_start = 55999.9861+30.0, inc_len = 30.0, ref_MJD = 56000.0, \
                  usePint = True)
     os.remove("data/test.fits")

@@ -8,7 +8,7 @@ from packaging import version
 import fitsio
 import pdat
 from .file import BaseFile
-from ..utils import make_quant
+from ..utils import make_quant, make_par
 from ..signal import Signal
 from ..signal import FilterBankSignal
 # Not sure if we can require PINT as a dependency...
@@ -301,7 +301,7 @@ class PSRFITS(BaseFile):
                     self.file.HDU_drafts['PSRPARAM'] = np.delete(self.file.HDU_drafts['PSRPARAM'], idx)
 
     # Save the signal
-    def save(self, signal, pulsar, phaseconnect=False, parfile = None, \
+    def save(self, signal, pulsar, parfile = None, \
              MJD_start = 56000.0, segLength = 60.0, inc_len = 0.0, \
              ref_MJD = 56000.0, usePint = True, eq_wts = True):
         """Save PSS signal file to disk. Currently only one mode of doing this
@@ -315,11 +315,9 @@ class PSRFITS(BaseFile):
                         used to get the data array to save and other metadata.
         pulsar [class] : pulsar type class used to generate the signal, used for
                         metadata access.
-        phaseconnect [bool] : If `False`, will not attempt to phase connect data
-                        rewrite polycos, etc. If `True`, will attempt to phase
-                        connect data and all other inputs must be provided.
         parfile [string] : path to par file used to generate the polycos. The observing frequency, and observatory will
-                            come from the par file.
+                            come from the par file. If not provided, a basic par file will be 
+                            created and saved along with the PSRFITS file.
         MJD_start [float] : Start MJD of the polyco. Should start no later than the beginning of the observation.
         segLength [float] : Length in minutes of the range covered by the polycos generated. Default is 60 minutes.
         ref_MJD [float] : initial time to reference the observations to (MJD). This value
@@ -388,30 +386,30 @@ class PSRFITS(BaseFile):
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_OFFS'] = self.file.fits_template['SUBINT'][qq]['DAT_OFFS'][:,:self.nchan*self.npol]
                 self.file.HDU_drafts['SUBINT'][ii]['DAT_WTS'] = self.file.fits_template['SUBINT'][qq]['DAT_WTS'][:,:self.nchan]
 
-        """If we try to phase connect the data we want to do it here. If this is not done and the info not
-        provided, the data saved to the fits file will likely not be appropriate for timing simulations."""
-        if phaseconnect:
-            # generate the polyco parameters
-            polyco_dict = self._gen_polyco(parfile, MJD_start, segLength = segLength, ncoeff = 15, \
-                       maxha=12.0, method="TEMPO", numNodes=20, usePINT = usePint)
-            # generate the primary header and subint header parameters
-            primary_dict, subint_dict = self._gen_metadata(signal, pulsar, ref_MJD = ref_MJD, inc_len = inc_len)
-            # Add values to the subint_dict to fix the metadata, first polarization
-            subint_dict['POL_TYPE'] = 'AA+BB'
-            # Then the bandwidth
-            subint_dict['CHAN_BW'] = self.chan_bw.value
-            # Get TSUBINT length
-            subint_dict['TSUBINT'] = np.repeat(self.tsubint.value, self.nsubint)
-            # Change TBIN
-            subint_dict['TBIN'] = pulsar.period.value/self.nbin
-            # Change TBIN
-            subint_dict['DM'] = signal.dm.value
-            # Change TBIN
-            subint_dict['NBIN'] = self.nbin
-            # Now edit the header parameters with the new phase connected values
-            self._edit_psrfits_header(polyco_dict, subint_dict, primary_dict)
-        else:
-            print("NOTE: Phase connection is turned off! Simulated data may be inappropriate for timing experiments.")
+        # Phase connect and adjust required data.
+        if parfile == None:
+            print("No parfile provided, creating par file %s_sim.par" % (pulsar.name))
+            make_par(signal, pulsar, outpar = "%s_sim.par" % (pulsar.name))
+            parfile = "%s_sim.par" % (pulsar.name)
+        # generate the polyco parameters
+        polyco_dict = self._gen_polyco(parfile, MJD_start, segLength = segLength, ncoeff = 15, \
+                   maxha=12.0, method="TEMPO", numNodes=20, usePINT = usePint)
+        # generate the primary header and subint header parameters
+        primary_dict, subint_dict = self._gen_metadata(signal, pulsar, ref_MJD = ref_MJD, inc_len = inc_len)
+        # Add values to the subint_dict to fix the metadata, first polarization
+        subint_dict['POL_TYPE'] = 'AA+BB'
+        # Then the bandwidth
+        subint_dict['CHAN_BW'] = self.chan_bw.value
+        # Get TSUBINT length
+        subint_dict['TSUBINT'] = np.repeat(self.tsubint.value, self.nsubint)
+        # Change TBIN
+        subint_dict['TBIN'] = pulsar.period.value/self.nbin
+        # Change TBIN
+        subint_dict['DM'] = signal.dm.value
+        # Change TBIN
+        subint_dict['NBIN'] = self.nbin
+        # Now edit the header parameters with the new phase connected values
+        self._edit_psrfits_header(polyco_dict, subint_dict, primary_dict)
 
 
         # Now we actually write out the files
