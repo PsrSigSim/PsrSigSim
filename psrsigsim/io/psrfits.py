@@ -340,6 +340,10 @@ class PSRFITS(BaseFile):
         elif self._fits_mode == 'auto':
             pass
         """
+        # Check the inclination length
+        if inc_len == 0.0:
+            inc_len = MJD_start - ref_MJD
+        
         # If mode not search, set nsblk to 1
         if self.obs_mode != 'SEARCH':
             self.nsblk = 1
@@ -448,7 +452,7 @@ class PSRFITS(BaseFile):
         psrsigsim.Signal
         """
         self._fits_mode = 'copy'
-        self._get_signal_params()
+        self.get_signal_params()
 
         if self.obs_mode == 'PSR':
             # Get correct period value from template fits options
@@ -525,7 +529,7 @@ class PSRFITS(BaseFile):
         """
         raise NotImplementedError()
 
-    def _get_signal_params(self, signal = None):
+    def get_signal_params(self, signal = None):
         """
         Calculate/retrieve the various parameters to make a PSS signal object
         from a given PSRFITS file.
