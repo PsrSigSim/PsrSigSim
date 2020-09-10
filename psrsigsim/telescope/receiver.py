@@ -115,8 +115,8 @@ class Receiver(object):
         """
         dt = 1 / signal.samprate
 
-        # noise variance
-        sigS = Tsys / gain / np.sqrt(dt * signal.bw)
+        # noise variance; hardcode npol = 2 for now (total intensity)
+        sigS = Tsys / gain / np.sqrt(2 * dt * signal.bw)
 
         distr = stats.norm()
 
@@ -147,8 +147,8 @@ class Receiver(object):
         """
         bw_per_chan = signal.bw / signal.Nchan
 
-        # noise variance
-        sigS = Tsys / gain / np.sqrt(dt * bw_per_chan)
+        # noise variance; hardcode npol = 2 for now (total intensity)
+        sigS = Tsys / gain / np.sqrt(2 * dt * bw_per_chan)
 
         df = signal.Nfold if signal.fold else 1
         distr = stats.chi2(df)
