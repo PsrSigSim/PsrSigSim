@@ -19,7 +19,7 @@ The NANOGrav Pulsar Signal Simulator
 * Free software: MIT license
 * Documentation: https://psrsigsim.readthedocs.io.
 
-.. image:: https://raw.githubusercontent.com/PsrSigSim/PsrSigSim/master/pss_logo.pdf
+.. image:: https://raw.githubusercontent.com/PsrSigSim/PsrSigSim/master/pss_logo.jpg
         :align: center
 
 Image Credit: Caitlin Witt
