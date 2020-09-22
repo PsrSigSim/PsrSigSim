@@ -22,6 +22,10 @@ you through the process.
 .. _pip: https://pip.pypa.io
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
+If you have issues with the `fitsio` installation and you already have `cfitsio`
+installed you may need to reinstall or `reconfigure`_ with different flags.
+
+.. _reconfigure: https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node9.html
 
 From sources
 ------------

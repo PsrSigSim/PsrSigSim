@@ -12,7 +12,7 @@ authors:
     affiliation: 1
   - name: Brent Shapiro-Albert
     orcid: 0000-0002-7283-1124
-    affiliation: 2,3
+    affiliation: 2, 3
   - name: Paul T. Baker
     orcid: 0000-0003-2745-753X
     affiliation: 4
@@ -25,16 +25,16 @@ authors:
     affiliation: 1
   - name: Paul Brook
     orcid: 0000-0003-3053-6538
-    affiliation: 2,3
+    affiliation: 2, 3
   - name: Michael T. Lam
     orcid: 0000-0003-0721-651X
-    affiliation: 7,8
+    affiliation: 7, 8
   - name: Maura Mclaughlin
     orcid: 0000-0001-7697-7422
-    affiliation: 2,3
+    affiliation: 2, 3
   - name: Nathan Garver-Daniels
     orcid: 0000-0001-6166-9646
-    affiliation: 2,3
+    affiliation: 2, 3
 affiliations:
  - name: Physical Sciences Division, University of Washington Bothell, 18115 Campus Way NE, Bothell, WA 98011, USA
    index: 1

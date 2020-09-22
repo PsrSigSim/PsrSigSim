@@ -19,6 +19,11 @@ The NANOGrav Pulsar Signal Simulator
 * Free software: MIT license
 * Documentation: https://psrsigsim.readthedocs.io.
 
+.. image:: https://raw.githubusercontent.com/PsrSigSim/PsrSigSim/master/pss_logo.pdf
+        :align: center
+
+Image Credit: Caitlin Witt
+
 The Pulsar Signal Simulator (`PsrSigSim`) is a Python package developed by the
 North American Nanohertz Observatory for Gravitational Waves (NANOGrav). This
 software is free to use and is designed as a tool for simulating realistic
