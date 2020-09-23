@@ -16,8 +16,8 @@ requirements = [
     'scipy',
     'matplotlib>=2.0.0',
     'h5py',
-    'pdat'
-    # TODO: put package requirements here
+    'pdat',
+    'pint-pulsar',
 ]
 
 setup_requirements = [
