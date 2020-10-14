@@ -8,16 +8,51 @@
       "email": "jeffrey.hazboun@gmail.com",
       "name": "Hazboun6",
       "affiliation": "University of Washington Bothell"
+    },
+    {
+      "@id": "http://orcid.org/0000-0002-7283-1124",
+      "@type": "Person",
+      "email": "bjs0024@mix.wvu.edu",
+      "name": "Brent Shapiro-Albert",
+      "affiliation": "West Virginia University"
+    },
+    {
+      "@id": "http://orcid.org/0000-0003-2745-753X",
+      "@type": "Person",
+      "email": "paul.baker@nanograv.org",
+      "name": "Paul T. Baker",
+      "affiliation": "Widener University"
+    },
+    {
+      "@id": "",
+      "@type": "Person",
+      "email": "",
+      "name": "Jacob Hesse",
+      "affiliation": ""
+    },
+    {
+      "@id": "http://orcid.org/0000-0002-1186-2082",
+      "@type": "Person",
+      "email": "",
+      "name": "Cassidy Wagner",
+      "affiliation": ""
+    },
+    {
+      "@id": "",
+      "@type": "Person",
+      "email": "",
+      "name": "Amelia Henkel",
+      "affiliation": ""
     }
   ],
   "identifier": "",
-  "codeRepository": "https://github.com/PsrSigSim/PsrSigSim",
-  "datePublished": "2019-09-20",
-  "dateModified": "2019-09-20",
-  "dateCreated": "2019-09-20",
-  "description": "Python package for calculating sensitivity curves for pulsar timing arrays.",
-  "keywords": "pulsar timing array, gravitational waves, supermassive binary black holes",
+  "codeRepository": "https://github.com/PsrSigSim/PsrSigSim/",
+  "datePublished": "2020-10-14",
+  "dateModified": "2020-10-14",
+  "dateCreated": "2020-10-14",
+  "description": "Python package for simulating radio astronomy data from pulsars.",
+  "keywords": "PTA, pulsar, PSRFITS, pulsar timing",
   "license": "MIT",
-  "title": "psrsigsim",
+  "title": "PsrSigSim",
   "version": "v1.0.0"
 }
