@@ -348,7 +348,7 @@ class Simulation(object):
             else:
                 pfit = PSRFITS(path=outfile, template=self.tempfile, fits_mode='copy', \
                               obs_mode='PSR')
-                pfit._get_signal_params(signal = self.signal)
+                pfit.get_signal_params(signal = self.signal)
                 # Now save the data
                 if parfile == None:
                     log.warning("No par file provided, attempting to make one...")

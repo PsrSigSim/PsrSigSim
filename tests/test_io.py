@@ -92,7 +92,7 @@ def test_getsigparams(PSRfits, signal, pulsar):
     Test getting signal parameters from signal object
     """
     pulsar.make_pulses(signal, tobs = 1.0)
-    PSRfits._get_signal_params(signal=signal)
+    PSRfits.get_signal_params(signal=signal)
 
 def test_savesig(PSRfits, pulsar):
     """
