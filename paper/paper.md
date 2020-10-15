@@ -70,9 +70,11 @@ monitored for shifts in their pulse arrival times indicative of gravitational
 waves in the nanohertz regime. See @ransom2019, @hobbs and @burke-spolaor for a review of
 pulsar timing arrays and the astrophysics of nanohertz gravitational waves.
 
+# Statement of Need
+
 In order to use these neutron stars as a galactic-scale gravitational wave observatory it is important to understand the noise that affects the timing of radio pulses. The pulse times of arrival are modeled deterministically using aspects of the pulse profile, intrinsic flux, orbital parameters of the pulsar (if in a binary system), proper motion across the sky, effects of the interstellar medium (ISM), position of the observatory with respect to the solar system barycenter and various aspects of the telescope and backend processing.  Additionally, stochastic noise processes affect the times of arrival.  The end-to-end simulation of ``PsrSigSim`` provides a way to study the covariances of the timing model and noise terms in a controlled manner.
 
-The ``PsrSigSim`` is a Python package for simulating radio telescope data from pulsar timing observations, largely based on the formalism presented in [].
+The ``PsrSigSim`` is a Python package for simulating radio telescope data from pulsar timing observations, largely based on the formalism presented in [Shapiro-Albert, 2020].
 It uses standard Python packages, such as ``Numpy`` [@numpy] and ``Astropy``
 [@astropy] to simulate radio pulses from a neutron star and the propagation effects upon that signal from the interstellar medium. ``Signal``-objects are passed to ``Pulsar``-objects and `Telescope`-objects to build a realistic pulsar signal from scratch. `ISM`-objects use various signal processing techniques, such as the Fourier shift theorem and convolution of pulse profiles with decaying exponentials, in order to simulate the frequency dependent effects of the interstellar medium on pulse arrival times. The ``PsrSigSim`` interfaces with various pulsar data standards, such as `PSRFITS`, to build data products that can be passed to existing data processing pipelines.
 
