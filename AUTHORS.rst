@@ -12,9 +12,9 @@ Development Leads
 Contributors
 ------------
 
-* Jacob Hesse
 * Joseph D. Romano
 * Cassidy M. Wagner
 * Amelia M. Henkel
 * Paul Brook
 * Michael T. Lam
+* Jacob Hesse

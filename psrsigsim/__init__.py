@@ -6,7 +6,7 @@ __author__ = ["Jeffrey S. Hazboun",
               "Brent Shapiro-Albert",
               "Paul T. Baker",]
 __email__ = 'jeffrey.hazboun@nanograv.org'
-__version__ = '0.2.0'
+__version__ = '1.0.0'
 
 from . import signal
 from . import pulsar
