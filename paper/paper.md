@@ -17,6 +17,7 @@ authors:
     orcid: 0000-0003-2745-753X
     affiliation: 4
   - name: Amelia M. Henkel
+    orcid: 0000-0001-8688-5273
     affiliation: 5
   - name: Cassidy M. Wagner
     orcid: 0000-0002-1186-2082
@@ -44,7 +45,7 @@ affiliations:
    index: 3
  - name: Department of Physics and Astronomy, Widener University, One University Place, Chester, PA 19013, USA
    index: 4
- - name: University of Connecticut
+ - name: University of New Hampshire
    index: 5
  - name: Department of Astronomy, University of Illinois, 1002 West Green Street, Urbana IL 61802, USA
    index: 6
@@ -79,6 +80,6 @@ The modularity of the simulation allows enumerable options for investigating the
 
 # Acknowledgements
 
-JSH, BJS, PTB, PRB, MM and MTL acknowledge subawards from the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). BJS acknowledges support from West Virginia University through the STEM Mountains of Excellence Fellowship. Finally, we thank Richard Prestage, Joseph D. Romano, Tim T. Pennucci and Paul B. Demorest for useful discussions.
+JSH, BJS, PTB, PRB, MAM and MTL acknowledge subawards from the NSF NANOGrav Physics Frontier Center (NSF PFC-1430284). BJS acknowledges support from West Virginia University through the STEM Mountains of Excellence Fellowship. Finally, we thank Richard Prestage, Joseph D. Romano, Tim T. Pennucci and Paul B. Demorest for useful discussions.
 
 # References

@@ -6,7 +6,7 @@
       "@id": "http://orcid.org/0000-0003-2742-3321",
       "@type": "Person",
       "email": "jeffrey.hazboun@gmail.com",
-      "name": "Hazboun6",
+      "name": "Jeffrey S. Hazboun",
       "affiliation": "University of Washington Bothell"
     },
     {
@@ -24,25 +24,53 @@
       "affiliation": "Widener University"
     },
     {
+      "@id": "http://orcid.org/0000-0002-1186-2082",
+      "@type": "Person",
+      "email": "cassidymwagner@gmail.com",
+      "name": "Cassidy Wagner",
+      "affiliation": "University of Illinois"
+    },
+    {
+      "@id": "http://orcid.org/0000-0001-8688-5273",
+      "@type": "Person",
+      "email": "ah2029@wildcats.unh.edu",
+      "name": "Amelia Henkel",
+      "affiliation": "University of New Hampshire"
+    },
+    {
       "@id": "",
       "@type": "Person",
-      "email": "",
+      "email": "jacobhesseid@yahoo.com",
       "name": "Jacob Hesse",
       "affiliation": ""
     },
     {
-      "@id": "http://orcid.org/0000-0002-1186-2082",
+      "@id": "http://orcid.org/0000-0003-3053-6538",
       "@type": "Person",
-      "email": "",
-      "name": "Cassidy Wagner",
-      "affiliation": ""
+      "email": "paul.brook@gmail.com",
+      "name": "Paul R. Brook",
+      "affiliation": "West Virginia University"
     },
     {
-      "@id": "",
+      "@id": "http://orcid.org/0000-0003-0721-651X",
       "@type": "Person",
-      "email": "",
-      "name": "Amelia Henkel",
-      "affiliation": ""
+      "email": "michael.lam@nanograv.org",
+      "name": "Michael T. Lam",
+      "affiliation": "Rochester Insitute of Technology"
+    },
+    {
+      "@id": "http://orcid.org/0000-0001-7697-7422",
+      "@type": "Person",
+      "email": "mclaughlin.maura@gmail.com",
+      "name": "Maura A. McLaughlin",
+      "affiliation": "West Virginia University"
+    },
+    {
+      "@id": "http://orcid.org/0000-0001-6166-9646",
+      "@type": "Person",
+      "email": "nate.garverdaniels@gmail.com",
+      "name": "Nathan Garver-Daniels",
+      "affiliation": "West Virginia University"
     }
   ],
   "identifier": "",
