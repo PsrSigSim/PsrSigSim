@@ -12,7 +12,9 @@ Development Leads
 Contributors
 ------------
 
-* Joseph D. Romano <joseph.romano@nanograv.org>
-* Cassidy Wagner <cassidymwagner@gmail.com>
-* Amelia Henkel <amelia.henkel@uconn.edu>
-* Paul Brook <paul.brook@nanograv.org>
+* Joseph D. Romano
+* Cassidy M. Wagner
+* Amelia M. Henkel
+* Paul Brook
+* Michael T. Lam
+* Jacob Hesse

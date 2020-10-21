@@ -16,8 +16,8 @@ requirements = [
     'scipy',
     'matplotlib>=2.0.0',
     'h5py',
-    'pdat'
-    # TODO: put package requirements here
+    'pdat',
+    'pint-pulsar',
 ]
 
 setup_requirements = [
@@ -32,7 +32,7 @@ test_requirements = [
 
 setup(
     name='psrsigsim',
-    version='0.1.0',
+    version='1.0.0',
     description="The NANOGrav Pulsar Signal Simulator.",
     long_description=readme + '\n\n' + history,
     author="Jeffrey S. Hazboun",
