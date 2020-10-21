@@ -2,7 +2,7 @@ numpy>=1.16.4
 scipy>=1.0.0
 matplotlib>=2.1.1
 h5py>=2.7.0
-astropy>=2.0, <4.0
+astropy>=3.2,!=4.0.1,!=4.0.1.post1
 pdat>=0.2
 fitsio==0.9.12
 packaging>=19.1
