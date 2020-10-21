@@ -17,7 +17,6 @@ requirements = [
     'matplotlib>=2.0.0',
     'h5py',
     'pdat',
-    'astropy>=3.2,!=4.0.1,!=4.0.1.post1',
     'pint-pulsar',
 ]
 
