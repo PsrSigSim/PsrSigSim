@@ -350,6 +350,7 @@ def get_pint_models(psr_name, psr_file_path):
 def make_par(signal, pulsar, outpar = "simpar.par"):
     """
     Function to create a par file for simulated pulsar.
+    TO DO: Will need to update when additional delays are added
 
     Parameters
     ----------
