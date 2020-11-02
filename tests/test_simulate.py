@@ -198,6 +198,7 @@ def test_simulate(simulation):
     """
     simulation.simulate()
 
+@pytest.mark.filterwarnings('ignore::fitsio.FITSRuntimeWarning')
 def test_savesim(simulation, PSRfits):
     """
     Test save simulation function.
