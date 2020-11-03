@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from astropy import log
-from scipy.interpolate import CubicSpline as _cubeSpline
+from scipy.interpolate import PchipInterpolator as _pchipInterp
 
 
 class PulsePortrait(object):
@@ -249,8 +249,7 @@ class DataPortrait(PulsePortrait):
                 # enforce periodicity!
                 profiles[:,-1] = profiles[:,0]
 
-        self._generator = _cubeSpline(phases, profiles, axis=1,
-                                      bc_type='periodic')
+        self._generator = _pchipInterp(phases, profiles, axis=1)
 
     def calc_profiles(self, phases, Nchan=None):
         """
