@@ -364,18 +364,19 @@ def make_par(signal, pulsar, outpar = "simpar.par"):
     # Get parameters and other things that should go into this file
     par_lines = []
     par_lines.append("PSR            %s\n" % (pulsar.name))
-    par_lines.append("LAMBDA            0.0\n" ) # Default for now
-    par_lines.append("BETA           0.0\n" ) # Default for now
+    par_lines.append("LAMBDA            10.0\n" ) # Default for now
+    par_lines.append("BETA           10.0\n" ) # Default for now
     par_lines.append("PMLAMBDA            0.0\n" ) # Default for now
     par_lines.append("PMBETA            0.0\n" ) # Default for now
     par_lines.append("PX            0.0\n" ) # Default for now
     par_lines.append("POSEPOCH            56000.0\n" ) # Default for now
-    par_lines.append("F0           %s\n" % (1.0/pulsar.period))
+    par_lines.append("F0           %s\n" % (1.0/pulsar.period.value))
     par_lines.append("PEPOCH            56000.0\n" ) # Default for now
     par_lines.append("START            50000.0\n" ) # Default for now
     par_lines.append("FINISH            60000.0\n" ) # Default for now
-    par_lines.append("DM                %s\n" % (signal.dm))
+    par_lines.append("DM                %s\n" % (signal.dm.value))
     par_lines.append("EPHEM               DE436\n" ) # Default for now
+    par_lines.append("SOLARN0               0.00\n" ) # Default for now
     par_lines.append("ECL                 IERS2010\n" ) # Default for now
     par_lines.append("CLK                 TT(BIPM2015) \n" ) # Default for now
     par_lines.append("UNITS               TDB\n" ) # Default for now

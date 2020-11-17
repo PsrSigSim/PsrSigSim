@@ -314,7 +314,7 @@ class Simulation(object):
         # TODO: figure out how to do multiple systems
         out_array = self.tscope.observe(self.signal, self.pulsar, system=self.system_name, noise=True)
 
-    def save_simulation(self, outfile = "simfits", out_format = 'psrfits', phaseconnect = False,
+    def save_simulation(self, outfile = "simfits", out_format = 'psrfits',
                         parfile = None, ref_MJD = 56000.0, MJD_start = 55999.9861) :
         """
         Function to save the simulated data in a default format.
@@ -330,8 +330,6 @@ class Simulation(object):
             Options are:
             'psrfits' - PSRFITS format. Requires template file.
             'pdv' - PSRCHIVE pdv format. Output is a text file.
-        phaseconnect : bool
-            Make sure to phase connect output data if output format is PSRFITS.
         parfile : string
             Parfile to use to make phase connection polycos. If none supplied
             will attempt to create one.
@@ -350,13 +348,13 @@ class Simulation(object):
             else:
                 pfit = PSRFITS(path=outfile, template=self.tempfile, fits_mode='copy', \
                               obs_mode='PSR')
-                pfit._get_signal_params(signal = self.signal)
+                pfit.get_signal_params(signal = self.signal)
                 # Now save the data
-                if phaseconnect and parfile == None:
+                if parfile == None:
                     log.warning("No par file provided, attempting to make one...")
                     make_par(self.signal, self.pulsar, outpar = "simpar.par")
                     parfile = "simpar.par"
-                pfit.save(self.signal, self.pulsar, phaseconnect = phaseconnect, parfile = parfile, \
+                pfit.save(self.signal, self.pulsar, parfile = parfile, \
                           MJD_start = MJD_start, segLength = 60.0,\
                           ref_MJD = ref_MJD, usePint = True)
         elif out_format.lower() == 'pdv':
