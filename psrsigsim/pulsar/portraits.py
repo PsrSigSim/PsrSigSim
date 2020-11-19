@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from astropy import log
-from scipy.interpolate import CubicSpline as _cubeSpline
+from scipy.interpolate import PchipInterpolator as _pchipInterp
 
 
 class PulsePortrait(object):
@@ -115,8 +115,8 @@ class GaussPortrait(PulsePortrait):
         Amplitude of pulse relative to other pulses, `default: ``1``
 
     Profile is renormalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
-    more details.
+    See the `Pulsar._make_amp_pulses()`, `Pulsar._make_pow_pulses()`, and
+    `pPlsar.make_pulses()` methods for more details.
     """
 
     def __init__(self, peak=0.5, width=0.05, amp=1):
@@ -216,8 +216,8 @@ class DataPortrait(PulsePortrait):
         evenly sampled and cover one whole rotation period.
 
     Profile is renormalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
-    more details.
+    See the `Pulsar._make_amp_pulses()`, `Pulsar._make_pow_pulses()`, and
+    `Pulsar.make_pulses()` methods for more details.
     """
     def __init__(self, profiles, phases=None):
         # Check that no profile bins are below zero intensity
@@ -249,8 +249,7 @@ class DataPortrait(PulsePortrait):
                 # enforce periodicity!
                 profiles[:,-1] = profiles[:,0]
 
-        self._generator = _cubeSpline(phases, profiles, axis=1,
-                                      bc_type='periodic')
+        self._generator = _pchipInterp(phases, profiles, axis=1)
 
     def calc_profiles(self, phases, Nchan=None):
         """
