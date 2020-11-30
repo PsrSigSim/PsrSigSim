@@ -53,7 +53,7 @@ def j1713_profile():
     Numpy array of J1713+0747 profile.
     """
     path = 'psrsigsim/data/J1713+0747_profile.npy'
-    pr = DataProfile(np.load(path),phases=None)
+    pr = DataProfile(np.load(path),phases=None,Nchan=2)
     return pr
 
 @pytest.fixture
@@ -68,7 +68,6 @@ def test_pulsar(j1713_profile):
     """
     Test pulsar class.
     """
-    # initialize pulsar with profile
     psr1 = Pulsar(1.0, 1.0, profiles=j1713_profile, name="J1713+0747")
     # initialize pulsar without profile
     psr2 = Pulsar(1.0, 1.0, profiles=None, name="J1713+0747")
@@ -79,6 +78,8 @@ def test_pulsar(j1713_profile):
     assert(psr1.Smean.value==1.0)
     assert(psr1.name=="J1713+0747")
     assert(psr1.Profiles==j1713_profile)
+    assert(psr1.specidx==0.0)
+    assert(psr1.ref_freq==None)
     
 def test_makepulses(fbsignal, fbsignal_nofold, bbsignal, j1713_profile):
     """
@@ -89,6 +90,7 @@ def test_makepulses(fbsignal, fbsignal_nofold, bbsignal, j1713_profile):
     # Test making pulses with a filterbank signal
     tobs = 2.0
     psr1.make_pulses(fbsignal, tobs)
+    assert(psr1.ref_freq.value==1400.0)
     # Make pulses with sublen of None
     fbsignal._sublen = None
     psr1.make_pulses(fbsignal, tobs)

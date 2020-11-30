@@ -71,6 +71,12 @@ class Simulation(object):
                        of input phases. CURRENTLY NOT IMPLEMENTED.
             class - predefined PsrSigSim Pulse Profile or Pulse Portrait class
                     object.
+    specidx : float
+        Spectral index of the pulsar. Default value is 0 (i.e. no spectral index).
+        
+    ref_freq : float
+        The reference frequency of the input value of Smean in MHz. The default
+        value will be the center frequency of the bandwidth.
     tobs : float
         Total simulated observing time in seconds
     name : str
@@ -122,6 +128,8 @@ class Simulation(object):
                  period = None,
                  Smean = None,
                  profiles = None,
+                 specidx = 0.0,
+                 ref_freq = None,
                  tobs = None,
                  name = None,
                  dm = None,
@@ -152,6 +160,8 @@ class Simulation(object):
         self._period  = period
         self._Smean = Smean
         self._profiles = profiles
+        self._specidx = specidx
+        self._ref_freq = ref_freq
         self._tobs = tobs
         self._name = name
         self._dm = dm
@@ -240,7 +250,8 @@ class Simulation(object):
         """
         # Define the pulsar
         pulsar = Pulsar(period=self.period, Smean=self.Smean, \
-                                   profiles=self.profiles, name=self.name)
+                                   profiles=self.profiles, name=self.name, \
+                                   specidx=self.specidx, ref_freq=self.ref_freq)
         self._pulsar = pulsar
 
     def init_ism(self):
@@ -430,6 +441,14 @@ class Simulation(object):
     @property
     def Smean(self):
         return self._Smean
+    
+    @property
+    def specidx(self):
+        return self._specidx
+    
+    @property
+    def ref_freq(self):
+        return self._ref_freq
 
     @property
     def tscope_name(self):
