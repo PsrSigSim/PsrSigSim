@@ -268,12 +268,16 @@ class ISM(object):
             # check divide by zero
             if pulsar_prof_sum != 0.0:
                 pulsar_prof_norm = profiles[ii,:] / pulsar_prof_sum
+            else:
+                pulsar_prof_norm = profiles[ii,:]
 
             #Normalizing the input array
             convolve_array_sum = np.sum(convolve_array[ii,:])
             # Check divide by zero
             if convolve_array_sum != 0.0:
                 convolve_array_norm = convolve_array[ii,:] / convolve_array_sum
+            else:
+                convolve_array_norm = convolve_array[ii,:]
 
             #Convolving the input array with the pulse profile
             convolved_prof = spsig.convolve(pulsar_prof_norm, convolve_array_norm, \
