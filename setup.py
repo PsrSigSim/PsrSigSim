@@ -48,7 +48,7 @@ setup(
                                     'psrsigsim.simulate']),
     include_package_data=True,
     package_data={'psrsigsim': ['PTA_pulsar_nb_data.txt', 'data/*.par','data/*.npy']},
-    # install_requires=requirements,
+    install_requires=requirements,
     license="MIT license",
     zip_safe=False,
     keywords='psrsigsim',
@@ -64,5 +64,5 @@ setup(
     ],
     test_suite='tests',
     tests_require=test_requirements,
-    # setup_requires=setup_requirements,
+    setup_requires=setup_requirements,
 )
