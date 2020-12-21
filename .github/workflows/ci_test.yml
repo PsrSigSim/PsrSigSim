@@ -1,11 +1,6 @@
 name: Pulsar Signal Simulator
 
-on:
-  pull_request:
-    branches: 
-      - master
-      - joss-review
-      - psrfits_reform
+on: [pull_request]
 
 jobs:
   build:
