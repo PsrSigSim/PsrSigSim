@@ -3,9 +3,9 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from scipy import stats
-from .profiles import GaussProfile
-from .profiles import UserProfile
-from .profiles import DataProfile
+from .profiles import GaussProfile, GaussPortrait
+from .profiles import UserProfile, UserPortrait
+from .profiles import DataProfile, DataPortrait
 from ..utils.utils import make_quant, shift_t
 
 class Pulsar(object):
@@ -29,13 +29,25 @@ class Pulsar(object):
 
     name : str
         Name of pulsar
+    
+    specidx : float
+        Spectral index of the pulsar. Default value is 0 (i.e. no spectral index).
+        
+    ref_freq : float
+        The reference frequency of the input value of Smean in MHz. The default
+        value will be the center frequency of the bandwidth.
     """
     #TODO Other data could be supplied via a `.par` file.
-    def __init__(self, period, Smean, profiles=None, name=None):
+    def __init__(self, period, Smean, profiles=None, name=None, specidx=0.0, ref_freq = None):
         self._period = make_quant(period, 's')
         self._Smean = make_quant(Smean, 'Jy')
 
         self._name = name
+        self._specidx = specidx
+        if ref_freq != None:
+            self._ref_freq = make_quant(ref_freq, "MHz")
+        else:
+            self._ref_freq = ref_freq
 
         # Assign profile class; default to GaussProfile if nothing is specified
         if profiles is None:
@@ -62,6 +74,35 @@ class Pulsar(object):
     @property
     def Smean(self):
         return self._Smean
+    
+    @property
+    def specidx(self):
+        return self._specidx
+    
+    @property
+    def ref_freq(self):
+        return self._ref_freq
+    
+    def _add_spec_idx(self, signal):
+        """
+        Applies spectral index to input profiles.
+        
+        signal [object] : signal class object which has been previously defined
+        """
+        # Calculate scaling factor
+        C = (signal.dat_freq / self.ref_freq)**self.specidx
+        C = np.reshape(C.value, (signal.Nchan,1))
+        # Now scale the profiles with these corrections
+        Nph = int((signal.samprate * self.period).decompose())
+        self.Profiles.init_profiles(Nph, Nchan=signal.Nchan)
+        # Now make the profiles with Nph bins
+        phs = np.linspace(0.0, 1.0, Nph)
+        # full_profs is a data array of the profiles
+        full_profs = self.Profiles.calc_profiles(phs, Nchan=signal.Nchan)
+        # Now multiply the profiles by the scaling required by the spectral index
+        full_profs *= C
+        # Now we reassign the pulsar profile object
+        self._Profiles = DataPortrait(full_profs)
 
     def make_pulses(self, signal, tobs):
         """generate pulses from Profiles, :class:`PulsePortrait` object
@@ -71,6 +112,13 @@ class Pulsar(object):
             tobs (float): observation time (sec)
         """
         signal._tobs = make_quant(tobs, 's')
+        
+        # Check if ref_freq is None, reassign to center frequency
+        if self.ref_freq == None:
+            self._ref_freq = signal.fcent
+        # Apply the spectral index, only for filterbank
+        if signal.sigtype == "FilterBankSignal":
+            self._add_spec_idx(signal)
 
         # init base profile at correct sample rate
         Nph = int((signal.samprate * self.period).decompose())
@@ -82,7 +130,10 @@ class Pulsar(object):
         # if (signal.Nchan != self.Profiles.profiles.shape[0]
         #     and hasattr(self.Profiles, 'set_Nchan')):
         #     self.Profiles.set_Nchan(signal.Nchan)
-
+        
+        # Check if reference frequency is assigned
+        if self._ref_freq == None:
+            self._ref_freq = signal.fcent
 
         # select pulse generation method
         if signal.sigtype in ["RFSignal", "BasebandSignal"]:
