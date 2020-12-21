@@ -5,4 +5,4 @@ h5py>=2.7.0
 astropy>=2.0, <4.0
 pdat>=0.2
 fitsio==0.9.12
-pint-pulsar>=0.7
+pint-pulsar==0.7
