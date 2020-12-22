@@ -1,4 +1,4 @@
-name: Pulsar Signal Simulator
+name: PsrSigSim Build
 
 on: [pull_request]
 
