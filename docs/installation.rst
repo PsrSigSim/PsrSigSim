@@ -4,6 +4,16 @@
 Installation
 ============
 
+.. warning::
+    This software depends on a pulsar timing software package known as `Pint`,
+    available through PyPI as `pint-pulsar`. Unfortunately, this software has
+    the same import signature as the popular unit/quantity Python package also
+    known as `Pint`, but available on PyPI as `pint`. Quantities and units are
+    tracked in `PsrSigSim` and `pint-pulsar` using,
+    `Astropy.units`. If you regularly use the quantity/units package `pint` in
+    your workflow you will need to build a separate environment in order to use
+    `PsrSigSim` and `pint-pulsar`.
+
 
 Stable release
 --------------

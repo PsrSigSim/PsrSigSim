@@ -1,3 +1,5 @@
+
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/pulse_profiles_tutorial_3.ipynb>`_.
 
@@ -55,7 +57,7 @@ data release.
     sublen = 60.0 # subintegration length in seconds, or rate to dump data at
     # Now we define our signal
     signal_1713 = pss.signal.FilterBankSignal(fcent = f0, bandwidth = bw, Nsubband=Nf, sample_rate = f_samp,
-                                           sublen = sublen, fold = True) # fold is set to `True`
+                                              sublen = sublen, fold = True) # fold is set to `True`
 
 
 .. parsed-literal::
@@ -86,7 +88,7 @@ Pulse Profiles
 In previous tutorials, we have defined a very simple Gaussian profile as
 the pulse profile. However, the ``PsrSigSim`` allows users to define
 profiles in a few different ways, including multiple Gaussians, a user
-input profile in the form of a Python array, and two dimensional
+input profile in the form of a Python array, and two-dimensional
 versions of the pulse profiles called pulse portaits.
 
 We will go through a few different ways to set up the pulse profiles,
@@ -100,7 +102,7 @@ The first method is the Gaussian profile, which has been demonstrated in
 previous tutorials. The Guassian needs three parameters, an amplitude, a
 width (or sigma), and a peak, the center of the Gaussian in phase space
 (e.g. 0-1). The simplest profile that can be defined is a single
-Gauassian.
+Gaussian.
 
 .. code:: python
 
@@ -120,6 +122,7 @@ and then we can give it a number of phase bins and plot it.
     # And then we can plot the array to see what the profile looks like
     plt.plot(np.linspace(0,1,2048), gauss_prof.profiles[0])
     plt.xlabel("Phase")
+    plt.ylabel('Normalized Intensity')
     plt.show()
     plt.close()
 
@@ -127,6 +130,19 @@ and then we can give it a number of phase bins and plot it.
 
 .. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_11_0.png
 
+
+\* A Note on Intensity
+~~~~~~~~~~~~~~~~~~~~~~
+
+Pulsar astronomers often use arbitrary units for radio flux and
+intensity (~flux^2) when looking at pulsar timing data. For purposes of
+pulsar timing, while the actual signal-to-noise ratio obviously has an
+effect on the precision of times-of-arrival measurements, in diagnostic
+plots the data is often not converted to actual intensity. In many of
+these tutorials we follow this practice, and will specify if it is
+different. For more details about flux/intensity in pulsar data see the
+`Hand Book of Pulsar
+Astronomy <https://books.google.com/books/about/Handbook_of_Pulsar_Astronomy.html?id=OZ8tdN6qJcsC>`__.
 
 However the Gaussian profile can also be used to make a pulse profile
 with multiple Gaussian components. Instead of inputting a single value
@@ -147,18 +163,19 @@ array, it cannot be a list.
     amps = np.array([1.0, 0.1, 0.5])
     
     # Define the profile using multiple Gaussians
-    mulit_gauss_prof = pss.pulsar.GaussProfile(peak = peaks, width = widths, amp = amps)
+    multi_gauss_prof = pss.pulsar.GaussProfile(peak = peaks, width = widths, amp = amps)
     # We want to use 2048 phase bins and just one frequency channel for this test.
-    mulit_gauss_prof.init_profiles(2048, Nchan = 1)
+    multi_gauss_prof.init_profiles(2048, Nchan = 1)
     # And then we can plot the array to see what the profile looks like
-    plt.plot(np.linspace(0,1,2048), mulit_gauss_prof.profiles[0])
+    plt.plot(np.linspace(0,1,2048), multi_gauss_prof.profiles[0])
     plt.xlabel("Phase")
+    plt.ylabel('Normalized Intensity')
     plt.show()
     plt.close()
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_13_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_14_0.png
 
 
 Data Profiles
@@ -177,7 +194,7 @@ profile.
 .. code:: python
 
     # First we load the data array
-    path = 'psrsigsim/data/J1713+0747_profile.npy'
+    path = '../../../psrsigsim/data/J1713+0747_profile.npy'
     J1713_dataprof = np.load(path)
     
     # Now we define the data profile
@@ -187,12 +204,13 @@ profile.
     # And then we can plot the array to see what the profile looks like
     plt.plot(np.linspace(0,1,2048), J1713_prof.profiles[0])
     plt.xlabel("Phase")
+    plt.ylabel('Normalized Intensity')
     plt.show()
     plt.close()
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_15_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_16_0.png
 
 
 Data Portraits
@@ -204,7 +222,7 @@ pulse profile. A ``Profile`` object will use the same pulse profile for
 every simulated frequency channel, while a ``Portrait`` can use
 different versions of the profile at different frequencies.
 
-To illustrate this, we will initialize a pulse ``Portrat`` for
+To illustrate this, we will initialize a pulse ``Portrait`` for
 J1713+0747 where they are scaled in power. We start by showing how a
 pulse ``Profile`` uses the same profile at every frequency, then how a
 ``Portrait`` is initialized, and finally, how different profiles may be
@@ -222,13 +240,14 @@ frequencies.
     plt.plot(np.linspace(0,1,2048), J1713_prof.profiles[0], label = "Frequency Channel 1")
     plt.plot(np.linspace(0,1,2048), J1713_prof.profiles[-1], ls = '--', label = "Frequency Channel 64")
     plt.xlabel("Phase")
+    plt.ylabel('Normalized Intensity')
     plt.legend(loc='best')
     plt.show()
     plt.close()
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_17_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_18_0.png
 
 
 It is easy to see that the two profiles are identical. If we plot a 2-D
@@ -241,17 +260,17 @@ see that they are all identical.
                extent = [0.0, 1.0, 1, 64])
     plt.ylabel("Frequency Channel Number")
     plt.xlabel("Phase")
-    plt.colorbar(label = "Arb. Intensity")
+    plt.colorbar(label = "Normalized Intensity")
     plt.show()
     plt.close()
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_19_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_20_0.png
 
 
 We can similarly initialize a pulse ``Portait``. Here we will first
-create a mulitdimensional array of pulse profile, as well as an array to
+create a multidimensional array of pulse profile, as well as an array to
 scale them by. We will then initialize a pulse ``Portrait`` object and
 show that the profiles generated retain the scaling.
 
@@ -274,6 +293,7 @@ show that the profiles generated retain the scaling.
     plt.plot(np.linspace(0,1,2048), J1713_prof_2D.profiles[0], label = "Frequency Channel 1")
     plt.plot(np.linspace(0,1,2048), J1713_prof_2D.profiles[-1], ls = '--', label = "Frequency Channel 64")
     plt.xlabel("Phase")
+    plt.ylabel('Normalized Intensity')
     plt.legend(loc='best')
     plt.show()
     plt.close()
@@ -288,11 +308,11 @@ show that the profiles generated retain the scaling.
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_22_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_23_0.png
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_22_1.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_23_1.png
 
 
 We can see that the generated profiles then retain the scaling they have
@@ -310,11 +330,11 @@ process of dispersion and adding noise to the simulated data.
 
     # Define the values needed for the puslar
     Smean = 0.009 # The mean flux of the pulsar, J1713+0747 at 1400 MHz from the ATNF pulsar catatlog, here 0.009 Jy
-    psr_name_1 = "J0000+0000" # The name of our simulated pulsar with a mulit-gaussian profile
+    psr_name_1 = "J0000+0000" # The name of our simulated pulsar with a multi-gaussian profile
     psr_name_2 = "J1713+0747" # The name of our simulated pulsar with a scaled, 2-D profile
     
-    # Now we define the pulsar with multiple Gaussian defineing is profile
-    pulsar_mg = pss.pulsar.Pulsar(period, Smean, profiles=mulit_gauss_prof, name = psr_name_1)
+    # Now we define the pulsar with multiple Gaussians defining its profile
+    pulsar_mg = pss.pulsar.Pulsar(period, Smean, profiles=multi_gauss_prof, name = psr_name_1)
     
     # Now we define the pulsar with the scaled J1713+0747 profiles
     pulsar_J1713 = pss.pulsar.Pulsar(period, Smean, profiles=J1713_prof_2D, name = psr_name_2)
@@ -325,10 +345,10 @@ Simulations
 We run the rest of the simulation, including dispersion and “observing”
 with our telescope. The same parameters are used for both ``Pulsar``\ s
 and simulated data sets with the only difference being the input
-profiles. We then show the resutls of each simulation and how they
-retain the intial input profile shapes.
+profiles. We then show the results of each simulation and how they
+retain the initial input profile shapes.
 
-We first run the simultion for our fake mulit-gaussian profile pulsar.
+We first run the simultion for our fake multi-gaussian profile pulsar.
 
 .. code:: python
 
@@ -344,7 +364,7 @@ We first run the simultion for our fake mulit-gaussian profile pulsar.
 
 .. parsed-literal::
 
-    98% dispersed in 0.122 seconds.
+    98% dispersed in 0.174 seconds.
 
 .. parsed-literal::
 
@@ -376,14 +396,14 @@ We first run the simultion for our fake mulit-gaussian profile pulsar.
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_28_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_29_0.png
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_28_1.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_29_1.png
 
 
-It is clear that we have maintianed the initial shape of this profile.
+It is clear that we have maintained the initial shape of this profile.
 Now we will do the same thing but with the scaled 2-D pulse ``Portrait``
 pulsar.
 
@@ -406,7 +426,7 @@ pulsar.
 .. parsed-literal::
 
     Warning: specified sample rate 0.4481400437636761 MHz < Nyquist frequency 1600.0 MHz
-    98% dispersed in 0.115 seconds.
+    98% dispersed in 0.171 seconds.
 
 .. parsed-literal::
 
@@ -438,13 +458,12 @@ pulsar.
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_31_0.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_32_0.png
 
 
 
-.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_31_1.png
+.. image:: pulse_profiles_tutorial_3_files/pulse_profiles_tutorial_3_32_1.png
 
 
-Here it is clear the the scaling has also been maintained, with lower
-frequency pulses being brighter than high frequency pulses.
-
+Here it is clear the the scaling has also been maintained, with
+lower-frequency pulses being brighter than high-frequency pulses.
