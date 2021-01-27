@@ -1,4 +1,5 @@
 
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_2.ipynb>`_.
 
@@ -13,7 +14,7 @@ features have been discussed in the previous tutorial notebook. This
 notebook shows the details of using the fold-mode, or simulation of
 subintegrated data. This may be useful for simulating pulsar timing
 style data, as a way to save disk space and computation time. For Pulsar
-Timing Arrays, and most long term monitoring of millisecond pulsars,
+Timing Arrays, and most long-term monitoring of millisecond pulsars,
 this is the preferred mode.
 
 The example we use here is for simulating precision pulsar timing data.
@@ -29,8 +30,14 @@ precision pulsar timing, we can simulate a pre-folded observation.
     %matplotlib inline
 
     # import the pulsar signal simulator
-    #import psrsigsim as pss
     import psrsigsim as pss
+
+
+.. parsed-literal::
+
+    WARNING: Using astropy version 3.2.3. To get most recent IERS data, upgrade to astropy >= 4.0 [pint]
+    WARNING: Using astropy version 3.2.3. To get most recent IERS data, upgrade to astropy >= 4.0 [pint.erfautils]
+
 
 Setting up the Folded Signal
 ----------------------------
@@ -68,24 +75,17 @@ with the Green Bank Telescope at L-band (1500 MHz center frequency).
     Warning: specified sample rate 0.20479999999999998 MHz < Nyquist frequency 1600.0 MHz
 
 
-Pulsar, ISM and Telescope
--------------------------
+Profile, ISM and Telescope
+--------------------------
 
-Here we set up ``Pulsar``, ``ISM`` and ``telescope`` objects in the same
-way as in the previous tutorial. We will again use a basic Gaussian
-profile, but will have a more realisitic mean flux of 5 mJy (or 0.005
-Jy).
+Here we set up a ``Profile``, ``ISM`` and ``telescope`` objects in the
+same way as in the previous tutorial. We will again use a basic Gaussian
+profile.
 
 .. code:: python
 
     # We define the Guassian profile
     gauss_prof = pss.pulsar.GaussProfile(peak = 0.5, width = 0.05, amp = 1.0)
-
-    # Define the values needed for the puslar
-    Smean = 0.005 # The mean flux of the pulsar, here 0.005 Jy
-    psr_name = "J0000+0000" # The name of our simulated pulsar
-    # Now we define the pulsar
-    pulsar_fold = pss.pulsar.Pulsar(period, Smean, profiles=gauss_prof, name = psr_name)
 
     # Define the dispersion measure
     dm = 40.0 # pc cm^-3
@@ -94,12 +94,38 @@ Jy).
 
     tscope = pss.telescope.telescope.GBT()
 
+Pulsar
+------
+
+Here we set up the ``Pulsar`` object. This is identical to the way we
+set it up in the previous tutorial, but we show how to add a spectral
+index to the ``Pulsar``. This is done by setting the ``specidx`` value
+and the reference frequency, or ``ref_freq`` variable in the ``Pulsar``
+definition. The reference frequency is the radio frequency that te
+``Smean`` is referenced to, here 1400 MHz. If no spectral index is
+desired, the default ``specidx`` value is 0 (no spectal index), and the
+default value of ``ref_freq`` is the center frequency, ``f0``, defined
+in our ``Signal`` above. We also use a more realisitic mean flux of 5
+mJy (or 0.005 Jy).
+
+.. code:: python
+
+    # Define the values needed for the puslar
+    Smean = 0.005 # The mean flux of the pulsar, here 0.005 Jy
+    psr_name = "J0000+0000" # The name of our simulated pulsar
+    specidx = -1.6 # The spectral index of the simulated pulsar
+    ref_freq = 1400.0 # The radio frequency at which Smean of the simulated signal is equal to the input value, in MHz
+    # Now we define the pulsar
+    pulsar_fold = pss.pulsar.Pulsar(period, Smean, profiles=gauss_prof, name = psr_name,
+                                    specidx = specidx, ref_freq = ref_freq)
+
+
 Simulating the Signal
 ---------------------
 
 Now we will simulate the signal. Here the commands are the same as
 before, we just need to define an observation length (20 minutes), make
-the pulses with the pulsar, disperse the data, And then observe the
+the pulses with the pulsar, disperse the data, and then observe the
 pulsar with our telescope. For the telescope, we will use the
 ``Lband_GUPPI`` system predefined by in the GBT telescope class.
 
@@ -121,18 +147,12 @@ pulsar with our telescope. For the telescope, we will use the
 
 .. parsed-literal::
 
-    98% dispersed in 0.154 seconds.
+    98% dispersed in 0.140 seconds.
 
 .. code:: python
 
     # Observe with the telescope
     tscope.observe(signal_fold, pulsar_fold, system="Lband_GUPPI", noise=True)
-
-
-.. parsed-literal::
-
-    WARNING: AstropyDeprecationWarning: The truth value of a Quantity is ambiguous. In the future this will raise a ValueError. [astropy.units.quantity]
-
 
 Visualizing the Data
 --------------------
@@ -155,7 +175,7 @@ as described in the previous tutorial.
 
 
 
-.. image:: tutorial_2_files/tutorial_2_12_0.png
+.. image:: tutorial_2_files/tutorial_2_14_0.png
 
 
 If we zoom in on just the first two pulse periods…
@@ -172,7 +192,7 @@ If we zoom in on just the first two pulse periods…
 
 
 
-.. image:: tutorial_2_files/tutorial_2_14_0.png
+.. image:: tutorial_2_files/tutorial_2_16_0.png
 
 
 We can clearly see the pulse profile above the noise level now. By
@@ -195,12 +215,13 @@ spectrogram of these pulses as well.
 
 
 
-.. image:: tutorial_2_files/tutorial_2_16_0.png
+.. image:: tutorial_2_files/tutorial_2_18_0.png
 
 
 The pulse and dispersive sweep is clearly visible with the high
-signal-to-noise ratio. Again, zooming in on the first two
-subintegrations…
+signal-to-noise ratio. We can see that the pulse is brighter at lower
+radio frequencies as well, which is the effect of our spectral index.
+Again, zooming in on the first two subintegrations…
 
 .. code:: python
 
@@ -214,8 +235,25 @@ subintegrations…
 
 
 
-.. image:: tutorial_2_files/tutorial_2_18_0.png
+.. image:: tutorial_2_files/tutorial_2_20_0.png
 
 
 Here the dispersion clearly shows that the pulses are dispersed for over
 two minutes across the observing bandwidth.
+
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)
