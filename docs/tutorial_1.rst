@@ -1,3 +1,5 @@
+
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/tutorial_1.ipynb>`_.
 
@@ -18,7 +20,7 @@ The ``PsrSigSim`` can be run in a jupyter notebook or python script.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -94,7 +96,7 @@ and then we can give it a number of phase bins and plot it.
 .. image:: tutorial_1_files/tutorial_1_9_0.png
 
 
-Now we can define the pulsar object itself. Out pulsar needs a period
+Now we can define the pulsar object itself. Our pulsar needs a period
 (s), a mean flux (Jy), a profile, which we’ve defined above, and a name
 (e.g. JXXXX+XXXX).
 
@@ -105,7 +107,7 @@ Now we can define the pulsar object itself. Out pulsar needs a period
     Smean = 10.0 # The mean flux of the pulsar, here 10.0 Jy (note that this is very bright for a pulsar)
     psr_name = "J0000+0000" # The name of our simulated pulsar
     # Now we define the pulsar
-    pulsar_1 = pss.pulsar.Pulsar(period, Smean, profiles=gauss_prof, name = psr_name)
+    pulsar_1 = pss.pulsar.Pulsar(period, Smean, profiles=gauss_prof, name=psr_name)
 
 The ISM
 -------
@@ -132,7 +134,7 @@ The Telescope
 The last thing we need to define is the telescope object. While you can
 define a telescope with any properties that you like with the pulsar
 signal simulator, it also comes with two pre-defined telescopes: The
-Arecibo Telescope and the Green Bank Telescope 9GBT). We will set up the
+Arecibo Telescope and the Green Bank Telescope (GBT). We will set up the
 GBT as our telescope. The telescope class when set up from a predefined
 telescope needs no additional input.
 
@@ -159,7 +161,7 @@ signal object, and the observation length.
 
 .. code:: python
 
-    pulsar_1.make_pulses(signal_1, tobs = obslen)
+    pulsar_1.make_pulses(signal_1, tobs=obslen)
 
 Next we disperse our pulses, or propagate them through the interstellar
 medium. We can do that easily using the disperse() function of the ISM
@@ -186,12 +188,6 @@ noise variable is set to ‘True’.
 
     tscope.observe(signal_1, pulsar_1, system="820_GUPPI", noise=True)
 
-
-.. parsed-literal::
-
-    WARNING: AstropyDeprecationWarning: The truth value of a Quantity is ambiguous. In the future this will raise a ValueError. [astropy.units.quantity]
-
-
 Looking at the Results
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -207,7 +203,7 @@ plot), both of which are demonstrated below.
     # Get the phases of the pulse
     phases = np.linspace(0, obslen/period, len(signal_1.data[0,:]))
     # Plot just the pulses in the first frequency channels
-    plt.plot(phases, signal_1.data[0,:], label = signal_1.dat_freq[0])
+    plt.plot(phases, signal_1.data[0,:], label=signal_1.dat_freq[0])
     plt.ylabel("Intensity")
     plt.xlabel("Phase")
     plt.legend(loc = 'best')
@@ -222,8 +218,8 @@ plot), both of which are demonstrated below.
 .. code:: python
 
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
-    plt.imshow(signal_1.data, aspect = 'auto', interpolation='nearest', origin = 'lower', \
-               extent = [min(phases), max(phases), signal_1.dat_freq[0].value, signal_1.dat_freq[-1].value])
+    plt.imshow(signal_1.data, aspect='auto', interpolation='nearest', origin='lower', \
+               extent=[min(phases), max(phases), signal_1.dat_freq[0].value, signal_1.dat_freq[-1].value])
     plt.ylabel("Frequency [MHz]")
     plt.xlabel("Phase")
     plt.colorbar(label = "Intensity")
@@ -235,3 +231,19 @@ plot), both of which are demonstrated below.
 .. image:: tutorial_1_files/tutorial_1_26_0.png
 
 
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)

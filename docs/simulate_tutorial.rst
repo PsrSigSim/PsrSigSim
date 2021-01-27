@@ -1,3 +1,5 @@
+
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/simulate_tutorial.ipynb>`_.
 
@@ -23,7 +25,7 @@ notebook.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -100,7 +102,7 @@ units and names as above).
              'backend_name' : "TestBack",
              'tempfile' : None,
             }
-    
+
     sim = pss.simulate.Simulation(psrdict = pdict)
 
 Simulating the Data
@@ -149,7 +151,7 @@ simulated data and plot it below.
 
     # Get the simulated data
     sim_data = sim.signal.data
-    
+
     # Get the phases of the pulse
     phases = np.linspace(0, sim.tobs/sim.period, len(sim_data[0,:]))
     # Plot just the pulses in the first frequency channels
@@ -159,7 +161,7 @@ simulated data and plot it below.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
     plt.imshow(sim_data, aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(phases), max(phases), sim.signal.dat_freq[0].value, sim.signal.dat_freq[-1].value])
@@ -226,10 +228,10 @@ error of the simulated noise to what we have above.
     plt.xlabel("Phase")
     plt.show()
     plt.close()
-    
+
     # Get the simulated data
     sim_data = sim.signal.data
-    
+
     # Get the phases of the pulse
     phases = np.linspace(0, sim.tobs/sim.period, len(sim_data[0,:]))
     # Plot just the pulses in the first frequency channels
@@ -239,7 +241,7 @@ error of the simulated noise to what we have above.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # Make the 2-D plot of intensity v. frequency and pulse phase. You can see the slight dispersive sweep here.
     plt.imshow(sim_data, aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(phases), max(phases), sim.signal.dat_freq[0].value, sim.signal.dat_freq[-1].value])
@@ -262,3 +264,19 @@ error of the simulated noise to what we have above.
 .. image:: simulate_tutorial_files/simulate_tutorial_14_2.png
 
 
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   sim.pulsar.make_pulses(sim.signal, tobs = sim.tobs)

@@ -26,7 +26,7 @@ final simulated data product.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -78,7 +78,7 @@ do these first to better show the different pulse profiles later.
     dm =  15.921200 # pc cm^-3
     # And define the ISM object, note that this class takes no initial arguements
     ism_fold = pss.ism.ISM()
-    
+
     # We intialize the telescope object as the Green Bank Telescope
     tscope = pss.telescope.telescope.GBT()
 
@@ -161,7 +161,7 @@ array, it cannot be a list.
     peaks = np.array([0.25, 0.28, 0.75])
     widths = np.array([0.01, 0.01, 0.03])
     amps = np.array([1.0, 0.1, 0.5])
-    
+
     # Define the profile using multiple Gaussians
     multi_gauss_prof = pss.pulsar.GaussProfile(peak = peaks, width = widths, amp = amps)
     # We want to use 2048 phase bins and just one frequency channel for this test.
@@ -196,7 +196,7 @@ profile.
     # First we load the data array
     path = '../../../psrsigsim/data/J1713+0747_profile.npy'
     J1713_dataprof = np.load(path)
-    
+
     # Now we define the data profile
     J1713_prof = pss.pulsar.DataProfile(J1713_dataprof)
     # Now we can initialize and plot the profile the same way as the Gaussian profile
@@ -332,10 +332,10 @@ process of dispersion and adding noise to the simulated data.
     Smean = 0.009 # The mean flux of the pulsar, J1713+0747 at 1400 MHz from the ATNF pulsar catatlog, here 0.009 Jy
     psr_name_1 = "J0000+0000" # The name of our simulated pulsar with a multi-gaussian profile
     psr_name_2 = "J1713+0747" # The name of our simulated pulsar with a scaled, 2-D profile
-    
+
     # Now we define the pulsar with multiple Gaussians defining its profile
     pulsar_mg = pss.pulsar.Pulsar(period, Smean, profiles=multi_gauss_prof, name = psr_name_1)
-    
+
     # Now we define the pulsar with the scaled J1713+0747 profiles
     pulsar_J1713 = pss.pulsar.Pulsar(period, Smean, profiles=J1713_prof_2D, name = psr_name_2)
 
@@ -384,7 +384,7 @@ We first run the simultion for our fake multi-gaussian profile pulsar.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # And the 2-D plot
     plt.imshow(signal_1713.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713.dat_freq[0].value, signal_1713.dat_freq[-1].value])
@@ -412,7 +412,7 @@ pulsar.
     # We first must redefine the input signal
     signal_1713 = pss.signal.FilterBankSignal(fcent = f0, bandwidth = bw, Nsubband=Nf, sample_rate = f_samp,
                                            sublen = sublen, fold = True) # fold is set to `True`
-    
+
     # define the observation length
     obslen = 60.0*20 # seconds, 20 minutes in total
     # Make the pulses
@@ -446,7 +446,7 @@ pulsar.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # And the 2-D plot
     plt.imshow(signal_1713.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713.dat_freq[0].value, signal_1713.dat_freq[-1].value])
@@ -467,3 +467,20 @@ pulsar.
 
 Here it is clear the the scaling has also been maintained, with
 lower-frequency pulses being brighter than high-frequency pulses.
+
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that producing the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)

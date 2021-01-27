@@ -14,6 +14,13 @@ Installation
     your workflow you will need to build a separate environment in order to use
     `PsrSigSim` and `pint-pulsar`.
 
+.. warning::
+    Additionally, `pint-pulsar` works with `astropy` to keep various
+    clock/position files (such as IERS files)
+    needed for pulsar timing up-to-date. It should be expected that the first
+    time it is imported it will update these files if it has access to an
+    internet connection.
+
 
 Stable release
 --------------
