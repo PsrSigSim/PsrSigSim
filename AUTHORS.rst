@@ -18,3 +18,5 @@ Contributors
 * Paul Brook
 * Michael T. Lam
 * Jacob Hesse
+* Nathan Garver-Daniels
+* Maura A. McLaughlin

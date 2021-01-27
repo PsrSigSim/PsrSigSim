@@ -10,7 +10,6 @@ Contents
 
    readme
    installation
-   usage
    tutorial_1
    tutorial_2
    pulse_profiles_tutorial_3

@@ -1,3 +1,5 @@
+
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/ism_options_tutorial_4.ipynb>`_.
 
@@ -23,7 +25,7 @@ final simulated data product.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -31,7 +33,7 @@ Setting up the Folded Signal
 ----------------------------
 
 Here we will again set up the folded signal class as in previous
-introductory tutorials. We will again simulate a 20 minute long
+introductory tutorials. We will again simulate a 20-minute-long
 observation total, with subintegrations of 1 minute. The other
 simulation parameters will be 64 frequency channels each 12.5 MHz wide
 (for 800 MHz bandwidth) observed with the Green Bank Telescope at L-band
@@ -49,7 +51,7 @@ come from the NANOGrav 11-yr data release.
     Nf = 64 # number of frequency channels
     # We define the pulse period early here so we can similarly define the frequency
     period = 0.00457 # pulsar period in seconds for J1713+0747
-    f_samp = (1.0/period)*2048*10**-6 # sample rate of data in MHz (here 2048 samples across the pulse period
+    f_samp = (1.0/period)*2048*10**-6 # sample rate of data in MHz (here 2048 samples across the pulse period)
     sublen = 60.0 # subintegration length in seconds, or rate to dump data at
     # Now we define our signal
     signal_1713 = pss.signal.FilterBankSignal(fcent = f0, bandwidth = bw, Nsubband=Nf, sample_rate = f_samp,
@@ -64,7 +66,7 @@ come from the NANOGrav 11-yr data release.
 The Pulsar and Profiles
 -----------------------
 
-Now we will load the pulse profile as in Tutorial 3 and intilialize a
+Now we will load the pulse profile as in Tutorial 3 and initialize a
 single ``Pulsar`` object. We will also make the pulses now so that we
 can add different ISM effects to them later.
 
@@ -73,7 +75,7 @@ can add different ISM effects to them later.
     # First we load the data array
     path = 'psrsigsim/data/J1713+0747_profile.npy'
     J1713_dataprof = np.load(path)
-    
+
     # Now we define the data profile
     J1713_prof = pss.pulsar.DataProfile(J1713_dataprof)
 
@@ -82,7 +84,7 @@ can add different ISM effects to them later.
     # Define the values needed for the puslar
     Smean = 0.009 # The mean flux of the pulsar, J1713+0747 at 1400 MHz from the ATNF pulsar catatlog, here 0.009 Jy
     psr_name = "J1713+0747" # The name of our simulated pulsar
-    
+
     # Now we define the pulsar with the scaled J1713+0747 profiles
     pulsar_J1713 = pss.pulsar.Pulsar(period, Smean, profiles=J1713_prof, name = psr_name)
 
@@ -110,10 +112,10 @@ The ISM
 
 Here we will initialize the ISM class and show the various different
 delays that may be added to the simulated data that are due to the ISM
-or are specifically frequency dependent delay. In particular these
+or are specifically frequency-dependent delay. In particular these
 include dispersion due to the ISM, delays due to pulse scatter
-broadening, and other frequency dependen, or “FD”, parameters as defined
-Zhu et al. 2015 and Arzoumanian et al. 2016.
+broadening, and other frequency dependent, or “FD”, parameters as
+defined Zhu et al. 2015 and Arzoumanian et al. 2016.
 
 .. code:: python
 
@@ -126,7 +128,7 @@ Pulse Dispersion
 We first show how to add dispersion of pulsars due to the ISM. This has
 been shown in previous tutorials as well. To do this, we first define
 the dispersion measure, or DM, the number of free electrons along the
-line of sight. This follows a frequeny^-2 relation that can be found in
+line of sight. This follows a frequency^-2 relation that can be found in
 the Handbook of Pulsar Astronomy, by Lorimer and Kramer, 2005. The DM we
 use here is the same as in the NANOGrav 11-yr par file for PSR
 J1713+0747. We show the pulses both before and after dispersion to show
@@ -213,7 +215,7 @@ delays added from FD parameters.
 
     # Re-make the pulses
     pulsar_J1713.make_pulses(signal_1713, tobs = obslen)
-    
+
     # Now add the FD parameter delay, this takes two arguements, the signal and the list of FD parameters
     ism_sim.FD_shift(signal_1713, FD_J1713)
 
@@ -281,7 +283,7 @@ default inputs, and are not necessary for a direct shift.
 
     # Re-make the pulses
     pulsar_J1713.make_pulses(signal_1713, tobs = obslen)
-    
+
     # Now add the FD parameter delay, this takes two arguements, the signal and the list of FD parameters
     ism_sim.scatter_broaden(signal_1713, tau_d, ref_freq, convolve = False, pulsar = None)
 
@@ -301,7 +303,7 @@ default inputs, and are not necessary for a direct shift.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # Show the 2-D plot with the frequency dependent effects
     plt.imshow(signal_1713.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713.dat_freq[0].value, signal_1713.dat_freq[-1].value])
@@ -323,14 +325,14 @@ default inputs, and are not necessary for a direct shift.
 We can see the signal has been shifted in time as a function of
 frequency in both the profiles and in the 2-D power spectrum. But the
 input profiles themselves remain unchanged from the input profile,
-e.g. no eponential scattering convolution as been done.
+e.g. no exponential scattering convolution as been done.
 
 Scattering Tail Convolution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here we show how to scatter broaden the profiles themselves in order to
 add pulse scatter broadening delays. The inputs necessary to do this are
-very similar to dierectly shifting it, with the addition of changing
+very similar to directly shifting it, with the addition of changing
 ``convolve=True`` and adding the ``Pulsar`` object as input. Because
 this acts directly on the profiles, this must be done before
 ``make_pulses()`` is run, and cannot be undone.
@@ -344,13 +346,13 @@ flag, and then make the pulsar again.
 
     # Now we define the data profile
     J1713_prof = pss.pulsar.DataProfile(J1713_dataprof, Nchan=64)
-    
+
     # Now we define the pulsar with the scaled J1713+0747 profiles
     pulsar_J1713 = pss.pulsar.Pulsar(period, Smean, profiles=J1713_prof, name = psr_name)
-    
+
     # Now add the FD parameter delay, this takes two arguements, the signal and the list of FD parameters
     ism_sim.scatter_broaden(signal_1713, tau_d, ref_freq, convolve = True, pulsar = pulsar_J1713)
-    
+
     # Re-make the pulses
     pulsar_J1713.make_pulses(signal_1713, tobs = obslen)
 
@@ -365,7 +367,7 @@ flag, and then make the pulsar again.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # Show the 2-D plot with the frequency dependent effects
     plt.imshow(signal_1713.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713.dat_freq[0].value, signal_1713.dat_freq[-1].value])
@@ -411,7 +413,7 @@ data with the added noise.
     plt.legend(loc = 'best')
     plt.show()
     plt.close()
-    
+
     # And the 2-D plot
     plt.imshow(signal_1713.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713.dat_freq[0].value, signal_1713.dat_freq[-1].value])
@@ -430,3 +432,19 @@ data with the added noise.
 .. image:: ism_options_tutorial_4_files/ism_options_tutorial_4_36_1.png
 
 
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)
