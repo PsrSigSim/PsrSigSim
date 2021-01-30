@@ -1,4 +1,5 @@
 
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/pulse_nulling_example.ipynb>`_.
 
@@ -7,7 +8,7 @@
 Pulse Nulling: Example Notebook
 ===============================
 
-This notebook will serve as an exampe of how to use the pulse nulling
+This notebook will serve as an example of how to use the pulse nulling
 feature of the ``Pulse Signal Simulator``.
 
 .. code:: python
@@ -62,14 +63,14 @@ generated below may be ignored.
 
 
 Now we define an example Gaussian pulse shape. Details on defining a
-pulse shape from a data array may be found in the exmample notebook in
+pulse shape from a data array may be found in the example notebook in
 the docs.
 
 .. code:: python
 
     prof = pss.pulsar.GaussProfile(peak=0.5, width=0.05, amp=1.0)
 
-Now we define an example pulsar
+Now we define an example pulsar.
 
 .. code:: python
 
@@ -91,7 +92,7 @@ the computer or slow it down significantly.
     # make the pulses
     pulsar.make_pulses(null_signal, tobs = ObsTime)
 
-Now lets take a look at what the signals look like.
+Now let’s take a look at what the signals look like.
 
 .. code:: python
 
@@ -138,7 +139,7 @@ pulses are simulated and the nulling fraction is 0.5, it will round to
 null 3 pulses. Additionally, currently only the ability to null the
 pulses randomly is implemented.
 
-Here we will put in a nulling fraction of 33%
+Here we will put in a nulling fraction of 33%.
 
 .. code:: python
 
@@ -196,3 +197,20 @@ will have "_#.txt" added to the end of the ``path`` variable.
 And that’s all that there should be to it. Let us know if you have any
 questions moving forward, or if something is not working as it should
 be.
+
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)
