@@ -1,10 +1,10 @@
-numpy>=1.16.4
+numpy>=1.16.4, <1.20
 scipy>=1.0.0
 matplotlib>=2.1.1
 astropy>=2.0
 pdat>=0.2
 fitsio==0.9.12
--e git+https://github.com/nanograv/PINT.git#egg=PINT
+pint-pulsar>=0.7
 
 pip>=18.1
 Sphinx>=1.8.1

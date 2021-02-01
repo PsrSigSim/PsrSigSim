@@ -94,6 +94,7 @@ def test_getsigparams(PSRfits, signal, pulsar):
     pulsar.make_pulses(signal, tobs = 1.0)
     PSRfits.get_signal_params(signal=signal)
 
+@pytest.mark.filterwarnings('ignore::fitsio.FITSRuntimeWarning')
 def test_savesig(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it.
@@ -104,6 +105,9 @@ def test_savesig(PSRfits, pulsar):
     PSRfits.save(S, pulsar)
     os.remove("data/test.fits")
 
+@pytest.mark.filterwarnings('ignore::fitsio.FITSRuntimeWarning')
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+@pytest.mark.filterwarnings('ignore::astropy.utils.data.CacheMissingWarning')
 def test_savephaseconnect(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it,
@@ -118,6 +122,9 @@ def test_savephaseconnect(PSRfits, pulsar):
                  usePint = True)
     os.remove("data/test.fits")
 
+@pytest.mark.filterwarnings('ignore::fitsio.FITSRuntimeWarning')
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+@pytest.mark.filterwarnings('ignore::astropy.utils.data.CacheMissingWarning')
 def test_savephaseconnect_inc(PSRfits, pulsar):
     """
     Test getting a signal from a fits file, making pulses with it, and save it,
@@ -160,6 +167,8 @@ def test_params(PSRfits, pulsar):
     assert(isinstance(PSRfits.stt_imjd.value, float))
     assert(isinstance(PSRfits.stt_smjd.value, float))
 
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+@pytest.mark.filterwarnings('ignore::astropy.utils.data.CacheMissingWarning')
 def test_gen_polyco(PSRfits):
     """
     Test generating the polyco dictionary.
@@ -179,6 +188,8 @@ def test_gen_metadata(pulsar, PSRfits):
     pri_dict, sub_dict = PSRfits._gen_metadata(S, pulsar, ref_MJD = 56000.0, inc_len = 0.0)
     pri_dict, sub_dict = PSRfits._gen_metadata(S, pulsar, ref_MJD = 56000.0, inc_len = 10.0)
 
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+@pytest.mark.filterwarnings('ignore::astropy.utils.data.CacheMissingWarning')
 def test_edit_header(pulsar):
     """
     Test editing the psrfits file header.

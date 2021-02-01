@@ -1,3 +1,5 @@
+
+
 .. note:: This tutorial was generated from a Jupyter notebook that can be
           downloaded `here <_static/notebooks/telescopes_tutorial_5.ipynb>`_.
 
@@ -28,7 +30,7 @@ classes except for ``telescope``.
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
-    
+
     # import the pulsar signal simulator
     import psrsigsim as pss
 
@@ -36,7 +38,7 @@ The Folded Signal
 -----------------
 
 Here we will use the same ``Signal`` definitions that have been used in
-the previous tutorials. We will again simulate a 20 minute long
+the previous tutorials. We will again simulate a 20-minute-long
 observation total, with subintegrations of 1 minute. The other
 simulation parameters will be 64 frequency channels each 12.5 MHz wide
 (for 800 MHz bandwidth).
@@ -53,11 +55,11 @@ come from the NANOGrav 11-yr data release.
     Nf = 64 # number of frequency channels
     # We define the pulse period early here so we can similarly define the frequency
     period = 0.00457 # pulsar period in seconds for J1713+0747
-    f_samp = (1.0/period)*2048*10**-6 # sample rate of data in MHz (here 2048 samples across the pulse period
+    f_samp = (1.0/period)*2048*10**-6 # sample rate of data in MHz (here 2048 samples across the pulse period)
     sublen = 60.0 # subintegration length in seconds, or rate to dump data at
     # Now we define our signal
     signal_1713_GBT = pss.signal.FilterBankSignal(fcent = f0, bandwidth = bw, Nsubband=Nf, sample_rate = f_samp,
-                                           sublen = sublen, fold = True) # fold is set to `True`
+                                                  sublen = sublen, fold = True) # fold is set to `True`
 
 
 .. parsed-literal::
@@ -68,7 +70,7 @@ come from the NANOGrav 11-yr data release.
 The Pulsar and Profiles
 -----------------------
 
-Now we will load the pulse profile as in Tutorial 3 and intilialize a
+Now we will load the pulse profile as in Tutorial 3 and initialize a
 single ``Pulsar`` object.
 
 .. code:: python
@@ -76,7 +78,7 @@ single ``Pulsar`` object.
     # First we load the data array
     path = 'psrsigsim/data/J1713+0747_profile.npy'
     J1713_dataprof = np.load(path)
-    
+
     # Now we define the data profile
     J1713_prof = pss.pulsar.DataProfile(J1713_dataprof)
 
@@ -85,7 +87,7 @@ single ``Pulsar`` object.
     # Define the values needed for the puslar
     Smean = 0.009 # The mean flux of the pulsar, J1713+0747 at 1400 MHz from the ATNF pulsar catatlog, here 0.009 Jy
     psr_name = "J1713+0747" # The name of our simulated pulsar
-    
+
     # Now we define the pulsar with the scaled J1713+0747 profiles
     pulsar_J1713 = pss.pulsar.Pulsar(period, Smean, profiles=J1713_prof, name = psr_name)
 
@@ -109,9 +111,9 @@ Here we define the ``ISM`` class used to disperse the simulated pulses.
 Defining Telescopes
 -------------------
 
-Here we will show to use the two predefined telescopes, Green Bank and
-Arecibo, and the systems accociated with them. We will also show how to
-define a ``telescope`` from scratch, so that any current or future
+Here we will show how to use the two predefined telescopes, Green Bank
+and Arecibo, and the systems accociated with them. We will also show how
+to define a ``telescope`` from scratch, so that any current or future
 telescopes and systems can be simulated.
 
 Predefined Telescopes
@@ -123,7 +125,7 @@ We start off by showing the two predefined telescopes.
 
     # Define the Green Bank Telescope
     tscope_GBT = pss.telescope.telescope.GBT()
-    
+
     # Define the Arecibo Telescope
     tscope_AO = pss.telescope.telescope.Arecibo()
 
@@ -189,23 +191,23 @@ Defining a new telescope
 
 We can also define a new telescope from scratch. In addition to needing
 the ``Receiver`` and ``Backend`` objects to define at least one system,
-the ``telescope`` also needs the aperature size in meters, the total
-area in meters^2, the system temperature in kelvin, and a name. Here we
-will define a small 3-meter aperature circular radio telescope that you
-might find at a University or somebodies backyard.
+the ``telescope`` also needs the aperture size in meters, the total area
+in meters^2, the system temperature in kelvin, and a name. Here we will
+define a small 3-meter aperture circular radio telescope that you might
+find at a University or somebody’s backyard.
 
 .. code:: python
 
     # We first need to define the telescope parameters
-    aperature = 3.0 # meters
-    area = (0.5*aperature)**2*np.pi # meters^2
+    aperture = 3.0 # meters
+    area = (0.5*aperture)**2*np.pi # meters^2
     Tsys = 250.0 # kelvin, note this is not a realistic system temperature for a backyard telescope
     name = "Backyard_Telescope"
 
 .. code:: python
 
     # Now we can define the telescope
-    tscope_bkyd = pss.telescope.Telescope(aperature, area=area, Tsys=Tsys, name=name)
+    tscope_bkyd = pss.telescope.Telescope(aperture, area=area, Tsys=Tsys, name=name)
 
 Now similarly to defining a new system before, we must add a system to
 our new telescope by defining a receiver and a backend. Since this just
@@ -215,7 +217,7 @@ previously defined telescope.
 .. code:: python
 
     rcvr_bkyd = pss.telescope.receiver.Receiver(fcent=1400, bandwidth=20, name="Lband")
-    
+
     backend_bkyd = pss.telescope.backend.Backend(samprate=0.25, name="Laptop") # Note this is not a realistic sampling rate
 
 .. code:: python
@@ -299,7 +301,7 @@ Arecibo, and then our newly defined backyard telescope.
 
     # We first plot the first two pulses in frequency-time space to show the undispersed pulses
     time = np.linspace(0, obslen, len(signal_1713_GBT.data[0,:]))
-    
+
     # Since we know there are 2048 bins per pulse period, we can index the appropriate amount
     plt.plot(time[:4096], signal_1713_GBT.data[0,:4096], label = signal_1713_GBT.dat_freq[0])
     plt.plot(time[:4096], signal_1713_GBT.data[-1,:4096], label = signal_1713_GBT.dat_freq[-1])
@@ -309,7 +311,7 @@ Arecibo, and then our newly defined backyard telescope.
     plt.title("L-band GBT Simulation")
     plt.show()
     plt.close()
-    
+
     # And the 2-D plot
     plt.imshow(signal_1713_GBT.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713_GBT.dat_freq[0].value, signal_1713_GBT.dat_freq[-1].value])
@@ -339,7 +341,7 @@ Arecibo, and then our newly defined backyard telescope.
     plt.title("L-band AO Simulation")
     plt.show()
     plt.close()
-    
+
     # And the 2-D plot
     plt.imshow(signal_1713_AO.data[:,:4096], aspect = 'auto', interpolation='nearest', origin = 'lower', \
                extent = [min(time[:4096]), max(time[:4096]), signal_1713_AO.dat_freq[0].value, signal_1713_AO.dat_freq[-1].value])
@@ -383,3 +385,19 @@ over the same amount of time, since the output is pure noise. The
 observation of a simulated pulsar with any given telescope that can be
 defined.
 
+Note about randomly generated pulses and noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``PsrSigSim`` uses ``numpy.random`` under the hood in order to generate
+the radio pulses and various types of noise. If a user desires or
+requires that this randomly generated data is reproducible we recommend
+using a call the seed generator native to ``Numpy`` before calling the
+function that produces the random noise/pulses. Newer versions of
+``Numpy`` are moving toward slightly different
+`functionality/syntax <https://numpy.org/doc/stable/reference/random/index.html>`__,
+but is essentially used in the same way.
+
+::
+
+   numpy.random.seed(1776)
+   pulsar_1.make_pulses(signal_1, tobs=obslen)

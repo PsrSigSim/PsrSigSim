@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division,
 import numpy as np
 from ..utils.utils import make_quant
 from .portraits import PulsePortrait, GaussPortrait, DataPortrait, UserPortrait
-
+from astropy import log
 from scipy.interpolate import CubicSpline as _cubeSpline
 
 class PulseProfile(PulsePortrait):
@@ -87,8 +87,8 @@ class GaussProfile(GaussPortrait):
         amp (float): amplitude of pulse relative to other pulses, default: ``1``
 
     Pulses are normalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
-    more details.
+    See the `Pulsar._make_amp_pulses()`, `Pulsar._make_pow_pulses()`, and
+    `Pulsar.make_pulses()` methods for more details.
     """
     def __init__(self, peak=0.5, width=0.05, amp=1):
         #TODO: error checking for array length consistency?
@@ -130,8 +130,8 @@ class UserProfile(PulseProfile):
             array-like input, a phase or list of phases.
 
     Profile is renormalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
-    more details.
+    See the `Pulsar._make_amp_pulses()`, `Pulsar._make_pow_pulses()`, and
+    `Pulsar.make_pulses()` methods for more details.
     """
     def __init__(self, profile_func):
         # _generator is not a property, it has no setter or getter
@@ -168,10 +168,16 @@ class DataProfile(DataPortrait):
             rotation period.
 
     Profile is renormalized so that maximum is 1.
-    See draw_voltage_pulse, draw_intensity_pulse and make_pulses() methods for
-    more details.
+    See the `Pulsar._make_amp_pulses()`, `Pulsar._make_pow_pulses()`, and
+    `Pulsar.make_pulses()` methods for more details.
     """
     def __init__(self, profiles, phases=None, Nchan=None):
+        # Check that no profile bins are below zero intensity
+        if np.any(profiles < 0.0):
+            log.warning("Some phase bins of input profile are negative, replacing them with zeros...")
+            neg_idxs = np.where(profiles < 0.0)[0]
+            profiles[neg_idxs] = 0.0
+            
         self._phases = phases
         if profiles.ndim == 1:
             if Nchan is None:

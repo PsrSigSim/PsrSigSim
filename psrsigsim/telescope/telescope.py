@@ -83,6 +83,9 @@ class Telescope(object):
             If True will return the resampled signal as a numpy array. Otherwise
             will not return anything.
         """
+        if signal.sigtype in ["RFSignal", "BasebandSignal"]:
+            raise NotImplementedError
+
         msg = "sig samp freq = {0:.3f} kHz\ntel samp freq = {1:.3f} kHz"
         rcvr = self.systems[system][0]
         bak = self.systems[system][1]
@@ -90,10 +93,11 @@ class Telescope(object):
         sig_in = signal.data
         dt_tel = 1/(2*bak.samprate)
         # if we have subintegrations, need to get new dt_sig
-        if signal.sublen:
-            dt_sig = signal.sublen / (signal.nsamp/signal.nsub) # bins per subint; s
+        if (signal.sigtype == "FilterBankSignal"
+            and signal.sublen is not None):
+            dt_sig = signal.sublen / (signal.nsamp/signal.nsub)
         else:
-            dt_sig = signal.tobs / signal.nsamp # unit: s
+            dt_sig = signal.tobs / signal.nsamp
 
         if dt_sig == dt_tel:
             out = np.array(sig_in, dtype=float)
@@ -101,18 +105,15 @@ class Telescope(object):
         elif dt_tel % dt_sig == 0:
             SampFactor = int(dt_tel // dt_sig)
             new_Nt = int(signal.nsamp//SampFactor)
-            if signal.sigtype == 'voltage':
-                out = np.zeros((signal.Npols, new_Nt))
-            else:
-                out = np.zeros((signal.Nchan, new_Nt))
+            out = np.zeros((signal.Nchan, new_Nt))
             for ii, row in enumerate(sig_in):
                 out[ii, :] = down_sample(row, SampFactor)
             print(msg.format((1/dt_sig).to("kHz").value, (1/dt_tel).to("kHz").value))
 
         elif dt_tel > dt_sig:
             new_Nt = int(signal.tobs // dt_tel)
-            if signal.sigtype == 'voltage':
-                out = np.zeros((signal.Npols, new_Nt))
+            if signal.sigtype in ["RFSignal", "BasebandSignal"]:
+                out = np.zeros((signal.Nchan, new_Nt))
             else:
                 out = np.zeros((signal.Nchan, new_Nt))
             for ii, row in enumerate(sig_in):
@@ -127,10 +128,10 @@ class Telescope(object):
         if noise:
             # The noise is getting added to the data in the radiometer noise function; this function as no output
             # Need to look into this resampling as well
-            rcvr.radiometer_noise(signal, pulsar, gain=self.gain)
+            rcvr.radiometer_noise(signal, pulsar,
+                                  gain=self.gain, Tsys=self.Tsys)
 
-
-        if signal.sigtype == 'voltage':
+        if signal.sigtype in ["RFSignal", "BasebandSignal"]:
             # Difference between gauss and gamma draw here?
             clip = signal._draw_max
 
