@@ -6,8 +6,8 @@ PsrSigSim
 .. image:: https://img.shields.io/pypi/v/psrsigsim.svg
         :target: https://pypi.python.org/pypi/psrsigsim
 
-.. image:: https://img.shields.io/travis/PsrSigSim/PsrSigSim.svg
-        :target: https://travis-ci.org/PsrSigSim/PsrSigSim
+.. image:: https://github.com/PsrSigSim/PsrSigSim/workflows/PsrSigSim%20Build/badge.svg
+        :target: https://github.com/PsrSigSim/PsrSigSim/actions
 
 .. image:: https://readthedocs.org/projects/psrsigsim/badge/?version=latest
         :target: https://psrsigsim.readthedocs.io/en/latest/?badge=latest
